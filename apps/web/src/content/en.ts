@@ -107,6 +107,9 @@ export const en = {
     mission:
       "To connect and unite partners across the world in evidence-based development that lasts, empowering people, communities and institutions, with every contribution accounted for from start to finish.",
     legacy: "Inspired by the legacy of Misr El-Kheir.",
+    vmEyebrow: "Vision & mission", // [P]
+    vmTitle: "Where we are going, and how we get there.", // [P]
+    vmTagline: "Lasting Change, Built Together.", // [V] tagline
     captionA: "Alexandria · Economic Empowerment",
     captionB: "Luxor",
   },
@@ -246,6 +249,8 @@ export const en = {
     text: "Join partners across the world behind development that lasts, with every contribution accounted for from start to finish.",
     ctaPrimary: "Give today",
     ctaSecondary: "Explore our programmes",
+    chipProgrammes: "Nine programmes, one strategy", // [V] Brand p.24
+    chipAccount: "Every contribution accounted for", // [V]
   },
   footer: {
     tagline: "Lasting Change, Built Together.",

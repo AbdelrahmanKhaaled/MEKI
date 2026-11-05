@@ -9,20 +9,13 @@ import { GiveButton } from "./DonateProvider";
 
 export function Header({ t, locale }: { t: Dict; locale: Locale }) {
   const [scrolled, setScrolled] = useState(false);
-  const [hidden, setHidden] = useState(false);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<string>("");
   const other = locale === "en" ? "ar" : "en";
 
   useEffect(() => {
-    let last = window.scrollY;
-    const onScroll = () => {
-      const y = window.scrollY;
-      setScrolled(y > 40);
-      setHidden(y > 600 && y > last + 4);
-      if (y < last - 4) setHidden(false);
-      last = y;
-    };
+    // Stable sticky header: it never hides; it only switches to a solid surface after scrolling.
+    const onScroll = () => setScrolled(window.scrollY > 40);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -57,9 +50,7 @@ export function Header({ t, locale }: { t: Dict; locale: Locale }) {
         {t.nav.skip}
       </a>
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-[transform,background-color,box-shadow,padding] duration-500 ease-[var(--ease-premium)] ${
-          hidden && !open ? "-translate-y-full" : "translate-y-0"
-        } ${solid ? "bg-paper/90 py-2.5 shadow-[0_1px_0_var(--color-stone-line),0_10px_30px_-20px_rgb(19_36_31/0.4)] backdrop-blur-xl" : "bg-transparent py-5"}`}
+        className={`fixed inset-x-0 top-0 z-50 transition-[background-color,box-shadow,padding] duration-500 ease-[var(--ease-premium)] ${solid ? "bg-paper/90 py-2.5 shadow-[0_1px_0_var(--color-stone-line),0_10px_30px_-20px_rgb(19_36_31/0.4)] backdrop-blur-xl" : "bg-transparent py-5"}`}
       >
         <div className="container-x flex items-center justify-between gap-6">
           <a href="#top" aria-label={t.nav.home} className="relative shrink-0">

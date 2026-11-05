@@ -68,9 +68,9 @@ export function MotionRoot({ children }: { children: React.ReactNode }) {
               kind === "left" ? { x: -60 * dir } : kind === "right" ? { x: 60 * dir } : kind === "scale" ? { scale: 0.92 } : { y: 48 };
             gsap.fromTo(
               el,
-              { opacity: 0, ...from },
+              { opacity: 0, filter: "blur(6px)", ...from },
               {
-                opacity: 1, x: 0, y: 0, scale: 1, duration: 1.15, ease: "expo.out",
+                opacity: 1, filter: "blur(0px)", x: 0, y: 0, scale: 1, duration: 1.3, ease: "power4.out", clearProps: "filter",
                 scrollTrigger: { trigger: el, start: "top 88%", once: true },
               },
             );
@@ -81,9 +81,9 @@ export function MotionRoot({ children }: { children: React.ReactNode }) {
             const items = (group as HTMLElement).querySelectorAll("[data-stagger-item]");
             gsap.fromTo(
               items,
-              { opacity: 0, y: 40 },
+              { opacity: 0, y: 44, filter: "blur(4px)" },
               {
-                opacity: 1, y: 0, duration: 1, ease: "expo.out", stagger: 0.09,
+                opacity: 1, y: 0, filter: "blur(0px)", duration: 1.15, ease: "power4.out", stagger: 0.1, clearProps: "filter",
                 scrollTrigger: { trigger: group, start: "top 85%", once: true },
               },
             );

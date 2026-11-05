@@ -5,7 +5,8 @@ import { DonateProvider } from "@/components/DonateProvider";
 import { MotionRoot } from "@/components/MotionRoot";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/sections/Hero";
-import { TrustStrip, About, HowWeWork } from "@/components/sections/TrustAbout";
+import { TrustStrip, About, VisionMission } from "@/components/sections/TrustAbout";
+import { HowWeWork } from "@/components/sections/HowWeWork";
 import { Impact } from "@/components/sections/Impact";
 import { Programmes } from "@/components/sections/Programmes";
 import { Enabling } from "@/components/sections/Enabling";
@@ -36,6 +37,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <Hero t={t} locale={locale} />
           <TrustStrip t={t} />
           <About t={t} />
+          <VisionMission t={t} />
           <HowWeWork t={t} />
           <Impact t={t} />
           <Programmes t={t} />

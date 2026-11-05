@@ -188,6 +188,34 @@ dialog.donate-dialog[open] { animation: panelIn 0.5s var(--ease-premium); }
 dialog.donate-dialog[open]::backdrop { animation: fadeIn 0.4s ease; }
 @keyframes fadeIn { from { opacity: 0; } }
 
+/* ---------- Ambient motion primitives (all disabled by the reduced-motion rule above) ---------- */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin-slow { animation: spin 60s linear infinite; }
+.spin-slower-rev { animation: spin 90s linear infinite reverse; }
+@keyframes floatY { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+.float-y { animation: floatY 7s ease-in-out infinite; }
+@keyframes pulseSoft { 0%, 100% { opacity: 0.55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+.pulse-soft { animation: pulseSoft 6s ease-in-out infinite; }
+@keyframes kenburns { from { transform: scale(1.05); } to { transform: scale(1.18) translate(-2%, -2%); } }
+.kenburns { animation: kenburns 22s ease-in-out infinite alternate; }
+
+/* ---------- How we work: progressive activation along the wave ---------- */
+.how-dot { transition: background-color 0.7s var(--ease-premium), color 0.7s var(--ease-premium), border-color 0.7s, transform 0.7s var(--ease-premium), box-shadow 0.7s; }
+.how-ring { transition: box-shadow 0.9s var(--ease-premium), transform 0.9s var(--ease-premium); transform: scale(0.8); }
+.how-num { transition: transform 0.6s var(--ease-premium), opacity 0.6s; transform: scale(0.6); opacity: 0; }
+.how-verb { color: color-mix(in oklab, var(--color-meki-green) 45%, var(--color-limestone)); transition: color 0.7s var(--ease-premium); }
+.how-step { transition: opacity 0.7s var(--ease-premium); opacity: 0.55; }
+[data-step].is-active .how-dot { background: var(--color-deep-green); color: var(--color-glow); border-color: var(--color-deep-green); transform: scale(1.06); box-shadow: 0 18px 40px -16px rgb(11 59 48 / 0.6); }
+[data-step].is-active .how-ring { transform: scale(1.35); box-shadow: 0 0 0 1px rgb(214 161 70 / 0.5), 0 0 0 14px rgb(214 161 70 / 0.08); }
+[data-step].is-active .how-num { transform: scale(1); opacity: 1; }
+.how-step.is-active { opacity: 1; }
+.how-step.is-active .how-verb { color: var(--color-meki-green); }
+.how-node:hover .how-dot { transform: scale(1.12) rotate(-6deg); }
+
+/* ---------- Vision & mission cards ---------- */
+.vm-card { transition: transform 0.8s var(--ease-premium), box-shadow 0.8s var(--ease-premium); }
+.vm-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lift); }
+
 /* Campaign carousel aligns its first card with the page container */
 .campaign-track {
   --gutter: max(clamp(1rem, 4vw, 2.5rem), calc((100vw - 82rem) / 2 + clamp(1rem, 4vw, 2.5rem)));
