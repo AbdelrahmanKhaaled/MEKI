@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useId, useRef, useState } from "react";
 import { Heart, Lock, ChevronDown } from "lucide-react";
 import gsap from "gsap";
@@ -9,6 +10,19 @@ import { useDonate } from "./DonateProvider";
 
 // PREVIEW amounts: suggested by the development team; final amounts/currencies to be confirmed.
 const AMOUNTS = [25, 50, 100, 250];
+
+/**
+ * POTENTIAL payment methods (preview only — no gateway selected or integrated).
+ * Official logo files supplied in public/payments; only methods with a local asset are shown.
+ * `pad` compensates for differing built-in whitespace so the marks read at a similar size.
+ */
+const METHODS = [
+  { src: "/payments/visa.png", alt: "Visa", w: 2048, h: 1152, pad: "px-1.5 py-0.5" },
+  { src: "/payments/mastercard.png", alt: "Mastercard", w: 568, h: 352, pad: "px-2.5 py-1.5" },
+  { src: "/payments/apple-pay.png", alt: "Apple Pay", w: 697, h: 286, pad: "px-2.5 py-2" },
+];
+
+const label = "mb-1.5 block text-[0.7rem] font-bold uppercase tracking-[0.16em] text-body-grey";
 
 export function QuickDonate({ t, locale }: { t: Dict; locale: Locale }) {
   const q = t.quick;
@@ -21,7 +35,7 @@ export function QuickDonate({ t, locale }: { t: Dict; locale: Locale }) {
   const totalRef = useRef<HTMLSpanElement>(null);
 
   const value = amount === "other" ? Number(custom) || 0 : amount;
-  const label = value > 0 ? (freq === "monthly" ? q.giveMonthly : q.give).replace("{amount}", formatUSD(value, locale)) : q.chooseAmount;
+  const cta = value > 0 ? (freq === "monthly" ? q.giveMonthly : q.give).replace("{amount}", formatUSD(value, locale)) : q.chooseAmount;
 
   const pulse = () => {
     if (!totalRef.current || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -39,24 +53,26 @@ export function QuickDonate({ t, locale }: { t: Dict; locale: Locale }) {
       id="give"
       onSubmit={submit}
       aria-labelledby={`${id}-title`}
-      className="relative w-full overflow-hidden rounded-[2rem] bg-paper/95 p-6 text-ink shadow-[var(--shadow-lift)] ring-1 ring-white/40 backdrop-blur-md sm:p-8"
+      className="relative w-full overflow-hidden rounded-[1.75rem] bg-paper/95 p-5 text-ink shadow-[var(--shadow-lift)] ring-1 ring-white/40 backdrop-blur-md sm:px-6 sm:py-6"
     >
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-harvest-gold via-glow to-harvest-gold" />
-      <div className="mb-6 flex items-center justify-between gap-3">
-        <h2 id={`${id}-title`} className="text-[1.9rem] leading-none">
+
+      {/* Title row */}
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 id={`${id}-title`} className="text-[1.6rem] leading-none sm:text-[1.7rem]">
           {q.title}
         </h2>
         <span className="preview-badge">{q.preview}</span>
       </div>
 
       {/* Frequency */}
-      <fieldset className="mb-5">
+      <fieldset className="mb-4">
         <legend className="sr-only">{q.frequencyLabel}</legend>
         <div className="relative grid grid-cols-2 rounded-full bg-limestone p-1">
           <span
             aria-hidden="true"
             className={`absolute inset-y-1 w-[calc(50%-0.25rem)] rounded-full bg-deep-green shadow transition-[inset-inline-start] duration-500 ease-[var(--ease-premium)] ${
-              freq === "once" ? "start-1" : "start-[calc(50%+0rem)]"
+              freq === "once" ? "start-1" : "start-1/2"
             }`}
           />
           {(["once", "monthly"] as const).map((f) => (
@@ -73,7 +89,7 @@ export function QuickDonate({ t, locale }: { t: Dict; locale: Locale }) {
                 className="peer sr-only"
               />
               <span
-                className={`flex min-h-11 items-center justify-center rounded-full text-sm font-bold transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-harvest-gold ${
+                className={`flex min-h-11 items-center justify-center rounded-full text-sm font-bold transition-colors duration-300 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-harvest-gold ${
                   freq === f ? "text-white" : "text-body-grey hover:text-ink"
                 }`}
               >
@@ -85,93 +101,114 @@ export function QuickDonate({ t, locale }: { t: Dict; locale: Locale }) {
       </fieldset>
 
       {/* Destination */}
-      <label htmlFor={`${id}-dest`} className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-body-grey">
+      <label htmlFor={`${id}-dest`} className={label}>
         {q.whereLabel}
       </label>
-      <div className="relative mb-5">
+      <div className="group relative mb-4">
         <select
           id={`${id}-dest`}
           value={dest}
           onChange={(e) => setDest(e.target.value)}
-          className="min-h-12 w-full appearance-none rounded-2xl border border-stone-line bg-paper pe-10 ps-4 text-[0.95rem] font-bold text-ink transition hover:border-meki-green focus:border-meki-green"
+          className="min-h-11 w-full cursor-pointer appearance-none truncate rounded-xl border border-stone-line bg-paper pe-10 ps-4 text-[0.92rem] font-bold text-ink transition-[border-color,box-shadow] duration-300 hover:border-meki-green/60 focus:border-meki-green focus:shadow-[0_0_0_4px_rgb(0_128_102/0.12)] focus:outline-none"
         >
           <option>{q.whereDefault}</option>
           {t.programmes.items.map((p) => (
             <option key={p.slug}>{p.name}</option>
           ))}
         </select>
-        <ChevronDown className="pointer-events-none absolute end-4 top-1/2 size-4 -translate-y-1/2 text-body-grey" aria-hidden="true" />
+        <ChevronDown
+          className="pointer-events-none absolute end-3.5 top-1/2 size-4 -translate-y-1/2 text-body-grey transition-transform duration-300 group-hover:translate-y-[-40%]"
+          aria-hidden="true"
+        />
       </div>
 
-      {/* Amounts */}
-      <fieldset className="mb-5">
-        <legend className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-body-grey">{q.amountLabel}</legend>
-        <div className="grid grid-cols-4 gap-2">
-          {AMOUNTS.map((a) => (
-            <label key={a} className="cursor-pointer">
-              <input
-                type="radio"
-                name="amount"
-                className="peer sr-only"
-                checked={amount === a}
-                onChange={() => {
-                  setAmount(a);
-                  pulse();
-                }}
-              />
-              <span
-                className={`flex min-h-12 items-center justify-center rounded-2xl border text-[0.95rem] font-bold transition-all duration-300 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-harvest-gold ${
-                  amount === a
-                    ? "scale-[1.04] border-harvest-gold bg-harvest-gold text-deep-green-3 shadow-[0_10px_24px_-10px_rgb(214_161_70/0.9)]"
-                    : "border-stone-line bg-paper text-ink hover:-translate-y-0.5 hover:border-harvest-gold"
-                }`}
-              >
-                {formatUSD(a, locale)}
-              </span>
-            </label>
-          ))}
+      {/* Amounts: one balanced row (wraps to 2×2 below 370px) */}
+      <fieldset className="mb-4">
+        <legend className={label}>{q.amountLabel}</legend>
+        <div className="grid grid-cols-2 gap-2 min-[370px]:grid-cols-4">
+          {AMOUNTS.map((a) => {
+            const on = amount === a;
+            return (
+              <label key={a} className="cursor-pointer">
+                <input
+                  type="radio"
+                  name="amount"
+                  className="peer sr-only"
+                  checked={on}
+                  onChange={() => {
+                    setAmount(a);
+                    pulse();
+                  }}
+                />
+                <span
+                  className={`flex min-h-11 items-center justify-center rounded-xl border text-[0.95rem] font-bold tabular-nums transition-all duration-300 ease-[var(--ease-premium)] peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-harvest-gold ${
+                    on
+                      ? "border-harvest-gold bg-harvest-gold text-deep-green-3 shadow-[0_8px_20px_-10px_rgb(214_161_70/0.9)]"
+                      : "border-stone-line bg-paper text-ink hover:-translate-y-0.5 hover:border-harvest-gold hover:shadow-[0_8px_18px_-12px_rgb(19_36_31/0.35)]"
+                  }`}
+                >
+                  {formatUSD(a, locale)}
+                </span>
+              </label>
+            );
+          })}
         </div>
-        <div className="mt-2 grid grid-cols-[auto_1fr] items-center gap-2">
-          <label className="cursor-pointer">
-            <input type="radio" name="amount" className="peer sr-only" checked={amount === "other"} onChange={() => setAmount("other")} />
-            <span
-              className={`flex min-h-12 items-center rounded-2xl border px-4 text-sm font-bold transition peer-focus-visible:outline-2 peer-focus-visible:outline-harvest-gold ${
-                amount === "other" ? "border-deep-green bg-deep-green text-white" : "border-stone-line text-body-grey hover:border-harvest-gold"
-              }`}
-            >
-              {q.other}
-            </span>
-          </label>
-          <div className="relative">
-            <span className="pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 font-bold text-body-grey">$</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              min={1}
-              step={1}
-              aria-label={q.otherLabel}
-              placeholder={q.otherPlaceholder}
-              value={custom}
-              onFocus={() => setAmount("other")}
-              onChange={(e) => setCustom(e.target.value.replace(/[^\d]/g, "").slice(0, 7))}
-              className="min-h-12 w-full rounded-2xl border border-stone-line bg-paper pe-4 ps-9 font-bold text-ink placeholder:font-normal placeholder:text-body-grey/70 focus:border-meki-green"
-            />
-          </div>
+
+        {/* Custom amount */}
+        <div className="relative mt-2">
+          <span
+            className={`pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-sm font-bold transition-colors ${amount === "other" ? "text-meki-green" : "text-body-grey"}`}
+          >
+            $
+          </span>
+          <input
+            type="text"
+            inputMode="numeric"
+            aria-label={q.otherLabel}
+            placeholder={`${q.other} · ${q.otherPlaceholder}`}
+            value={custom}
+            onFocus={() => setAmount("other")}
+            onChange={(e) => {
+              setAmount("other");
+              setCustom(e.target.value.replace(/[^\d]/g, "").slice(0, 7));
+            }}
+            className={`min-h-11 w-full rounded-xl border bg-paper pe-4 ps-9 text-[0.95rem] font-bold text-ink transition-[border-color,box-shadow] duration-300 placeholder:font-normal placeholder:text-body-grey/75 hover:border-meki-green/60 focus:border-meki-green focus:shadow-[0_0_0_4px_rgb(0_128_102/0.12)] focus:outline-none ${
+              amount === "other" ? "border-meki-green" : "border-stone-line"
+            }`}
+          />
         </div>
       </fieldset>
 
-      <button type="submit" disabled={value <= 0} className="btn btn-gold min-h-14 w-full text-base disabled:cursor-not-allowed disabled:opacity-60">
+      {/* Primary CTA */}
+      <button
+        type="submit"
+        disabled={value <= 0}
+        className="btn btn-gold min-h-[3.25rem] w-full rounded-xl text-base focus-visible:outline-offset-4 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+      >
         <Heart className="size-5" strokeWidth={1.8} aria-hidden="true" />
         <span ref={totalRef} aria-live="polite">
-          {label}
+          {cta}
         </span>
       </button>
 
-      <p className="mt-4 flex items-start gap-2 text-[0.8rem] leading-snug text-body-grey">
-        <Lock className="mt-0.5 size-3.5 shrink-0 text-meki-green" aria-hidden="true" />
+      <p className="mt-2.5 flex items-center justify-center gap-1.5 text-center text-[0.72rem] leading-snug text-body-grey">
+        <Lock className="size-3.5 shrink-0 text-meki-green" aria-hidden="true" />
         <span>{q.secure}</span>
       </p>
-      <p className="mt-2 border-t border-dashed border-stone-line pt-3 text-[0.78rem] leading-snug text-gold-text">{q.note}</p>
+
+      {/* Potential payment methods — logos only, preview (not active) */}
+      <ul aria-label={q.methodsAria} className="mt-4 flex items-center justify-center gap-2 border-t border-stone-line pt-4">
+        {METHODS.map((m) => (
+          <li
+            key={m.src}
+            className={`relative h-9 w-[3.75rem] rounded-lg border border-stone-line bg-white transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_6px_14px_-8px_rgb(19_36_31/0.35)] ${m.pad}`}
+          >
+            <span className="relative block size-full">
+              <Image src={m.src} alt={m.alt} fill sizes="60px" className="object-contain" />
+            </span>
+          </li>
+        ))}
+      </ul>
     </form>
   );
 }

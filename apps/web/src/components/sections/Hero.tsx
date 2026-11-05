@@ -15,13 +15,13 @@ export function Hero({ t, locale }: { t: Dict; locale: Locale }) {
       <Pattern opacity={0.07} className="-z-10" />
       <PointsOfLight className="-z-10" />
 
-      <div className="container-x relative grid min-h-[100svh] items-center gap-12 pb-40 pt-32 lg:grid-cols-12 lg:gap-8 lg:pb-48 lg:pt-36">
+      <div className="container-x relative grid min-h-[100svh] items-center gap-12 pb-40 pt-32 lg:pb-48 lg:pt-36 xl:grid-cols-12 xl:gap-8">
         {/* Copy */}
-        <div className="relative z-10 lg:col-span-6 xl:col-span-6">
+        <div className="relative z-10 xl:col-span-5">
           <p data-hero-item className="eyebrow eyebrow-dark mb-7">
             {h.eyebrow}
           </p>
-          <h1 className="display mb-8">
+          <h1 className="mb-8 text-[clamp(2.75rem,7vw,5.25rem)] xl:text-[clamp(3.5rem,5.3vw,5.25rem)]">
             <span data-hero-item className="block">
               {h.titleA}
             </span>
@@ -43,10 +43,11 @@ export function Hero({ t, locale }: { t: Dict; locale: Locale }) {
           </div>
         </div>
 
-        {/* Layered visual: arched photo + floating Quick Donate card */}
-        <div className="relative lg:col-span-6 lg:min-h-[720px]">
-          <GoldArc className="-start-10 -top-10 hidden size-[420px] lg:block" />
-          <div className="relative mx-auto w-[78%] max-w-[420px] sm:w-[62%] lg:absolute lg:start-0 lg:top-4 lg:mx-0 lg:w-[58%]">
+        {/* Layered visual: arched photo + floating Quick Donate card.
+            Mobile: stacked · Tablet/laptop: photo + card side by side · Desktop (xl): layered overlap. */}
+        <div className="relative md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,430px)] md:items-center md:gap-6 xl:col-span-7 xl:block xl:min-h-[640px]">
+          <GoldArc className="-start-10 -top-10 hidden size-[420px] xl:block" />
+          <div className="relative mx-auto w-[78%] max-w-[420px] sm:w-[62%] md:mx-0 md:w-full md:max-w-[380px] md:justify-self-center xl:absolute xl:start-0 xl:top-2 xl:w-[44%] xl:max-w-none">
             <div className="relative aspect-[3/4] overflow-hidden rounded-t-full rounded-b-[2.5rem] shadow-[0_40px_80px_-30px_rgb(0_0_0/0.6)] ring-1 ring-glow/30">
               <div data-hero-image className="absolute inset-[-8%]">
                 <div data-parallax="0.06" className="absolute inset-0">
@@ -55,24 +56,24 @@ export function Hero({ t, locale }: { t: Dict; locale: Locale }) {
                     alt=""
                     fill
                     priority
-                    sizes="(min-width: 1024px) 30vw, 70vw"
+                    sizes="(min-width: 1280px) 26vw, (min-width: 768px) 45vw, 75vw"
                     className="object-cover object-[50%_30%]"
                   />
                 </div>
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-deep-green-3/50 via-transparent to-transparent" />
             </div>
-            <p className="absolute end-4 top-[18%] inline-flex items-center gap-1.5 rounded-full bg-deep-green-3/70 px-3 py-1.5 text-xs font-bold text-mint-line backdrop-blur">
+            <p className="absolute start-5 top-[12%] inline-flex items-center gap-1.5 rounded-full bg-deep-green-3/70 px-3 py-1.5 text-xs font-bold text-mint-line backdrop-blur">
               <MapPin className="size-3.5 text-glow" aria-hidden="true" />
               {h.photoCaption}
             </p>
             {/* secondary layered photo */}
-            <div className="absolute -bottom-8 -start-8 hidden size-32 overflow-hidden rounded-full border-4 border-deep-green shadow-xl sm:block lg:-start-14 lg:size-36">
+            <div className="absolute -bottom-8 -start-8 hidden size-32 overflow-hidden rounded-full border-4 border-deep-green shadow-xl sm:block md:-start-3 xl:-start-14 xl:size-36">
               <Image src={media["water-pier"].src} alt="" fill sizes="144px" className="object-cover" />
             </div>
           </div>
 
-          <div data-hero-card className="relative z-10 mx-auto -mt-20 max-w-[440px] lg:absolute lg:end-0 lg:top-[22%] lg:mt-0 lg:w-[58%] xl:w-[52%]">
+          <div data-hero-card className="relative z-10 mx-auto -mt-16 w-full max-w-[460px] md:mt-0 md:max-w-none xl:absolute xl:end-0 xl:top-[12%] xl:w-[420px]">
             <QuickDonate t={t} locale={locale} />
           </div>
         </div>
@@ -80,7 +81,7 @@ export function Hero({ t, locale }: { t: Dict; locale: Locale }) {
 
       <a
         href="#who-we-are"
-        className="absolute bottom-28 start-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[0.7rem] font-bold uppercase tracking-[0.3em] text-mint-line/80 transition hover:text-glow lg:flex rtl:translate-x-1/2"
+        className="absolute bottom-28 start-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-[0.7rem] font-bold uppercase tracking-[0.3em] text-mint-line/80 transition hover:text-glow xl:flex rtl:translate-x-1/2"
       >
         {h.scroll}
         <ArrowDown className="size-4 animate-bounce" aria-hidden="true" />

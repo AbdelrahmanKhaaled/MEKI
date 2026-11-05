@@ -90,6 +90,7 @@ export const en = {
     chooseAmount: "Choose an amount",
     note: "Online giving opens once our payment partner and approvals are in place. No payment is taken in this preview.",
     secure: "Card details will only ever be entered on a secure, provider-hosted checkout.",
+    methodsAria: "Payment methods under consideration. None are active yet; final methods depend on the payment provider.",
   },
   trust: [
     { title: "Every contribution accounted for", text: "From start to finish." },
