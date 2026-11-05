@@ -1,0 +1,199 @@
+@import "tailwindcss";
+
+/* MEKI brand tokens — values from brand-kit/02_Colour/MEKI_Colours.css (v1.0, Oct 2026). */
+@theme {
+  --color-meki-green: #008066;
+  --color-meki-green-dark: #006b55;
+  --color-deep-green: #0b3b30;
+  --color-deep-green-2: #0f4a3c;
+  --color-deep-green-3: #072a22;
+  --color-harvest-gold: #d6a146;
+  --color-harvest-gold-dark: #c08a30;
+  --color-limestone: #f6f2ea;
+  --color-limestone-2: #efe8db;
+  --color-ink: #13241f;
+  --color-paper: #fffdf8;
+  --color-body-grey: #46564e;
+  --color-mint-line: #cfe0d6;
+  --color-stone-line: #e2dacb;
+  --color-gold-text: #7a5818;
+  --color-glow: #e6c36f;
+
+  --font-serif: var(--font-source-serif), Georgia, serif;
+  --font-sans: var(--font-lato), "Helvetica Neue", Arial, sans-serif;
+
+  --ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-card: 0 1px 2px rgb(19 36 31 / 0.04), 0 12px 32px -12px rgb(19 36 31 / 0.18);
+  --shadow-lift: 0 2px 4px rgb(19 36 31 / 0.05), 0 28px 60px -20px rgb(11 59 48 / 0.35);
+}
+
+/* Arabic (secondary locale): proposed typefaces pending brand-owner approval. */
+:root[lang="ar"] {
+  --font-serif: var(--font-arabic-display), var(--font-source-serif), serif;
+  --font-sans: var(--font-arabic-text), var(--font-lato), Arial, sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    scroll-padding-top: 96px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+  body {
+    background: var(--color-limestone);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  :root[lang="ar"] body { line-height: 1.85; }
+  h1, h2, h3, h4 { font-family: var(--font-serif); font-weight: 300; line-height: 1.08; letter-spacing: -0.01em; }
+  :root[lang="ar"] h1, :root[lang="ar"] h2, :root[lang="ar"] h3 { line-height: 1.35; letter-spacing: 0; }
+  ::selection { background: var(--color-glow); color: var(--color-ink); }
+  :focus-visible {
+    outline: 2px solid var(--color-harvest-gold);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  /* Eyebrow label with gold hairline (brand signature element). */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-gold-text);
+  }
+  .eyebrow::before {
+    content: "";
+    width: 2.25rem;
+    height: 1px;
+    background: var(--color-harvest-gold);
+  }
+  .eyebrow-dark { color: var(--color-glow); }
+  :root[lang="ar"] .eyebrow { letter-spacing: 0; font-size: 0.875rem; }
+
+  .section-y { padding-block: clamp(5rem, 10vw, 10rem); }
+  .container-x { width: 100%; max-width: 82rem; margin-inline: auto; padding-inline: clamp(1rem, 4vw, 2.5rem); }
+
+  .display {
+    font-size: clamp(2.75rem, 7vw, 6rem);
+  }
+  .headline { font-size: clamp(2.1rem, 4.4vw, 3.6rem); }
+
+  .btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    min-height: 3rem;
+    padding-inline: 1.6rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
+    overflow: hidden;
+    isolation: isolate;
+    transition: transform 0.5s var(--ease-premium), box-shadow 0.5s var(--ease-premium), background-color 0.3s, color 0.3s, border-color 0.3s;
+  }
+  .btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.35) 50%, transparent 70%);
+    transform: translateX(-120%);
+    transition: transform 0.9s var(--ease-premium);
+  }
+  .btn:hover::after { transform: translateX(120%); }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: translateY(0); }
+  .btn svg { transition: transform 0.4s var(--ease-premium); }
+  .btn:hover .btn-arrow { transform: translateX(4px); }
+  :root[dir="rtl"] .btn:hover .btn-arrow { transform: translateX(-4px) scaleX(-1); }
+  :root[dir="rtl"] .btn-arrow { transform: scaleX(-1); }
+
+  .btn-gold { background: var(--color-harvest-gold); color: var(--color-deep-green-3); box-shadow: 0 10px 30px -10px rgb(214 161 70 / 0.7); }
+  .btn-gold:hover { background: var(--color-glow); }
+  .btn-green { background: var(--color-meki-green); color: #fff; }
+  .btn-green:hover { background: var(--color-meki-green-dark); box-shadow: 0 14px 30px -12px rgb(0 128 102 / 0.6); }
+  .btn-outline-light { border: 1px solid rgb(255 255 255 / 0.45); color: #fff; }
+  .btn-outline-light:hover { border-color: var(--color-glow); color: var(--color-glow); }
+  .btn-outline { border: 1px solid var(--color-deep-green); color: var(--color-deep-green); }
+  .btn-outline:hover { background: var(--color-deep-green); color: #fff; }
+
+  .preview-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px dashed var(--color-gold-text);
+    background: rgb(255 253 248 / 0.92);
+    color: var(--color-gold-text);
+    border-radius: 999px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  :root[lang="ar"] .preview-badge { letter-spacing: 0; font-size: 0.75rem; }
+
+  .hairline { height: 1px; background: linear-gradient(90deg, var(--color-harvest-gold), transparent); }
+  :root[dir="rtl"] .hairline { background: linear-gradient(-90deg, var(--color-harvest-gold), transparent); }
+
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
+
+/* Motion: hidden initial state only when JS + motion are available (set by MotionRoot). */
+html.js-motion [data-reveal],
+html.js-motion [data-stagger-item],
+html.js-motion [data-hero-item],
+html.js-motion [data-hero-card] { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  html.js-motion [data-reveal], html.js-motion [data-stagger-item] { opacity: 1 !important; transform: none !important; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+.twinkle { animation: twinkle var(--tw-dur, 4s) ease-in-out infinite; animation-delay: var(--tw-delay, 0s); }
+
+@keyframes menuIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+@keyframes panelIn { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+.prog-panel-in > * { animation: panelIn 0.9s var(--ease-premium) both; }
+.prog-panel-in > *:nth-child(2) { animation-delay: 0.05s; }
+.prog-panel-in > *:nth-child(3) { animation-delay: 0.1s; }
+.prog-panel-in > *:nth-child(4) { animation-delay: 0.15s; }
+.prog-panel-in > *:nth-child(5) { animation-delay: 0.2s; }
+.prog-panel-in > *:nth-child(n + 6) { animation-delay: 0.25s; }
+
+/* Native dialog entrance */
+dialog.donate-dialog[open] { animation: panelIn 0.5s var(--ease-premium); }
+dialog.donate-dialog[open]::backdrop { animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; } }
+
+/* Campaign carousel aligns its first card with the page container */
+.campaign-track {
+  --gutter: max(clamp(1rem, 4vw, 2.5rem), calc((100vw - 82rem) / 2 + clamp(1rem, 4vw, 2.5rem)));
+  padding-inline: var(--gutter);
+  scroll-padding-inline: var(--gutter);
+}
+
+/* Mobile menu scrolls if taller than the viewport */
+#mobile-menu { max-height: calc(100svh - 72px); overflow-y: auto; }
