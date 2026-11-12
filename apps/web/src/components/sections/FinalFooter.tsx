@@ -1,5 +1,6 @@
 import Image from "next/image";
 /* eslint-disable @next/next/no-img-element */
+import { getPages, pageHref, NAV_ORDER } from "@/content/pages";
 import { ArrowRight, ArrowUp, Heart, ShieldCheck } from "lucide-react";
 import type { Dict } from "@/content/en";
 import { media } from "@/content/media";
@@ -97,6 +98,8 @@ function FinalVisual({ t }: { t: Dict }) {
 
 export function Footer({ t }: { t: Dict }) {
   const f = t.footer;
+  const loc = t.locale === "ar" ? "ar" : "en";
+  const pages = getPages(loc);
   const year = 2026;
   return (
     <footer className="relative isolate overflow-hidden bg-deep-green-3 text-mint-line">
@@ -111,13 +114,18 @@ export function Footer({ t }: { t: Dict }) {
           <nav aria-label={f.explore} className="lg:col-span-2">
             <h2 className="mb-5 font-sans text-xs font-bold uppercase tracking-[0.22em] text-glow">{f.explore}</h2>
             <ul className="space-y-3 text-sm">
-              {t.nav.links.map((l) => (
-                <li key={l.href}>
-                  <a href={l.href} className="transition hover:text-white">
-                    {l.label}
+              {NAV_ORDER.map((k) => (
+                <li key={k}>
+                  <a href={pageHref(loc, k)} className="transition hover:text-white">
+                    {pages.nav[k]}
                   </a>
                 </li>
               ))}
+              <li>
+                <a href={t.nav.gala.href} className="transition hover:text-white">
+                  {t.nav.gala.label}
+                </a>
+              </li>
             </ul>
           </nav>
           <nav aria-label={f.programmes} className="lg:col-span-3">
@@ -125,7 +133,7 @@ export function Footer({ t }: { t: Dict }) {
             <ul className="space-y-3 text-sm">
               {t.programmes.items.map((p) => (
                 <li key={p.slug}>
-                  <a href="#programmes" className="transition hover:text-white">
+                  <a href={pageHref(loc, "programs")} className="transition hover:text-white">
                     {p.name}
                   </a>
                 </li>
@@ -135,10 +143,10 @@ export function Footer({ t }: { t: Dict }) {
           <div className="lg:col-span-3">
             <h2 className="mb-5 font-sans text-xs font-bold uppercase tracking-[0.22em] text-glow">{f.giving}</h2>
             <ul className="mb-10 space-y-3 text-sm">
-              {f.givingLinks.map((l) => (
-                <li key={l.href}>
-                  <a href={l.href} className="transition hover:text-white">
-                    {l.label}
+              {(["give", "faq"] as const).map((k) => (
+                <li key={k}>
+                  <a href={pageHref(loc, k)} className="transition hover:text-white">
+                    {pages.nav[k]}
                   </a>
                 </li>
               ))}

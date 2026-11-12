@@ -34,10 +34,10 @@ export function Hero({ t, locale }: { t: Dict; locale: Locale }) {
             {h.lead}
           </p>
           <div data-hero-item className="flex flex-wrap gap-3">
-            <a href="#programmes" className="btn btn-green">
+            <a href={h.ctaPrimaryHref} className="btn btn-gold">
               {h.ctaPrimary} <ArrowRight className="btn-arrow size-4" aria-hidden="true" />
             </a>
-            <a href="#giving" className="btn btn-outline-light">
+            <a href="#programmes" className="btn btn-outline-light">
               {h.ctaSecondary}
             </a>
           </div>

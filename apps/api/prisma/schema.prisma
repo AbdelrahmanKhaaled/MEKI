@@ -1,0 +1,1220 @@
+// MEKI — Phase 1 core schema (MySQL 8, utf8mb4).
+//
+// Data classes (see CLAUDE.md guardrails):
+//   * verified source data  -> provenance VERIFIED_SOURCE (+ sourceRef)
+//   * proposed / editable    -> provenance PROPOSED (drafts, development-team copy, AR translations)
+//   * demo placeholders      -> provenance DEMO (never publishable unless ALLOW_DEMO_PUBLISH on staging)
+//   * real transactions      -> NOT in Phase 1; never seeded. Donation/payment models arrive in a later phase.
+//
+// Conventions: cuid ids (VarChar(30)), DateTime(3) UTC, bilingual paired columns (En default, Ar RTL),
+// money as Decimal(14,2) + ISO-4217 currency, soft delete (deletedAt) for content.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ───────────────────────────── enums ─────────────────────────────
+
+enum Provenance {
+  VERIFIED_SOURCE
+  PROPOSED
+  DEMO
+}
+
+enum PublicationStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CampaignStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  VERIFIED
+  REJECTED
+}
+
+enum ProgrammeKind {
+  PROGRAMME
+  ENABLING_FUNCTION
+}
+
+enum SectionKey {
+  HERO
+  QUICK_DONATE
+  TRUST
+  ABOUT
+  VISION_MISSION
+  HOW_WE_WORK
+  IMPACT
+  PROGRAMMES
+  ENABLING
+  CAMPAIGNS
+  WHY
+  PROCESS
+  GALLERY
+  FAQ
+  FINAL_CTA
+  FOOTER
+  // Event landing pages (Phase 2) — appended values; existing rows unaffected
+  EVENT_HERO
+  EVENT_ABOUT
+  EVENT_HIGHLIGHTS
+  EVENT_AGENDA
+  EVENT_SPEAKERS
+  EVENT_VENUE
+  EVENT_SPONSORSHIP
+  EVENT_CAMPAIGNS
+  EVENT_FAQ
+  EVENT_REGISTRATION
+  EVENT_CONTACT
+}
+
+enum EventStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+  ARCHIVED
+}
+
+enum EventVisibility {
+  PUBLIC // listed and reachable by slug once published
+  UNLISTED // reachable by slug only, once published
+}
+
+/// Only modes that need no attendee data or payments. RSVP / TICKETED are future, client-approved additions.
+enum EventRegistrationMode {
+  NONE
+  EXTERNAL_LINK
+}
+
+enum EventMediaRole {
+  GALLERY
+  SUPPORTING
+}
+
+enum MediaCategory {
+  BRAND
+  HERO
+  PROGRAMME
+  CAMPAIGN
+  GALLERY
+  OTHER
+}
+
+enum StorageDriver {
+  LOCAL
+  S3
+  WEB_STATIC // file shipped in apps/web/public (curated, provenance in manifest.json)
+}
+
+enum ConsentStatus {
+  UNKNOWN
+  CONFIRMED
+  NOT_GRANTED
+}
+
+enum StatDisplayFormat {
+  NUMBER
+  COMPACT
+  CURRENCY
+  PERCENT
+}
+
+// ─────────────────────── admin identity & RBAC ───────────────────────
+// Admin accounts are completely separate from future donor accounts (Donor model, later phase).
+
+model AdminUser {
+  id                 String    @id @default(cuid()) @db.VarChar(30)
+  email              String    @unique @db.VarChar(191)
+  name               String    @db.VarChar(120)
+  passwordHash       String    @db.VarChar(255) // argon2id
+  isActive           Boolean   @default(true)
+  mustChangePassword Boolean   @default(false)
+  failedLoginCount   Int       @default(0)
+  lockedUntil        DateTime? @db.DateTime(3)
+  lastLoginAt        DateTime? @db.DateTime(3)
+  passwordChangedAt  DateTime? @db.DateTime(3)
+  createdById        String?   @db.VarChar(30)
+  createdAt          DateTime  @default(now()) @db.DateTime(3)
+  updatedAt          DateTime  @updatedAt @db.DateTime(3)
+
+  roles             UserRole[]
+  sessions          AdminSession[]
+  resetTokens       PasswordResetToken[]
+  uploadedMedia     MediaAsset[]         @relation("MediaUploadedBy")
+  approvedCampaigns Campaign[]           @relation("CampaignApprovedBy")
+  approvedEvents    Event[]              @relation("EventApprovedBy")
+  refundsRequested  Refund[]             @relation("RefundRequestedBy")
+  refundsDecided    Refund[]             @relation("RefundDecidedBy")
+
+  @@index([isActive])
+}
+
+model Role {
+  id          String   @id @default(cuid()) @db.VarChar(30)
+  key         String   @unique @db.VarChar(60) // SUPER_ADMIN, ADMINISTRATOR, ...
+  name        String   @db.VarChar(120)
+  description String?  @db.VarChar(500)
+  isSystem    Boolean  @default(false) // system roles cannot be deleted
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @db.DateTime(3)
+
+  permissions RolePermission[]
+  users       UserRole[]
+}
+
+model Permission {
+  id          String   @id @default(cuid()) @db.VarChar(30)
+  key         String   @unique @db.VarChar(80) // e.g. campaigns.publish
+  group       String   @db.VarChar(40)
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @db.DateTime(3)
+
+  roles RolePermission[]
+}
+
+model RolePermission {
+  roleId       String     @db.VarChar(30)
+  permissionId String     @db.VarChar(30)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now()) @db.DateTime(3)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+}
+
+model UserRole {
+  userId       String    @db.VarChar(30)
+  roleId       String    @db.VarChar(30)
+  user         AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  assignedById String?   @db.VarChar(30)
+  createdAt    DateTime  @default(now()) @db.DateTime(3)
+
+  @@id([userId, roleId])
+  @@index([roleId])
+}
+
+/// Server-side session. Only SHA-256 hashes of the session token and CSRF token are stored.
+model AdminSession {
+  id            String    @id @default(cuid()) @db.VarChar(30)
+  tokenHash     String    @unique @db.Char(64)
+  csrfTokenHash String    @db.Char(64)
+  userId        String    @db.VarChar(30)
+  user          AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ip            String?   @db.VarChar(64)
+  userAgent     String?   @db.VarChar(255)
+  createdAt     DateTime  @default(now()) @db.DateTime(3)
+  lastSeenAt    DateTime  @default(now()) @db.DateTime(3)
+  idleExpiresAt DateTime  @db.DateTime(3)
+  expiresAt     DateTime  @db.DateTime(3) // absolute expiry
+  revokedAt     DateTime? @db.DateTime(3)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid()) @db.VarChar(30)
+  userId    String    @db.VarChar(30)
+  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique @db.Char(64)
+  expiresAt DateTime  @db.DateTime(3)
+  usedAt    DateTime? @db.DateTime(3)
+  createdAt DateTime  @default(now()) @db.DateTime(3)
+
+  @@index([userId])
+}
+
+// ─────────────────────────── site settings ───────────────────────────
+
+/// Singleton (id = "default").
+model SiteSetting {
+  id               String      @id @default("default") @db.VarChar(30)
+  orgNameEn        String      @db.VarChar(160)
+  orgNameAr        String?     @db.VarChar(160)
+  legalNameEn      String?     @db.VarChar(255)
+  legalNameAr      String?     @db.VarChar(255)
+  taglineEn        String?     @db.VarChar(255)
+  taglineAr        String?     @db.VarChar(255)
+  legacyLineEn     String?     @db.VarChar(255)
+  legacyLineAr     String?     @db.VarChar(255)
+  logoPrimaryUrl   String?     @db.VarChar(500) // official brand files (never re-drawn)
+  logoInverseUrl   String?     @db.VarChar(500)
+  logoIconUrl      String?     @db.VarChar(500)
+  contactEmail     String?     @db.VarChar(191) // null until MEKI supplies real details
+  contactPhone     String?     @db.VarChar(40)
+  addressEn        String?     @db.Text
+  addressAr        String?     @db.Text
+  /// [{ network: "facebook", url: "https://..." }] — validated by DTO, max 12 entries
+  socialLinks      Json?
+  defaultLocale    String      @default("en") @db.VarChar(5)
+  supportedLocales Json // ["en","ar"]
+  footerTextEn     String?     @db.Text
+  footerTextAr     String?     @db.Text
+  footerNoteEn     String?     @db.VarChar(500)
+  footerNoteAr     String?     @db.VarChar(500)
+  copyrightEn      String?     @db.VarChar(255)
+  copyrightAr      String?     @db.VarChar(255)
+  seoTitleEn       String?     @db.VarChar(255)
+  seoTitleAr       String?     @db.VarChar(255)
+  seoDescriptionEn String?     @db.Text
+  seoDescriptionAr String?     @db.Text
+  ogImageId        String?     @db.VarChar(30)
+  ogImage          MediaAsset? @relation("SiteOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+  updatedById      String?     @db.VarChar(30)
+  updatedAt        DateTime    @updatedAt @db.DateTime(3)
+}
+
+/// Singleton (id = "default"). Payment activation is double-gated: env PAYMENTS_ENABLED AND paymentsEnabled.
+model DonationSetting {
+  id                  String     @id @default("default") @db.VarChar(30)
+  defaultCurrency     String     @default("USD") @db.Char(3)
+  /// ISO-4217 codes shown to donors, e.g. ["USD"]. Unlike currencies are never summed.
+  displayCurrencies   Json
+  /// Preset amounts in major units of defaultCurrency, e.g. [25,50,100,250] (PROPOSED until approved)
+  suggestedAmounts    Json
+  allowCustomAmount   Boolean    @default(true)
+  minAmount           Decimal?   @db.Decimal(14, 2)
+  maxAmount           Decimal?   @db.Decimal(14, 2)
+  allowOneTime        Boolean    @default(true)
+  allowRecurring      Boolean    @default(false) // subject to provider support
+  paymentsEnabled     Boolean    @default(false)
+  paymentProvider     String?    @db.VarChar(60) // unselected
+  previewNoticeEn     String?    @db.Text
+  previewNoticeAr     String?    @db.Text
+  /// Receipts — legal wording is configurable and EMPTY until MEKI legal/finance confirm it.
+  receiptIssuerNameEn String?    @db.VarChar(255)
+  receiptIssuerNameAr String?    @db.VarChar(255)
+  receiptTaxIdLabel   String?    @db.VarChar(80)
+  receiptTaxId        String?    @db.VarChar(80)
+  receiptFooterEn     String?    @db.Text
+  receiptFooterAr     String?    @db.Text
+  provenance          Provenance @default(PROPOSED)
+  updatedById         String?    @db.VarChar(30)
+  updatedAt           DateTime   @updatedAt @db.DateTime(3)
+}
+
+// ─────────────────────────────── CMS ────────────────────────────────
+
+model Page {
+  id               String            @id @default(cuid()) @db.VarChar(30)
+  slug             String            @unique @db.VarChar(80)
+  titleEn          String            @db.VarChar(255)
+  titleAr          String?           @db.VarChar(255)
+  seoTitleEn       String?           @db.VarChar(255)
+  seoTitleAr       String?           @db.VarChar(255)
+  seoDescriptionEn String?           @db.Text
+  seoDescriptionAr String?           @db.Text
+  ogImageId        String?           @db.VarChar(30)
+  ogImage          MediaAsset?       @relation("PageOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+  /// Set when this page is an event landing page (managed through the Events API only).
+  event            Event?
+  status           PublicationStatus @default(DRAFT)
+  provenance       Provenance        @default(PROPOSED)
+  publishedAt      DateTime?         @db.DateTime(3)
+  createdById      String?           @db.VarChar(30)
+  updatedById      String?           @db.VarChar(30)
+  createdAt        DateTime          @default(now()) @db.DateTime(3)
+  updatedAt        DateTime          @updatedAt @db.DateTime(3)
+
+  sections PageSection[]
+}
+
+/// One row per landing-page section. Editors change the working copy; publish() copies it
+/// (with items) into publishedData, which is the ONLY thing the public API serves.
+model PageSection {
+  id                    String            @id @default(cuid()) @db.VarChar(30)
+  pageId                String            @db.VarChar(30)
+  page                  Page              @relation(fields: [pageId], references: [id], onDelete: Restrict)
+  key                   SectionKey
+  anchor                String?           @db.VarChar(60) // e.g. "programmes" (#programmes)
+  sortOrder             Int               @default(0)
+  isVisible             Boolean           @default(true)
+  eyebrowEn             String?           @db.VarChar(255)
+  eyebrowAr             String?           @db.VarChar(255)
+  titleEn               String?           @db.VarChar(500)
+  titleAr               String?           @db.VarChar(500)
+  subtitleEn            String?           @db.VarChar(500)
+  subtitleAr            String?           @db.VarChar(500)
+  bodyEn                String?           @db.Text
+  bodyAr                String?           @db.Text
+  ctaPrimaryLabelEn     String?           @db.VarChar(120)
+  ctaPrimaryLabelAr     String?           @db.VarChar(120)
+  ctaPrimaryHref        String?           @db.VarChar(500)
+  ctaSecondaryLabelEn   String?           @db.VarChar(120)
+  ctaSecondaryLabelAr   String?           @db.VarChar(120)
+  ctaSecondaryHref      String?           @db.VarChar(500)
+  mediaId               String?           @db.VarChar(30)
+  media                 MediaAsset?       @relation("SectionMedia", fields: [mediaId], references: [id], onDelete: SetNull)
+  /// Small, section-specific labels (e.g. { visionLabel, missionLabel }) — flat string map, validated.
+  labelsEn              Json?
+  labelsAr              Json?
+  provenance            Provenance        @default(PROPOSED)
+  sourceRef             String?           @db.VarChar(255)
+  status                PublicationStatus @default(DRAFT)
+  publishedData         Json?
+  publishedAt           DateTime?         @db.DateTime(3)
+  hasUnpublishedChanges Boolean           @default(true)
+  createdById           String?           @db.VarChar(30)
+  updatedById           String?           @db.VarChar(30)
+  createdAt             DateTime          @default(now()) @db.DateTime(3)
+  updatedAt             DateTime          @updatedAt @db.DateTime(3)
+
+  items SectionItem[]
+
+  @@unique([pageId, key])
+  @@index([pageId, sortOrder])
+}
+
+/// Repeating entries within a section: trust points, How-we-work verbs, process steps, gallery tiles…
+model SectionItem {
+  id         String      @id @default(cuid()) @db.VarChar(30)
+  sectionId  String      @db.VarChar(30)
+  section    PageSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  code       String?     @db.VarChar(80) // stable seed key
+  sortOrder  Int         @default(0)
+  isVisible  Boolean     @default(true)
+  titleEn    String?     @db.VarChar(500)
+  titleAr    String?     @db.VarChar(500)
+  textEn     String?     @db.Text
+  textAr     String?     @db.Text
+  icon       String?     @db.VarChar(40)
+  href       String?     @db.VarChar(500)
+  mediaId    String?     @db.VarChar(30)
+  media      MediaAsset? @relation("SectionItemMedia", fields: [mediaId], references: [id], onDelete: SetNull)
+  provenance Provenance  @default(PROPOSED)
+  createdAt  DateTime    @default(now()) @db.DateTime(3)
+  updatedAt  DateTime    @updatedAt @db.DateTime(3)
+
+  @@unique([sectionId, code])
+  @@index([sectionId, sortOrder])
+}
+
+// ───────────────────────── programmes & projects ─────────────────────────
+
+model Programme {
+  id               String            @id @default(cuid()) @db.VarChar(30)
+  code             String            @unique @db.VarChar(40) // stable key, e.g. PRG-01
+  slug             String            @unique @db.VarChar(100)
+  kind             ProgrammeKind     @default(PROGRAMME)
+  number           Int?
+  nameEn           String            @db.VarChar(255) // exact Brand Guidelines p.24 name
+  nameAr           String?           @db.VarChar(255)
+  /// Alternative official wording (Updated Sector Mandates PDF) — both wordings preserved.
+  altNameEn        String?           @db.VarChar(255)
+  altNameAr        String?           @db.VarChar(255)
+  shortDescEn      String?           @db.Text
+  shortDescAr      String?           @db.Text
+  mandateEn        String?           @db.Text
+  mandateAr        String?           @db.Text
+  descriptionEn    String?           @db.Text
+  descriptionAr    String?           @db.Text
+  /// string[] of focus areas, max 12
+  focusAreasEn     Json?
+  focusAreasAr     Json?
+  icon             String?           @db.VarChar(40)
+  coverMediaId     String?           @db.VarChar(30)
+  coverMedia       MediaAsset?       @relation("ProgrammeCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  sortOrder        Int               @default(0)
+  isFeatured       Boolean           @default(false)
+  status           PublicationStatus @default(DRAFT)
+  provenance       Provenance        @default(PROPOSED)
+  sourceRef        String?           @db.VarChar(255)
+  seoTitleEn       String?           @db.VarChar(255)
+  seoTitleAr       String?           @db.VarChar(255)
+  seoDescriptionEn String?           @db.Text
+  seoDescriptionAr String?           @db.Text
+  publishedAt      DateTime?         @db.DateTime(3)
+  createdById      String?           @db.VarChar(30)
+  updatedById      String?           @db.VarChar(30)
+  createdAt        DateTime          @default(now()) @db.DateTime(3)
+  updatedAt        DateTime          @updatedAt @db.DateTime(3)
+  deletedAt        DateTime?         @db.DateTime(3)
+
+  gallery             ProgrammeMedia[]
+  projects            Project[]
+  donationAllocations DonationAllocation[]
+  recurringDonations  RecurringDonation[]
+  campaigns           Campaign[]
+  statistics          ImpactStatistic[]
+
+  @@index([status, sortOrder])
+  @@index([kind])
+}
+
+model ProgrammeMedia {
+  programmeId String     @db.VarChar(30)
+  mediaId     String     @db.VarChar(30)
+  sortOrder   Int        @default(0)
+  programme   Programme  @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  media       MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@id([programmeId, mediaId])
+  @@index([mediaId])
+}
+
+/// Field project evidenced by client material (e.g. a photo folder). Not a fundraiser by itself.
+model Project {
+  id           String            @id @default(cuid()) @db.VarChar(30)
+  code         String            @unique @db.VarChar(60)
+  slug         String            @unique @db.VarChar(120)
+  programmeId  String?           @db.VarChar(30)
+  programme    Programme?        @relation(fields: [programmeId], references: [id], onDelete: SetNull)
+  nameEn       String            @db.VarChar(255)
+  nameAr       String?           @db.VarChar(255)
+  locationEn   String?           @db.VarChar(255)
+  locationAr   String?           @db.VarChar(255)
+  sourceFolder String?           @db.VarChar(255) // original client folder name (traceability)
+  provenance   Provenance        @default(PROPOSED)
+  sourceRef    String?           @db.VarChar(255)
+  status       PublicationStatus @default(DRAFT)
+  createdById  String?           @db.VarChar(30)
+  updatedById  String?           @db.VarChar(30)
+  createdAt    DateTime          @default(now()) @db.DateTime(3)
+  updatedAt    DateTime          @updatedAt @db.DateTime(3)
+  deletedAt    DateTime?         @db.DateTime(3)
+
+  campaigns Campaign[]
+
+  @@index([programmeId])
+}
+
+// ───────────────────────────── campaigns ─────────────────────────────
+// NO raised/donor-count columns: totals are derived later from verified, provider-confirmed payments only.
+
+model Campaign {
+  id                String         @id @default(cuid()) @db.VarChar(30)
+  code              String         @unique @db.VarChar(60)
+  slug              String         @unique @db.VarChar(120)
+  programmeId       String?        @db.VarChar(30)
+  programme         Programme?     @relation(fields: [programmeId], references: [id], onDelete: Restrict)
+  projectId         String?        @db.VarChar(30)
+  project           Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  titleEn           String         @db.VarChar(255)
+  titleAr           String?        @db.VarChar(255)
+  summaryEn         String?        @db.Text
+  summaryAr         String?        @db.Text
+  descriptionEn     String?        @db.Text
+  descriptionAr     String?        @db.Text
+  locationEn        String?        @db.VarChar(255)
+  locationAr        String?        @db.VarChar(255)
+  coverMediaId      String?        @db.VarChar(30)
+  coverMedia        MediaAsset?    @relation("CampaignCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  currency          String         @default("USD") @db.Char(3)
+  /// Preset amounts in major units of `currency` (number[]); empty => use DonationSetting defaults
+  suggestedAmounts  Json?
+  allowCustomAmount Boolean        @default(true)
+  minCustomAmount   Decimal?       @db.Decimal(14, 2)
+  maxCustomAmount   Decimal?       @db.Decimal(14, 2)
+  /// Only an MEKI-approved figure may be stored here; never fabricated.
+  targetAmount      Decimal?       @db.Decimal(14, 2)
+  startsAt          DateTime?      @db.DateTime(3)
+  endsAt            DateTime?      @db.DateTime(3)
+  isFeatured        Boolean        @default(false)
+  sortOrder         Int            @default(0)
+  status            CampaignStatus @default(DRAFT)
+  provenance        Provenance     @default(PROPOSED)
+  sourceRef         String?        @db.VarChar(255)
+  approvedById      String?        @db.VarChar(30)
+  approvedBy        AdminUser?     @relation("CampaignApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt        DateTime?      @db.DateTime(3)
+  approvalNote      String?        @db.Text
+  /// Cannot be true unless payments are fully enabled (env + settings) and campaign is PUBLISHED.
+  donationsOpen     Boolean        @default(false)
+  seoTitleEn        String?        @db.VarChar(255)
+  seoTitleAr        String?        @db.VarChar(255)
+  seoDescriptionEn  String?        @db.Text
+  seoDescriptionAr  String?        @db.Text
+  publishedAt       DateTime?      @db.DateTime(3)
+  createdById       String?        @db.VarChar(30)
+  updatedById       String?        @db.VarChar(30)
+  createdAt         DateTime       @default(now()) @db.DateTime(3)
+  updatedAt         DateTime       @updatedAt @db.DateTime(3)
+  deletedAt         DateTime?      @db.DateTime(3)
+
+  gallery             CampaignMedia[]
+  events              EventCampaign[]
+  donationAllocations DonationAllocation[]
+  recurringDonations  RecurringDonation[]
+
+  @@index([status, sortOrder])
+  @@index([programmeId])
+  @@index([isFeatured])
+}
+
+model CampaignMedia {
+  campaignId String     @db.VarChar(30)
+  mediaId    String     @db.VarChar(30)
+  sortOrder  Int        @default(0)
+  campaign   Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  media      MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@id([campaignId, mediaId])
+  @@index([mediaId])
+}
+
+// ─────────────────────────────── media ───────────────────────────────
+// Binaries live in storage (local disk / S3-compatible / web static); MySQL stores metadata only.
+
+model MediaAsset {
+  id            String        @id @default(cuid()) @db.VarChar(30)
+  code          String?       @unique @db.VarChar(80) // stable seed key (e.g. web media key)
+  storageDriver StorageDriver
+  storageKey    String        @unique @db.VarChar(500)
+  originalName  String?       @db.VarChar(255)
+  mimeType      String        @db.VarChar(60)
+  sizeBytes     Int
+  width         Int?
+  height        Int?
+  checksum      String?       @db.Char(64) // sha256
+  category      MediaCategory @default(OTHER)
+  altEn         String?       @db.VarChar(300)
+  altAr         String?       @db.VarChar(300)
+  captionEn     String?       @db.Text
+  captionAr     String?       @db.Text
+  credit        String?       @db.VarChar(255)
+  sourceFolder  String?       @db.VarChar(255)
+  consentStatus ConsentStatus @default(UNKNOWN)
+  provenance    Provenance    @default(PROPOSED)
+  uploadedById  String?       @db.VarChar(30)
+  uploadedBy    AdminUser?    @relation("MediaUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt     DateTime      @default(now()) @db.DateTime(3)
+  updatedAt     DateTime      @updatedAt @db.DateTime(3)
+  deletedAt     DateTime?     @db.DateTime(3)
+
+  programmeCovers  Programme[]      @relation("ProgrammeCover")
+  campaignCovers   Campaign[]       @relation("CampaignCover")
+  programmeGallery ProgrammeMedia[]
+  campaignGallery  CampaignMedia[]
+  sections         PageSection[]    @relation("SectionMedia")
+  sectionItems     SectionItem[]    @relation("SectionItemMedia")
+  pageOgImages     Page[]           @relation("PageOgImage")
+  eventHeroes      Event[]          @relation("EventHero")
+  eventCovers      Event[]          @relation("EventCover")
+  eventGallery     EventMedia[]
+  siteOgImages     SiteSetting[]    @relation("SiteOgImage")
+
+  @@index([category])
+  @@index([checksum])
+  @@index([deletedAt])
+}
+
+// ───────────────────────── impact statistics ─────────────────────────
+
+model ImpactStatistic {
+  id                 String             @id @default(cuid()) @db.VarChar(30)
+  code               String             @unique @db.VarChar(60)
+  labelEn            String             @db.VarChar(255)
+  labelAr            String?            @db.VarChar(255)
+  descriptionEn      String?            @db.Text
+  descriptionAr      String?            @db.Text
+  value              Decimal            @db.Decimal(18, 2)
+  unit               String?            @db.VarChar(40) // e.g. "years", "USD", "people"
+  prefix             String?            @db.VarChar(10) // e.g. "$"
+  suffix             String?            @db.VarChar(10) // e.g. "M+"
+  displayFormat      StatDisplayFormat  @default(NUMBER)
+  programmeId        String?            @db.VarChar(30)
+  programme          Programme?         @relation(fields: [programmeId], references: [id], onDelete: SetNull)
+  sourceRef          String?            @db.VarChar(255)
+  attributionEn      String?            @db.VarChar(255) // e.g. "Figures: Misr El-Kheir, Egypt."
+  attributionAr      String?            @db.VarChar(255)
+  reportingPeriodEn  String?            @db.VarChar(120)
+  reportingPeriodAr  String?            @db.VarChar(120)
+  verificationStatus VerificationStatus @default(UNVERIFIED)
+  verifiedById       String?            @db.VarChar(30)
+  verifiedAt         DateTime?          @db.DateTime(3)
+  sortOrder          Int                @default(0)
+  status             PublicationStatus  @default(DRAFT)
+  provenance         Provenance         @default(PROPOSED)
+  publishedAt        DateTime?          @db.DateTime(3)
+  createdById        String?            @db.VarChar(30)
+  updatedById        String?            @db.VarChar(30)
+  createdAt          DateTime           @default(now()) @db.DateTime(3)
+  updatedAt          DateTime           @updatedAt @db.DateTime(3)
+  deletedAt          DateTime?          @db.DateTime(3)
+
+  @@index([status, verificationStatus, sortOrder])
+}
+
+// ──────────────────────────────── FAQ ────────────────────────────────
+
+model Faq {
+  id          String            @id @default(cuid()) @db.VarChar(30)
+  code        String?           @unique @db.VarChar(60)
+  questionEn  String            @db.VarChar(500)
+  questionAr  String?           @db.VarChar(500)
+  answerEn    String            @db.Text
+  answerAr    String?           @db.Text
+  category    String            @default("general") @db.VarChar(60)
+  sortOrder   Int               @default(0)
+  status      PublicationStatus @default(DRAFT)
+  provenance  Provenance        @default(PROPOSED)
+  publishedAt DateTime?         @db.DateTime(3)
+  createdById String?           @db.VarChar(30)
+  updatedById String?           @db.VarChar(30)
+  createdAt   DateTime          @default(now()) @db.DateTime(3)
+  updatedAt   DateTime          @updatedAt @db.DateTime(3)
+  deletedAt   DateTime?         @db.DateTime(3)
+
+  @@index([status, category, sortOrder])
+}
+
+// ───────────────────────────── audit log ─────────────────────────────
+/// Append-only. No FKs (so user changes never rewrite history); UPDATE/DELETE are blocked by
+/// MySQL triggers created in the initial migration, and the API exposes read-only endpoints.
+model AuditLog {
+  id         String   @id @default(cuid()) @db.VarChar(30)
+  actorId    String?  @db.VarChar(30)
+  actorEmail String?  @db.VarChar(191)
+  action     String   @db.VarChar(80) // e.g. campaign.publish
+  entityType String   @db.VarChar(60)
+  entityId   String?  @db.VarChar(60)
+  metadata   Json? // changed field names / small before-after; never secrets
+  ip         String?  @db.VarChar(64)
+  userAgent  String?  @db.VarChar(255)
+  requestId  String?  @db.VarChar(64)
+  createdAt  DateTime @default(now()) @db.DateTime(3)
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ─────────────────────────────── events (Phase 2) ───────────────────────────────
+// Foundation only: no registration, attendees, tickets, sponsorship packages or payments are modelled yet.
+
+model Event {
+  id                      String                @id @default(cuid()) @db.VarChar(30)
+  code                    String                @unique @db.VarChar(60)
+  slug                    String                @unique @db.VarChar(120)
+  titleEn                 String                @db.VarChar(255)
+  titleAr                 String?               @db.VarChar(255)
+  shortDescEn             String?               @db.Text
+  shortDescAr             String?               @db.Text
+  descriptionEn           String?               @db.Text
+  descriptionAr           String?               @db.Text
+  /// string[] (max 12) — short bullet highlights
+  highlightsEn            Json?
+  highlightsAr            Json?
+  /// UTC instants; null until the client confirms date AND time
+  startsAt                DateTime?             @db.DateTime(3)
+  endsAt                  DateTime?             @db.DateTime(3)
+  /// IANA zone, e.g. "Africa/Cairo"; required to publish
+  timezone                String?               @db.VarChar(64)
+  /// Schedule status text while details are pending (e.g. "12 December — time to be confirmed")
+  scheduleNoteEn          String?               @db.VarChar(255)
+  scheduleNoteAr          String?               @db.VarChar(255)
+  venueNameEn             String?               @db.VarChar(255)
+  venueNameAr             String?               @db.VarChar(255)
+  addressEn               String?               @db.Text
+  addressAr               String?               @db.Text
+  city                    String?               @db.VarChar(120)
+  countryCode             String?               @db.Char(2)
+  mapUrl                  String?               @db.VarChar(500)
+  registrationMode        EventRegistrationMode @default(NONE)
+  externalRegistrationUrl String?               @db.VarChar(500)
+  ctaPrimaryLabelEn       String?               @db.VarChar(120)
+  ctaPrimaryLabelAr       String?               @db.VarChar(120)
+  ctaPrimaryHref          String?               @db.VarChar(500)
+  ctaSecondaryLabelEn     String?               @db.VarChar(120)
+  ctaSecondaryLabelAr     String?               @db.VarChar(120)
+  ctaSecondaryHref        String?               @db.VarChar(500)
+  heroMediaId             String?               @db.VarChar(30)
+  heroMedia               MediaAsset?           @relation("EventHero", fields: [heroMediaId], references: [id], onDelete: SetNull)
+  coverMediaId            String?               @db.VarChar(30)
+  coverMedia              MediaAsset?           @relation("EventCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  /// 1:1 landing page reusing the Phase 1 CMS (sections + items + publish snapshots)
+  pageId                  String                @unique @db.VarChar(30)
+  page                    Page                  @relation(fields: [pageId], references: [id], onDelete: Restrict)
+  isFeatured              Boolean               @default(false)
+  visibility              EventVisibility       @default(PUBLIC)
+  sortOrder               Int                   @default(0)
+  status                  EventStatus           @default(DRAFT)
+  provenance              Provenance            @default(PROPOSED)
+  sourceRef               String?               @db.VarChar(255)
+  /// Admin-only notes, e.g. which details are still pending client confirmation
+  internalNotes           String?               @db.Text
+  approvedById            String?               @db.VarChar(30)
+  approvedBy              AdminUser?            @relation("EventApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt              DateTime?             @db.DateTime(3)
+  approvalNote            String?               @db.Text
+  seoTitleEn              String?               @db.VarChar(255)
+  seoTitleAr              String?               @db.VarChar(255)
+  seoDescriptionEn        String?               @db.Text
+  seoDescriptionAr        String?               @db.Text
+  publishedAt             DateTime?             @db.DateTime(3)
+  createdById             String?               @db.VarChar(30)
+  updatedById             String?               @db.VarChar(30)
+  createdAt               DateTime              @default(now()) @db.DateTime(3)
+  updatedAt               DateTime              @updatedAt @db.DateTime(3)
+  deletedAt               DateTime?             @db.DateTime(3)
+
+  gallery   EventMedia[]
+  campaigns EventCampaign[]
+  donations Donation[]
+
+  @@index([status, visibility, sortOrder])
+  @@index([startsAt])
+  @@index([isFeatured])
+}
+
+model EventMedia {
+  eventId   String         @db.VarChar(30)
+  mediaId   String         @db.VarChar(30)
+  role      EventMediaRole @default(GALLERY)
+  sortOrder Int            @default(0)
+  event     Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  media     MediaAsset     @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@id([eventId, mediaId])
+  @@index([mediaId])
+}
+
+/// Promotion link only — no financial data; campaign public/donation rules still apply on read.
+model EventCampaign {
+  eventId    String   @db.VarChar(30)
+  campaignId String   @db.VarChar(30)
+  sortOrder  Int      @default(0)
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  createdAt  DateTime @default(now()) @db.DateTime(3)
+
+  @@id([eventId, campaignId])
+  @@index([campaignId])
+}
+
+// ───────────────────────── donations & payments (Phase 3) ─────────────────────────
+// Amounts: Decimal(18,3) in the ORIGINAL transaction currency (covers 0/2/3-decimal ISO currencies);
+// validated against Currency.minorUnits. Never floats. Never summed across currencies.
+// Ledger rows (PaymentTransaction) are append-only (DB triggers). Donations/Refunds/Receipts are never deleted.
+
+enum DonorType {
+  INDIVIDUAL
+  ORGANIZATION
+}
+
+enum DonationFrequency {
+  ONE_TIME
+  MONTHLY
+}
+
+enum DonationDesignation {
+  GENERAL_FUND
+  CAMPAIGN
+  PROGRAMME
+}
+
+/// Lifecycle of the donation intent.
+enum DonationStatus {
+  PENDING // created, awaiting payment
+  COMPLETED // verified payment confirmed by the provider
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+/// Money state, driven ONLY by verified provider events.
+enum DonationPaymentStatus {
+  UNPAID
+  AUTHORIZED
+  PAID
+  PARTIALLY_REFUNDED
+  REFUNDED
+  FAILED
+}
+
+enum PaymentAttemptStatus {
+  CREATED
+  REQUIRES_ACTION
+  AUTHORIZED
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentTransactionType {
+  AUTHORIZATION
+  CAPTURE
+  FAILURE
+  CANCELLATION
+  REFUND
+}
+
+enum PaymentTransactionStatus {
+  SUCCEEDED
+  FAILED
+}
+
+enum WebhookEventStatus {
+  RECEIVED
+  PROCESSED
+  IGNORED
+  FAILED
+}
+
+enum RecurringStatus {
+  PENDING_ACTIVATION
+  ACTIVE
+  PAUSED
+  PAST_DUE
+  CANCELLED
+  FAILED
+}
+
+enum RecurringInterval {
+  MONTHLY
+}
+
+enum RefundStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  PROCESSING
+  SUCCEEDED
+  FAILED
+}
+
+enum ReceiptStatus {
+  ISSUED
+  VOID
+}
+
+/// ISO-4217 currencies the platform can accept. Enabling one is an admin decision (PROPOSED until approved).
+model Currency {
+  code             String     @id @db.Char(3)
+  nameEn           String     @db.VarChar(80)
+  nameAr           String?    @db.VarChar(80)
+  symbol           String?    @db.VarChar(8)
+  /// ISO 4217 minor units (USD 2, JPY 0, KWD 3) — amounts must not exceed this scale
+  minorUnits       Int        @default(2)
+  isEnabled        Boolean    @default(false)
+  /// Preset amounts in this currency (string decimals); empty => custom amount only
+  suggestedAmounts Json?
+  minAmount        Decimal?   @db.Decimal(18, 3)
+  maxAmount        Decimal?   @db.Decimal(18, 3)
+  sortOrder        Int        @default(0)
+  provenance       Provenance @default(PROPOSED)
+  updatedById      String?    @db.VarChar(30)
+  createdAt        DateTime   @default(now()) @db.DateTime(3)
+  updatedAt        DateTime   @updatedAt @db.DateTime(3)
+}
+
+/// Provider capabilities + admin activation flag. Credentials NEVER stored here (environment only).
+model PaymentProvider {
+  code                  String   @id @db.VarChar(40)
+  displayName           String   @db.VarChar(120)
+  isEnabled             Boolean  @default(false)
+  isTestProvider        Boolean  @default(false)
+  supportsRecurring     Boolean  @default(false)
+  supportsRefunds       Boolean  @default(false)
+  supportsPartialRefund Boolean  @default(false)
+  /// ISO codes the provider can charge; null = any enabled currency
+  supportedCurrencies   Json?
+  updatedById           String?  @db.VarChar(30)
+  createdAt             DateTime @default(now()) @db.DateTime(3)
+  updatedAt             DateTime @updatedAt @db.DateTime(3)
+}
+
+/// Guest donor (no account). A new record is created per guest donation; records are only linked
+/// when identity is reliably established (future verified donor portal / admin review) — never by e-mail alone.
+model Donor {
+  id                   String    @id @default(cuid()) @db.VarChar(30)
+  firstName            String    @db.VarChar(120)
+  lastName             String    @db.VarChar(120)
+  email                String    @db.VarChar(191)
+  phone                String?   @db.VarChar(40)
+  countryCode          String?   @db.Char(2)
+  addressLine1         String?   @db.VarChar(255)
+  addressLine2         String?   @db.VarChar(255)
+  city                 String?   @db.VarChar(120)
+  region               String?   @db.VarChar(120)
+  postalCode           String?   @db.VarChar(20)
+  preferredLocale      String    @default("en") @db.VarChar(5)
+  donorType            DonorType @default(INDIVIDUAL)
+  organizationName     String?   @db.VarChar(255)
+  marketingConsent     Boolean   @default(false)
+  marketingConsentAt   DateTime? @db.DateTime(3)
+  privacyConsentAt     DateTime  @db.DateTime(3)
+  privacyPolicyVersion String?   @db.VarChar(40)
+  /// Set when PII has been erased under the retention/privacy policy; financial records are kept.
+  anonymizedAt         DateTime? @db.DateTime(3)
+  createdAt            DateTime  @default(now()) @db.DateTime(3)
+  updatedAt            DateTime  @updatedAt @db.DateTime(3)
+
+  donations          Donation[]
+  recurringDonations RecurringDonation[]
+
+  @@index([email])
+  @@index([lastName, firstName])
+  @@index([createdAt])
+}
+
+model Donation {
+  id                     String                @id @default(cuid()) @db.VarChar(30)
+  /// Public, non-sequential reference (e.g. DN-7K3QX9M2PA4T)
+  reference              String                @unique @db.VarChar(24)
+  /// SHA-256 of the donor-facing access token (status / return page / receipt)
+  accessTokenHash        String                @db.Char(64)
+  /// Client Idempotency-Key — the same key never creates a second donation
+  idempotencyKey         String?               @unique @db.VarChar(80)
+  /// SHA-256 of the canonical request body: a replay with the same key but different data is rejected
+  idempotencyRequestHash String?               @db.Char(64)
+  donorId                String                @db.VarChar(30)
+  donor                  Donor                 @relation(fields: [donorId], references: [id], onDelete: Restrict)
+  amount                 Decimal               @db.Decimal(18, 3)
+  currency               String                @db.Char(3)
+  frequency              DonationFrequency     @default(ONE_TIME)
+  status                 DonationStatus        @default(PENDING)
+  paymentStatus          DonationPaymentStatus @default(UNPAID)
+  /// Sum of SUCCEEDED refunds (same currency) — compensating records live in Refund/PaymentTransaction
+  refundedAmount         Decimal               @default(0) @db.Decimal(18, 3)
+  isAnonymous            Boolean               @default(false)
+  donorMessage           String?               @db.VarChar(500)
+  provider               String?               @db.VarChar(40)
+  /// true for mock/test-provider donations — excluded from reports by default, never real money
+  isTest                 Boolean               @default(false)
+  locale                 String                @default("en") @db.VarChar(5)
+  source                 String?               @db.VarChar(60)
+  utmSource              String?               @db.VarChar(120)
+  utmMedium              String?               @db.VarChar(120)
+  utmCampaign            String?               @db.VarChar(120)
+  sourceEventId          String?               @db.VarChar(30)
+  sourceEvent            Event?                @relation(fields: [sourceEventId], references: [id], onDelete: SetNull)
+  recurringDonationId    String?               @db.VarChar(30)
+  recurringDonation      RecurringDonation?    @relation(fields: [recurringDonationId], references: [id], onDelete: Restrict)
+  confirmedAt            DateTime?             @db.DateTime(3)
+  createdAt              DateTime              @default(now()) @db.DateTime(3)
+  updatedAt              DateTime              @updatedAt @db.DateTime(3)
+
+  allocations  DonationAllocation[]
+  attempts     PaymentAttempt[]
+  transactions PaymentTransaction[]
+  refunds      Refund[]
+  receipts     DonationReceipt[]
+
+  @@index([status, paymentStatus])
+  @@index([currency])
+  @@index([donorId])
+  @@index([createdAt])
+  @@index([recurringDonationId])
+}
+
+/// Where the money goes. Phase 3 writes exactly one allocation (100%); the model allows splits later.
+model DonationAllocation {
+  id          String              @id @default(cuid()) @db.VarChar(30)
+  donationId  String              @db.VarChar(30)
+  donation    Donation            @relation(fields: [donationId], references: [id], onDelete: Restrict)
+  designation DonationDesignation
+  campaignId  String?             @db.VarChar(30)
+  campaign    Campaign?           @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  programmeId String?             @db.VarChar(30)
+  programme   Programme?          @relation(fields: [programmeId], references: [id], onDelete: Restrict)
+  amount      Decimal             @db.Decimal(18, 3)
+  currency    String              @db.Char(3)
+  createdAt   DateTime            @default(now()) @db.DateTime(3)
+
+  @@index([donationId])
+  @@index([campaignId])
+  @@index([programmeId])
+}
+
+model RecurringDonation {
+  id                   String              @id @default(cuid()) @db.VarChar(30)
+  reference            String              @unique @db.VarChar(24)
+  donorId              String              @db.VarChar(30)
+  donor                Donor               @relation(fields: [donorId], references: [id], onDelete: Restrict)
+  designation          DonationDesignation
+  campaignId           String?             @db.VarChar(30)
+  campaign             Campaign?           @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  programmeId          String?             @db.VarChar(30)
+  programme            Programme?          @relation(fields: [programmeId], references: [id], onDelete: Restrict)
+  amount               Decimal             @db.Decimal(18, 3)
+  currency             String              @db.Char(3)
+  interval             RecurringInterval   @default(MONTHLY)
+  intervalCount        Int                 @default(1)
+  status               RecurringStatus     @default(PENDING_ACTIVATION)
+  provider             String              @db.VarChar(40)
+  /// Provider subscription/agreement id
+  providerAgreementRef String?             @db.VarChar(191)
+  isTest               Boolean             @default(false)
+  startDate            DateTime?           @db.DateTime(3)
+  nextBillingDate      DateTime?           @db.DateTime(3)
+  lastChargedAt        DateTime?           @db.DateTime(3)
+  failedAttemptCount   Int                 @default(0)
+  maxRetryAttempts     Int                 @default(3)
+  pausedAt             DateTime?           @db.DateTime(3)
+  cancelledAt          DateTime?           @db.DateTime(3)
+  cancelReason         String?             @db.VarChar(500)
+  createdAt            DateTime            @default(now()) @db.DateTime(3)
+  updatedAt            DateTime            @updatedAt @db.DateTime(3)
+
+  donations Donation[]
+
+  @@unique([provider, providerAgreementRef])
+  @@index([status, nextBillingDate])
+  @@index([donorId])
+}
+
+model PaymentAttempt {
+  id                 String               @id @default(cuid()) @db.VarChar(30)
+  reference          String               @unique @db.VarChar(32)
+  donationId         String               @db.VarChar(30)
+  donation           Donation             @relation(fields: [donationId], references: [id], onDelete: Restrict)
+  provider           String               @db.VarChar(40)
+  providerSessionRef String?              @db.VarChar(191)
+  /// Provider payment/charge id, set from verified events
+  providerPaymentRef String?              @db.VarChar(191)
+  amount             Decimal              @db.Decimal(18, 3)
+  currency           String               @db.Char(3)
+  status             PaymentAttemptStatus @default(CREATED)
+  checkoutUrl        String?              @db.VarChar(1000)
+  failureCode        String?              @db.VarChar(80)
+  failureReason      String?              @db.VarChar(500)
+  isTest             Boolean              @default(false)
+  initiatedAt        DateTime             @default(now()) @db.DateTime(3)
+  expiresAt          DateTime?            @db.DateTime(3)
+  completedAt        DateTime?            @db.DateTime(3)
+  updatedAt          DateTime             @updatedAt @db.DateTime(3)
+
+  transactions PaymentTransaction[]
+
+  @@unique([provider, providerSessionRef])
+  @@unique([provider, providerPaymentRef])
+  @@index([donationId, status])
+}
+
+/// Immutable ledger of VERIFIED financial events (UPDATE/DELETE blocked by DB triggers).
+model PaymentTransaction {
+  id                     String                   @id @default(cuid()) @db.VarChar(30)
+  donationId             String                   @db.VarChar(30)
+  donation               Donation                 @relation(fields: [donationId], references: [id], onDelete: Restrict)
+  paymentAttemptId       String?                  @db.VarChar(30)
+  paymentAttempt         PaymentAttempt?          @relation(fields: [paymentAttemptId], references: [id], onDelete: Restrict)
+  refundId               String?                  @db.VarChar(30)
+  refund                 Refund?                  @relation(fields: [refundId], references: [id], onDelete: Restrict)
+  webhookEventId         String?                  @db.VarChar(30)
+  webhookEvent           PaymentWebhookEvent?     @relation(fields: [webhookEventId], references: [id], onDelete: Restrict)
+  provider               String                   @db.VarChar(40)
+  providerTransactionRef String                   @db.VarChar(191)
+  type                   PaymentTransactionType
+  status                 PaymentTransactionStatus
+  amount                 Decimal                  @db.Decimal(18, 3)
+  currency               String                   @db.Char(3)
+  /// Provider-reported settlement (kept separate; never replaces the original amount)
+  settlementAmount       Decimal?                 @db.Decimal(18, 3)
+  settlementCurrency     String?                  @db.Char(3)
+  exchangeRate           Decimal?                 @db.Decimal(18, 8)
+  feeAmount              Decimal?                 @db.Decimal(18, 3)
+  failureCode            String?                  @db.VarChar(80)
+  isTest                 Boolean                  @default(false)
+  occurredAt             DateTime                 @db.DateTime(3)
+  createdAt              DateTime                 @default(now()) @db.DateTime(3)
+
+  @@unique([provider, providerTransactionRef, type])
+  @@index([donationId])
+  @@index([type, status])
+  @@index([currency])
+  @@index([occurredAt])
+}
+
+model PaymentWebhookEvent {
+  id                String             @id @default(cuid()) @db.VarChar(30)
+  provider          String             @db.VarChar(40)
+  providerEventId   String             @db.VarChar(191)
+  eventType         String             @db.VarChar(80)
+  signatureVerified Boolean
+  payloadHash       String             @db.Char(64)
+  /// Normalized, non-sensitive event data (no card data is ever accepted)
+  payload           Json
+  status            WebhookEventStatus @default(RECEIVED)
+  attempts          Int                @default(0)
+  lastError         String?            @db.VarChar(1000)
+  receivedAt        DateTime           @default(now()) @db.DateTime(3)
+  processedAt       DateTime?          @db.DateTime(3)
+  updatedAt         DateTime           @updatedAt @db.DateTime(3)
+
+  transactions PaymentTransaction[]
+
+  @@unique([provider, providerEventId])
+  @@index([status, receivedAt])
+}
+
+model Refund {
+  id                String       @id @default(cuid()) @db.VarChar(30)
+  reference         String       @unique @db.VarChar(24)
+  donationId        String       @db.VarChar(30)
+  donation          Donation     @relation(fields: [donationId], references: [id], onDelete: Restrict)
+  amount            Decimal      @db.Decimal(18, 3)
+  currency          String       @db.Char(3)
+  reason            String       @db.VarChar(1000)
+  status            RefundStatus @default(REQUESTED)
+  requestedById     String       @db.VarChar(30)
+  requestedBy       AdminUser    @relation("RefundRequestedBy", fields: [requestedById], references: [id], onDelete: Restrict)
+  decidedById       String?      @db.VarChar(30)
+  decidedBy         AdminUser?   @relation("RefundDecidedBy", fields: [decidedById], references: [id], onDelete: Restrict)
+  decisionNote      String?      @db.VarChar(1000)
+  executedById      String?      @db.VarChar(30)
+  provider          String?      @db.VarChar(40)
+  providerRefundRef String?      @db.VarChar(191)
+  failureReason     String?      @db.VarChar(500)
+  requestedAt       DateTime     @default(now()) @db.DateTime(3)
+  decidedAt         DateTime?    @db.DateTime(3)
+  executedAt        DateTime?    @db.DateTime(3)
+  completedAt       DateTime?    @db.DateTime(3)
+  updatedAt         DateTime     @updatedAt @db.DateTime(3)
+
+  transactions PaymentTransaction[]
+
+  @@unique([provider, providerRefundRef])
+  @@index([donationId])
+  @@index([status])
+}
+
+/// Receipt document record; `snapshot` freezes what was issued. Re-issue = VOID + new receipt.
+model DonationReceipt {
+  id                String        @id @default(cuid()) @db.VarChar(30)
+  receiptNumber     String        @unique @db.VarChar(32)
+  donationId        String        @db.VarChar(30)
+  donation          Donation      @relation(fields: [donationId], references: [id], onDelete: Restrict)
+  version           Int           @default(1)
+  status            ReceiptStatus @default(ISSUED)
+  locale            String        @default("en") @db.VarChar(5)
+  snapshot          Json
+  issuedById        String?       @db.VarChar(30)
+  replacesReceiptId String?       @db.VarChar(30)
+  voidReason        String?       @db.VarChar(500)
+  issuedAt          DateTime      @default(now()) @db.DateTime(3)
+  voidedAt          DateTime?     @db.DateTime(3)
+
+  @@unique([donationId, version])
+  @@index([status])
+}
+
+/// Gap-free yearly counter for receipt numbers (row-locked increment inside the issuing transaction).
+model ReceiptSequence {
+  year       Int      @id
+  lastNumber Int      @default(0)
+  updatedAt  DateTime @updatedAt @db.DateTime(3)
+}

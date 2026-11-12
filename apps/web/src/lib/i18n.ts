@@ -20,3 +20,14 @@ export function formatUSD(amount: number, locale: Locale) {
   // Left-to-right isolate keeps "$100" intact inside RTL text.
   return `⁦$${n}⁩`;
 }
+
+/**
+ * Currency-aware variant for backend-configured currencies. USD whole amounts render exactly like formatUSD;
+ * other currencies use their symbol (or ISO code) and keep any decimals the backend allows.
+ */
+export function formatMoney(amount: number | string, currency: string, locale: Locale, symbol?: string | null) {
+  const value = typeof amount === "string" ? Number(amount) : amount;
+  if (currency === "USD" && Number.isInteger(value)) return formatUSD(value, locale);
+  const n = new Intl.NumberFormat(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { maximumFractionDigits: 3 }).format(value);
+  return `⁦${symbol ?? `${currency} `}${n}⁩`;
+}

@@ -1,0 +1,18 @@
+{
+  "browser": "Chrome 157.0.8103.39",
+  "base": "http://localhost:3100",
+  "fails": [],
+  "notes": [
+    "ar/home: canonical=/ar hreflang=en,ar,x-default og=none robots=noindex, nofollow",
+    "ar/about: canonical=/ar/about hreflang=en,ar,x-default og=none robots=noindex, nofollow",
+    "ar/programs: canonical=/ar/programs hreflang=en,ar,x-default og=none robots=noindex, nofollow",
+    "ar/events/gala-night: canonical=/ar/events/gala-night hreflang=en,ar,x-default og=none robots=noindex, nofollow",
+    "ar/give: canonical=/ar/give hreflang=en,ar,x-default og=none robots=noindex, nofollow",
+    "ar/faq: canonical=/ar/faq hreflang=en,ar,x-default og=none robots=noindex, nofollow",
+    "ar/contact: canonical=/ar/contact hreflang=en,ar,x-default og=none robots=noindex, nofollow",
+    "ar/privacy: canonical=/ar/privacy hreflang=en,ar,x-default og=none robots=noindex, nofollow",
+    "ar/terms: canonical=/ar/terms hreflang=en,ar,x-default og=none robots=noindex, nofollow",
+    "ar/cookies: canonical=/ar/cookies hreflang=en,ar,x-default og=none robots=noindex, nofollow"
+  ],
+  "pass": 470
+}

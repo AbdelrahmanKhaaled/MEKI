@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Heart, Info } from "lucide-react";
 import type { Dict } from "@/content/en";
-import { media } from "@/content/media";
+import { resolveMedia } from "@/content/media";
 import { GiveButton } from "../DonateProvider";
 
 /**
@@ -92,7 +92,7 @@ export function Campaigns({ t }: { t: Dict }) {
             <article className="group relative flex h-full flex-col overflow-hidden rounded-[2rem] bg-limestone shadow-[var(--shadow-card)] ring-1 ring-stone-line transition-all duration-700 ease-[var(--ease-premium)] hover:-translate-y-2 hover:shadow-[var(--shadow-lift)]">
               <div className="relative aspect-[4/3] overflow-hidden">
                 <Image
-                  src={media[item.image].src}
+                  src={resolveMedia(item.image).src}
                   alt=""
                   fill
                   sizes="(min-width:640px) 400px, 82vw"

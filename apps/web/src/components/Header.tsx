@@ -6,11 +6,14 @@ import type { Dict } from "@/content/en";
 import type { Locale } from "@/lib/i18n";
 import { Logo } from "./Logo";
 import { GiveButton } from "./DonateProvider";
+import { NAV_ORDER, PAGE_PATH, getPages, pageHref, type PageKey } from "@/content/pages";
 
-export function Header({ t, locale }: { t: Dict; locale: Locale }) {
+export function Header({ t, locale, current = "home" }: { t: Dict; locale: Locale; current?: PageKey }) {
+  const pages = getPages(locale);
+  const links = NAV_ORDER.map((k) => ({ key: k, href: pageHref(locale, k), label: pages.nav[k] }));
+  const galaActive = current === "gala";
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState<string>("");
   const other = locale === "en" ? "ar" : "en";
 
   useEffect(() => {
@@ -20,20 +23,6 @@ export function Header({ t, locale }: { t: Dict; locale: Locale }) {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  // Highlight the section in view.
-  useEffect(() => {
-    const ids = t.nav.links.map((l) => l.href.slice(1));
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach((e) => e.isIntersecting && setActive(e.target.id)),
-      { rootMargin: "-45% 0px -50% 0px" },
-    );
-    ids.forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) obs.observe(el);
-    });
-    return () => obs.disconnect();
-  }, [t.nav.links]);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -53,7 +42,7 @@ export function Header({ t, locale }: { t: Dict; locale: Locale }) {
         className={`fixed inset-x-0 top-0 z-50 transition-[background-color,box-shadow,padding] duration-500 ease-[var(--ease-premium)] ${solid ? "bg-paper/90 py-2.5 shadow-[0_1px_0_var(--color-stone-line),0_10px_30px_-20px_rgb(19_36_31/0.4)] backdrop-blur-xl" : "bg-transparent py-5"}`}
       >
         <div className="container-x flex items-center justify-between gap-6">
-          <a href="#top" aria-label={t.nav.home} className="relative shrink-0">
+          <a href={pageHref(locale, "home")} aria-label={t.nav.home} className="relative shrink-0">
             <span className={`block transition-opacity duration-500 ${solid ? "opacity-0" : "opacity-100"}`}>
               <Logo variant="white" alt="" />
             </span>
@@ -64,13 +53,13 @@ export function Header({ t, locale }: { t: Dict; locale: Locale }) {
 
           <nav aria-label="Primary" className="hidden lg:block">
             <ul className="flex items-center gap-1">
-              {t.nav.links.map((l) => {
-                const isActive = active === l.href.slice(1);
+              {links.map((l) => {
+                const isActive = current === l.key;
                 return (
-                  <li key={l.href}>
+                  <li key={l.key}>
                     <a
                       href={l.href}
-                      aria-current={isActive ? "true" : undefined}
+                      aria-current={isActive ? "page" : undefined}
                       className={`group relative inline-flex min-h-11 items-center px-3 text-[0.92rem] font-bold transition-colors ${
                         solid ? "text-ink hover:text-meki-green" : "text-white/90 hover:text-glow"
                       }`}
@@ -85,12 +74,23 @@ export function Header({ t, locale }: { t: Dict; locale: Locale }) {
                   </li>
                 );
               })}
+              <li>
+                <a
+                  href={t.nav.gala.href}
+                  aria-current={galaActive ? "page" : undefined}
+                  className={`inline-flex min-h-11 items-center rounded-full border px-4 text-[0.92rem] font-bold transition-colors ${
+                    solid ? "border-harvest-gold text-gold-text hover:bg-harvest-gold/15" : "border-glow/70 text-glow hover:bg-white/10"
+                  }`}
+                >
+                  {t.nav.gala.label}
+                </a>
+              </li>
             </ul>
           </nav>
 
           <div className="flex items-center gap-2">
             <a
-              href={`/${other}`}
+              href={`/${other}${PAGE_PATH[current]}`}
               hrefLang={other}
               lang={other}
               aria-label={t.nav.languageLabel}
@@ -126,14 +126,20 @@ export function Header({ t, locale }: { t: Dict; locale: Locale }) {
         >
           <nav aria-label="Mobile" className="container-x pb-8 pt-4">
             <ul className="divide-y divide-stone-line border-y border-stone-line">
-              {t.nav.links.map((l, i) => (
-                <li key={l.href} style={{ animation: `menuIn .5s var(--ease-premium) ${i * 0.04}s both` }}>
-                  <a href={l.href} onClick={() => setOpen(false)} className="flex min-h-14 items-center justify-between font-serif text-2xl text-ink">
+              {links.map((l, i) => (
+                <li key={l.key} style={{ animation: `menuIn .5s var(--ease-premium) ${i * 0.04}s both` }}>
+                  <a href={l.href} aria-current={current === l.key ? "page" : undefined} onClick={() => setOpen(false)} className="flex min-h-14 items-center justify-between font-serif text-2xl text-ink">
                     {l.label}
                     <span className="text-sm font-sans text-gold-text">0{i + 1}</span>
                   </a>
                 </li>
               ))}
+              <li>
+                <a href={t.nav.gala.href} onClick={() => setOpen(false)} className="flex min-h-14 items-center justify-between font-serif text-2xl text-gold-text">
+                  {t.nav.gala.label}
+                  <span className="text-sm font-sans">✦</span>
+                </a>
+              </li>
             </ul>
             <GiveButton className="btn btn-gold mt-6 w-full">
               <Heart className="size-4" aria-hidden="true" /> {t.nav.donate}

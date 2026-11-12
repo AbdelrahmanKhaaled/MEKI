@@ -40,3 +40,30 @@ export const media: Record<MediaKey, { src: string; w: number; h: number }> = {
   "field-sky": { src: "/images/work/field-sky.webp", w: 2000, h: 1333 },
   "farmer-portrait": { src: "/images/work/farmer-portrait.webp", w: 1333, h: 2000 },
 };
+
+/** A curated image key, or an absolute URL of an image uploaded through the Media Library (API). */
+export type MediaRef = MediaKey | (string & {});
+
+const isKey = (ref: string): ref is MediaKey => Object.prototype.hasOwnProperty.call(media, ref);
+
+/** Resolves a curated key or uploaded URL to an <Image> source. Unknown sizes fall back to 3:2. */
+export function resolveMedia(ref: MediaRef): { src: string; w: number; h: number } {
+  return isKey(ref) ? media[ref] : { src: ref, w: 2000, h: 1333 };
+}
+
+/**
+ * Maps an API media object to a MediaRef. Curated website images (served by this app from
+ * /images/work/<key>.webp) map back to their local key so they render exactly as before.
+ */
+export function toMediaRef(m: { url: string } | null | undefined): MediaRef | undefined {
+  if (!m?.url) return undefined;
+  let path = m.url;
+  try {
+    path = new URL(m.url, "http://local").pathname;
+  } catch {
+    return undefined;
+  }
+  const key = /^\/images\/work\/([a-z-]+)\.webp$/.exec(path)?.[1];
+  if (key && isKey(key)) return key;
+  return /^https?:\/\//.test(m.url) ? m.url : undefined;
+}

@@ -1,0 +1,10 @@
+{
+  "browser": "Chrome 157.0.8103.39",
+  "base": "http://localhost:3100",
+  "fails": [],
+  "notes": [
+    "en faq focused-element outline after Tab: solid/2px",
+    "ar faq focused-element outline after Tab: solid/2px"
+  ],
+  "pass": 118
+}

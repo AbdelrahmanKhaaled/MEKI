@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { ArrowUpRight, Heart } from "lucide-react";
 import type { Dict } from "@/content/en";
-import { media } from "@/content/media";
+import { resolveMedia } from "@/content/media";
 import { Icon } from "../Icon";
 import { GiveButton } from "../DonateProvider";
 
@@ -80,7 +80,7 @@ export function Programmes({ t }: { t: Dict }) {
                     <div className="overflow-hidden">
                       <div className="pb-8">
                         <div className="relative mb-5 aspect-[16/10] overflow-hidden rounded-3xl">
-                          <Image src={media[item.image].src} alt="" fill sizes="100vw" className="object-cover" />
+                          <Image src={resolveMedia(item.image).src} alt="" fill sizes="100vw" className="object-cover" />
                         </div>
                         <p className="mb-3 font-serif text-xl italic text-meki-green">{item.short}</p>
                         <p className="mb-4 text-body-grey">{item.mandate}</p>
@@ -106,7 +106,7 @@ export function Programmes({ t }: { t: Dict }) {
                 {p.items.map((item, i) => (
                   <Image
                     key={item.slug}
-                    src={media[item.image].src}
+                    src={resolveMedia(item.image).src}
                     alt=""
                     fill
                     sizes="40vw"

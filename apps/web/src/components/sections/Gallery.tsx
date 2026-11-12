@@ -1,6 +1,6 @@
 import Image from "next/image";
 import type { Dict } from "@/content/en";
-import { media } from "@/content/media";
+import { resolveMedia } from "@/content/media";
 
 /**
  * Editorial, layered gallery. Three columns drift at different parallax speeds for depth.
@@ -35,7 +35,7 @@ export function Gallery({ t }: { t: Dict }) {
                 <figure key={item.image} className="group relative overflow-hidden rounded-[1.75rem] shadow-[var(--shadow-card)]">
                   <div className={`relative ${col.shapes[i]} overflow-hidden`}>
                     <Image
-                      src={media[item.image].src}
+                      src={resolveMedia(item.image).src}
                       alt=""
                       fill
                       sizes="(min-width:1024px) 30vw, 50vw"
