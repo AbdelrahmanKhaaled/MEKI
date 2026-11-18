@@ -272,6 +272,9 @@ describe('Donations, payments, webhooks, recurring, refunds, receipts, reports',
     await finance.post(`/admin/donations/${donation.id}/refunds`, { amount: '30.001', reason: 'Precision' }).expect(422);
     const r = (await finance.post(`/admin/donations/${donation.id}/refunds`, { amount: '30', reason: 'Donor request by e-mail' }).expect(201)).body.data;
     expect(r.status).toBe('REQUESTED');
+    // Phase 6B: the admin refund list carries the donation reference and test flag (additive fields only).
+    const listed = (await finance.get(`/admin/refunds?donationId=${donation.id}`).expect(200)).body.data;
+    expect(listed[0]).toMatchObject({ id: r.id, amount: '30', donation: { reference: p.reference, isTest: true } });
     // Only 50 remains refundable while 30 is pending.
     await finance.post(`/admin/donations/${donation.id}/refunds`, { amount: '50.01', reason: 'Over pending balance' }).expect(422);
 
@@ -377,6 +380,10 @@ describe('Donations, payments, webhooks, recurring, refunds, receipts, reports',
     const donation = await ctx.prisma.donation.findUniqueOrThrow({ where: { reference: p.reference }, include: { receipts: true } });
     const receipt = donation.receipts[0];
     await finance.post(`/admin/donations/${donation.id}/receipts`, {}).expect(409);
+    // Phase 6B: the receipts list carries the donation reference and test flag, never the snapshot (PII).
+    const listedReceipts = (await finance.get(`/admin/receipts?donationId=${donation.id}`).expect(200)).body.data;
+    expect(listedReceipts[0]).toMatchObject({ id: receipt.id, donation: { reference: p.reference, isTest: true } });
+    expect(listedReceipts[0].snapshot).toBeUndefined();
 
     const en = await finance.get(`/admin/receipts/${receipt.id}/document?locale=en`).expect(200);
     expect(en.headers['content-type']).toMatch(/text\/html/);

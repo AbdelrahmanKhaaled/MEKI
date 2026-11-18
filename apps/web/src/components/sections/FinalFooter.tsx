@@ -1,6 +1,6 @@
 import Image from "next/image";
 /* eslint-disable @next/next/no-img-element */
-import { getPages, pageHref, NAV_ORDER } from "@/content/pages";
+import { getPages, pageHref, NAV_ORDER, resolveMenu } from "@/content/pages";
 import { ArrowRight, ArrowUp, Heart, ShieldCheck } from "lucide-react";
 import type { Dict } from "@/content/en";
 import { media } from "@/content/media";
@@ -114,10 +114,10 @@ export function Footer({ t }: { t: Dict }) {
           <nav aria-label={f.explore} className="lg:col-span-2">
             <h2 className="mb-5 font-sans text-xs font-bold uppercase tracking-[0.22em] text-glow">{f.explore}</h2>
             <ul className="space-y-3 text-sm">
-              {NAV_ORDER.map((k) => (
-                <li key={k}>
-                  <a href={pageHref(loc, k)} className="transition hover:text-white">
-                    {pages.nav[k]}
+              {(resolveMenu(t.nav.links, loc) ?? NAV_ORDER.map((k) => ({ key: k, href: pageHref(loc, k), label: pages.nav[k], external: false }))).map((l) => (
+                <li key={l.key}>
+                  <a href={l.href} {...(l.external ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="transition hover:text-white">
+                    {l.label}
                   </a>
                 </li>
               ))}
@@ -143,10 +143,10 @@ export function Footer({ t }: { t: Dict }) {
           <div className="lg:col-span-3">
             <h2 className="mb-5 font-sans text-xs font-bold uppercase tracking-[0.22em] text-glow">{f.giving}</h2>
             <ul className="mb-10 space-y-3 text-sm">
-              {(["give", "faq"] as const).map((k) => (
-                <li key={k}>
-                  <a href={pageHref(loc, k)} className="transition hover:text-white">
-                    {pages.nav[k]}
+              {(resolveMenu(t.footer.givingLinks, loc) ?? (["give", "faq"] as const).map((k) => ({ key: k, href: pageHref(loc, k), label: pages.nav[k], external: false }))).map((l) => (
+                <li key={l.key}>
+                  <a href={l.href} {...(l.external ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="transition hover:text-white">
+                    {l.label}
                   </a>
                 </li>
               ))}

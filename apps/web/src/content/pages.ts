@@ -28,6 +28,38 @@ export const pageHref = (locale: Locale, key: PageKey) => `/${locale}${PAGE_PATH
 type NavKey = "home" | "about" | "programs" | "give" | "faq" | "contact";
 export const NAV_ORDER: NavKey[] = ["home", "about", "programs", "give", "faq", "contact"];
 
+export interface MenuLink {
+  /** page key for internal links (drives "current page" highlighting), `ext-<n>` for external links */
+  key: string;
+  href: string;
+  label: string;
+  external: boolean;
+}
+const PATH_TO_KEY = new Map<string, PageKey>(Object.entries(PAGE_PATH).map(([k, p]) => [p || "/", k as PageKey]));
+
+/**
+ * CMS-managed menus (Phase 6D). Admins edit the `nav-*` (header + footer "Explore") and `giving-*` (footer "Giving") items
+ * of the home page's FOOTER section — the single navigation source. A published list is used ONLY when every entry has a
+ * label and links to a known site page ("/", "/about", …) or an https URL; anything else — e.g. the "#anchor" links of the
+ * former one-page site still in the seed — keeps the built-in menu, so a half-valid menu can never break navigation.
+ * Gala Night and the Give button are fixed entries outside these lists; a Gala item in the list is ignored (no duplicate).
+ */
+export function resolveMenu(links: { href: string; label: string }[] | undefined, locale: Locale): MenuLink[] | null {
+  if (!links?.length) return null;
+  const out: MenuLink[] = [];
+  for (const [i, l] of links.entries()) {
+    const label = l.label?.trim();
+    const href = l.href?.trim() ?? "";
+    if (!label) return null;
+    if (/^https:\/\/[^\s"'<>]+$/.test(href)) out.push({ key: `ext-${i}`, href, label, external: true });
+    else if (PATH_TO_KEY.has(href)) {
+      const key = PATH_TO_KEY.get(href)!;
+      if (key !== "gala") out.push({ key, href: pageHref(locale, key), label, external: false });
+    } else return null;
+  }
+  return out.length ? out : null;
+}
+
 type Meta = { title: string; description: string };
 
 export type PagesDict = {

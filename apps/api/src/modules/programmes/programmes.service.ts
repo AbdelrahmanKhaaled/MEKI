@@ -6,7 +6,7 @@ import { MediaService } from '../media/media.service';
 import { PublishingPolicy } from '../../common/publishing/publishing.policy';
 import type { ActorContext } from '../../common/types/auth-request';
 import { defined, Paginated, parseSort, slugify } from '../../common/utils';
-import type { CreateProgrammeDto, CreateProjectDto, ProgrammeQueryDto, UpdateProgrammeDto, UpdateProjectDto } from './programmes.dto';
+import type { CreateProgrammeDto, CreateProjectDto, ProgrammeQueryDto, ProjectQueryDto, UpdateProgrammeDto, UpdateProjectDto } from './programmes.dto';
 
 const include = {
   coverMedia: true,
@@ -40,6 +40,7 @@ export class ProgrammesService {
       ...(q.status ? { status: q.status } : {}),
       ...(q.kind ? { kind: q.kind } : {}),
       ...(q.isFeatured ? { isFeatured: q.isFeatured === 'true' } : {}),
+      ...(q.provenance ? { provenance: q.provenance } : {}),
       ...(q.search ? { OR: [{ nameEn: { contains: q.search } }, { nameAr: { contains: q.search } }, { slug: { contains: q.search } }, { code: { contains: q.search } }] } : {}),
     };
     const [items, total] = await this.prisma.$transaction([
@@ -123,12 +124,42 @@ export class ProgrammesService {
   }
 
   // ── projects ──
-  listProjects(programmeId?: string) {
+  /**
+   * Projects are presented as "Causes" in the admin (Programme → Cause → Campaign). Phase 6C added, additively: search and
+   * provenance filters, the programme's status/kind/Arabic name and a non-deleted campaign count on every row.
+   */
+  listProjects(q: ProjectQueryDto = {}) {
+    const s = q.search?.trim();
     return this.prisma.project.findMany({
-      where: { deletedAt: null, ...(programmeId ? { programmeId } : {}) },
+      where: {
+        deletedAt: null,
+        ...(q.programmeId ? { programmeId: q.programmeId } : {}),
+        ...(q.provenance ? { provenance: q.provenance } : {}),
+        ...(s ? { OR: [{ nameEn: { contains: s } }, { nameAr: { contains: s } }, { code: { contains: s } }, { slug: { contains: s } }, { locationEn: { contains: s } }] } : {}),
+      },
       orderBy: { nameEn: 'asc' },
-      include: { programme: { select: { id: true, nameEn: true, slug: true } } },
+      include: {
+        programme: { select: { id: true, nameEn: true, nameAr: true, slug: true, status: true, kind: true } },
+        _count: { select: { campaigns: { where: { deletedAt: null } } } },
+      },
     });
+  }
+
+  /** Phase 6C (additive): one project with its programme and its (non-deleted) campaigns. */
+  async getProject(id: string) {
+    const p = await this.prisma.project.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        programme: { select: { id: true, nameEn: true, nameAr: true, slug: true, status: true, kind: true } },
+        campaigns: {
+          where: { deletedAt: null },
+          orderBy: { createdAt: 'desc' },
+          select: { id: true, code: true, slug: true, titleEn: true, titleAr: true, status: true, provenance: true, approvedAt: true, currency: true, targetAmount: true, startsAt: true, endsAt: true },
+        },
+      },
+    });
+    if (!p) throw new NotFoundException('Project not found');
+    return { ...p, campaigns: p.campaigns.map((c) => ({ ...c, targetAmount: c.targetAmount?.toString() ?? null })) };
   }
 
   private async assertProgramme(programmeId?: string | null) {
@@ -150,6 +181,14 @@ export class ProgrammesService {
     const existing = await this.prisma.project.findFirst({ where: { id, deletedAt: null } });
     if (!existing) throw new NotFoundException('Project not found');
     await this.assertProgramme(dto.programmeId);
+    // Phase 6C hierarchy guard: a project (Cause) that already has campaigns cannot move to another programme (or be
+    // detached), otherwise its campaigns would point to a programme the Cause no longer belongs to.
+    if (dto.programmeId !== undefined && dto.programmeId !== existing.programmeId) {
+      const campaigns = await this.prisma.campaign.count({ where: { projectId: id, deletedAt: null } });
+      if (campaigns > 0) {
+        throw new ConflictException({ message: 'Move or remove the campaigns of this project before changing its programme', code: 'PROJECT_HAS_CAMPAIGNS', details: { campaigns } });
+      }
+    }
     const project = await this.prisma.project.update({ where: { id }, data: { ...defined(dto), updatedById: actor.userId } });
     await this.audit.record(actor, 'project.update', 'Project', id, { fields: AuditService.changedFields(dto) });
     return project;

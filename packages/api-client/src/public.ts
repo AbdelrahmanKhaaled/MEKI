@@ -77,6 +77,8 @@ export interface PublicPage extends Localized {
   seoDescription: string | null;
   ogImageUrl: string | null;
   publishedAt: string | null;
+  /** Phase 6D: keys of sections published as hidden (absent on older API builds). */
+  hiddenSectionKeys?: string[];
   sections: PublicSection[];
 }
 
@@ -249,4 +251,69 @@ export interface PublicDonationStatus {
   createdAt: string;
   receiptNumber: string | null;
   isTest: boolean;
+}
+
+// ───────────── Gala ticket booking (Phase 5B/5B.1 backend contract; docs/16-phase5b-api-reference.md) ─────────────
+
+/** GET /public/events/:slug/ticketing */
+export interface PublicTicketing {
+  event: { slug: string; name: string; dateLabel: string; venue: string };
+  ticket: { name: string; type: 'INDIVIDUAL'; price: string; currency: string; tablesAvailable: false; perGuest: true };
+  classification: 'EVENT_TICKET_PAYMENT';
+  salesOpen: boolean;
+  soldOut: boolean;
+  maxTicketsPerBooking: number;
+  /** All payment gates are open on the server (provider enabled, env, settings). */
+  checkoutAvailable: boolean;
+  calendar: { available: true; url: string } | { available: false; reason: 'SCHEDULE_PENDING' };
+}
+
+/** POST /public/events/:slug/bookings (header Idempotency-Key). There is deliberately NO price field. */
+export interface CreateBookingRequest {
+  purchaser: { fullName: string; email: string; phone: string };
+  guests: { fullName: string; email: string; phone: string; dietaryRequirements: string; isPurchaser?: boolean }[];
+  ticketCount?: number;
+  locale?: 'en' | 'ar';
+  privacyConsent: true;
+}
+
+export interface CreatedBooking {
+  reference: string;
+  /** Shown on creation (and on an idempotent replay); needed for status, checkout and downloads. */
+  accessToken: string;
+  bookingStatus: 'PENDING';
+  paymentStatus: 'UNPAID';
+  ticketCount: number;
+  unitPrice: string;
+  totalAmount: string;
+  currency: string;
+  classification: 'EVENT_TICKET_PAYMENT';
+  isTest: boolean;
+  replayed?: boolean;
+}
+
+/** POST /public/bookings/:reference/checkout (header X-Booking-Token) */
+export interface BookingCheckoutSession {
+  attemptReference: string;
+  checkoutUrl: string | null;
+  expiresAt: string | null;
+  provider: string;
+  isTest: boolean;
+}
+
+/** GET /public/bookings/:reference/status | /confirmation (header X-Booking-Token). No guest/purchaser PII. */
+export interface PublicBookingStatus {
+  reference: string;
+  bookingStatus: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'REFUND_PENDING' | 'REFUNDED';
+  paymentStatus: 'UNPAID' | 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
+  /** true only after a VERIFIED provider event — never infer it from a redirect. */
+  confirmed: boolean;
+  message: 'awaiting_payment' | 'processing' | 'payment_failed' | 'confirmed' | 'cancelled' | 'refund_pending' | 'refunded';
+  ticketCount: number;
+  totalAmount: string;
+  currency: string;
+  classification: 'EVENT_TICKET_PAYMENT';
+  event: { slug: string; name: string; dateLabel: string; venue: string } | null;
+  calendar: { available: true; url: string } | { available: false; reason: 'SCHEDULE_PENDING' };
+  tickets: { ticketNumber: string; status: string; pdfReady: boolean; downloadPath: string }[];
 }

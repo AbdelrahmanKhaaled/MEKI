@@ -770,9 +770,12 @@ model Event {
   updatedAt               DateTime              @updatedAt @db.DateTime(3)
   deletedAt               DateTime?             @db.DateTime(3)
 
-  gallery   EventMedia[]
-  campaigns EventCampaign[]
-  donations Donation[]
+  gallery      EventMedia[]
+  campaigns    EventCampaign[]
+  donations    Donation[]
+  ticketConfig EventTicketConfig?
+  bookings     EventBooking[]
+  tickets      EventTicket[]
 
   @@index([status, visibility, sortOrder])
   @@index([startsAt])
@@ -1155,7 +1158,8 @@ model PaymentWebhookEvent {
   processedAt       DateTime?          @db.DateTime(3)
   updatedAt         DateTime           @updatedAt @db.DateTime(3)
 
-  transactions PaymentTransaction[]
+  transactions        PaymentTransaction[]
+  bookingTransactions EventBookingTransaction[]
 
   @@unique([provider, providerEventId])
   @@index([status, receivedAt])
@@ -1217,4 +1221,259 @@ model ReceiptSequence {
   year       Int      @id
   lastNumber Int      @default(0)
   updatedAt  DateTime @updatedAt @db.DateTime(3)
+}
+
+// ───────────────────── event ticketing: Gala booking (Phase 5B) ─────────────────────
+// Ticket revenue is NOT a charitable donation: it lives in its own booking-keyed attempt + ledger tables
+// (classification EVENT_TICKET_PAYMENT) and never touches Donation / PaymentTransaction, so donation totals,
+// campaign allocations, donation refunds and donation receipts are unaffected by construction.
+// No fair-market-value / tax-deductible amount is modelled (not provided by the client; SDI handles tax receipts).
+// Bookings, guests, tickets and the ticket ledger are never deleted (DB triggers).
+
+enum EventBookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  REFUND_PENDING
+  REFUNDED
+}
+
+enum BookingPaymentStatus {
+  UNPAID
+  PENDING // a hosted checkout session exists; money state is still unverified
+  PAID // only from a verified provider event
+  FAILED
+  REFUNDED
+}
+
+enum TicketStatus {
+  PENDING
+  ISSUED
+  CHECKED_IN
+  REVOKED
+  REFUNDED
+}
+
+enum FinancialClassification {
+  CHARITABLE_DONATION
+  EVENT_TICKET_PAYMENT
+}
+
+/// Server-controlled ticket sale configuration for an event. The browser never supplies a price.
+model EventTicketConfig {
+  id                   String     @id @default(cuid()) @db.VarChar(30)
+  eventId              String     @unique @db.VarChar(30)
+  event                Event      @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  ticketNameEn         String     @default("Individual ticket") @db.VarChar(120)
+  /// Price per guest in `currency` (individual tickets only; no tables)
+  ticketPrice          Decimal    @db.Decimal(18, 3)
+  currency             String     @default("USD") @db.Char(3)
+  /// Closed until MEKI/SDI approve sales; independent of payment-provider availability
+  salesEnabled         Boolean    @default(false)
+  maxTicketsPerBooking Int        @default(10)
+  /// Total sellable tickets; null = no limit configured (never invented)
+  capacity             Int?
+  /// Text printed on tickets / e-mails (client-confirmed values; separate from the CMS event copy)
+  displayNameEn        String     @db.VarChar(255)
+  eventDateLabelEn     String     @db.VarChar(120)
+  venueLabelEn         String     @db.VarChar(255)
+  checkInNoteEn        String?    @db.VarChar(500)
+  provenance           Provenance @default(PROPOSED)
+  updatedById          String?    @db.VarChar(30)
+  createdAt            DateTime   @default(now()) @db.DateTime(3)
+  updatedAt            DateTime   @updatedAt @db.DateTime(3)
+}
+
+/// One checkout/order containing one or more individual guest tickets.
+model EventBooking {
+  id                     String                  @id @default(cuid()) @db.VarChar(30)
+  /// Public, non-sequential reference (EB-7K3QX9M2PA4T)
+  publicReference        String                  @unique @db.VarChar(24)
+  /// SHA-256 of the purchaser-facing access token (status / confirmation / ticket download)
+  accessTokenHash        String                  @db.Char(64)
+  idempotencyKey         String?                 @unique @db.VarChar(80)
+  idempotencyRequestHash String?                 @db.Char(64)
+  eventId                String                  @db.VarChar(30)
+  event                  Event                   @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  purchaserName          String                  @db.VarChar(160)
+  purchaserEmail         String                  @db.VarChar(191)
+  purchaserPhone         String                  @db.VarChar(40)
+  guestCount             Int
+  /// Server-calculated: unitPrice x guestCount
+  unitPrice              Decimal                 @db.Decimal(18, 3)
+  totalAmount            Decimal                 @db.Decimal(18, 3)
+  currency               String                  @db.Char(3)
+  classification         FinancialClassification @default(EVENT_TICKET_PAYMENT)
+  bookingStatus          EventBookingStatus      @default(PENDING)
+  paymentStatus          BookingPaymentStatus    @default(UNPAID)
+  paymentProvider        String?                 @db.VarChar(40)
+  /// Provider checkout session / payment reference once known
+  providerReference      String?                 @db.VarChar(191)
+  refundedAmount         Decimal                 @default(0) @db.Decimal(18, 3)
+  isTest                 Boolean                 @default(false)
+  locale                 String                  @default("en") @db.VarChar(5)
+  paidAt                 DateTime?               @db.DateTime(3)
+  cancelledAt            DateTime?               @db.DateTime(3)
+  cancelReason           String?                 @db.VarChar(500)
+  createdAt              DateTime                @default(now()) @db.DateTime(3)
+  updatedAt              DateTime                @updatedAt @db.DateTime(3)
+
+  guests       EventBookingGuest[]
+  tickets      EventTicket[]
+  attempts     EventBookingPaymentAttempt[]
+  transactions EventBookingTransaction[]
+  jobs         EventBookingJob[]
+
+  @@index([eventId, bookingStatus, paymentStatus])
+  @@index([purchaserEmail])
+  @@index([createdAt])
+}
+
+model EventBookingGuest {
+  id                  String       @id @default(cuid()) @db.VarChar(30)
+  bookingId           String       @db.VarChar(30)
+  booking             EventBooking @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  position            Int
+  fullName            String       @db.VarChar(160)
+  email               String       @db.VarChar(191)
+  phone               String       @db.VarChar(40)
+  dietaryRequirements String       @db.VarChar(500)
+  /// The purchaser is one of the guests (informational; purchaser and guest are otherwise independent)
+  isPurchaser         Boolean      @default(false)
+  createdAt           DateTime     @default(now()) @db.DateTime(3)
+  updatedAt           DateTime     @updatedAt @db.DateTime(3)
+
+  ticket EventTicket?
+
+  @@unique([bookingId, position])
+  @@index([email])
+}
+
+/// One ticket per guest. `qrTokenHash` is the SHA-256 of an opaque 256-bit random token (the token itself is
+/// never stored); null until the ticket is issued after verified payment.
+model EventTicket {
+  id             String            @id @default(cuid()) @db.VarChar(30)
+  ticketNumber   String            @unique @db.VarChar(24)
+  bookingId      String            @db.VarChar(30)
+  booking        EventBooking      @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  guestId        String            @unique @db.VarChar(30)
+  guest          EventBookingGuest @relation(fields: [guestId], references: [id], onDelete: Restrict)
+  eventId        String            @db.VarChar(30)
+  event          Event             @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  qrTokenHash    String?           @unique @db.Char(64)
+  status         TicketStatus      @default(PENDING)
+  issuedAt       DateTime?         @db.DateTime(3)
+  checkedInAt    DateTime?         @db.DateTime(3)
+  checkedInById  String?           @db.VarChar(30)
+  revokedAt      DateTime?         @db.DateTime(3)
+  revokedById    String?           @db.VarChar(30)
+  revokeReason   String?           @db.VarChar(500)
+  /// Private storage key of the PDF (never exposed through the API)
+  pdfStorageKey  String?           @db.VarChar(200)
+  pdfGeneratedAt DateTime?         @db.DateTime(3)
+  pdfSha256      String?           @db.Char(64)
+  /// Incremented whenever the QR token is rotated (re-issue); old tokens stop validating
+  tokenVersion   Int               @default(0)
+  createdAt      DateTime          @default(now()) @db.DateTime(3)
+  updatedAt      DateTime          @updatedAt @db.DateTime(3)
+
+  @@index([eventId, status])
+  @@index([bookingId])
+}
+
+model EventBookingPaymentAttempt {
+  id                 String               @id @default(cuid()) @db.VarChar(30)
+  /// Echoed back by the provider as metadata; the "BA-" prefix routes webhook events to the booking handler
+  reference          String               @unique @db.VarChar(32)
+  bookingId          String               @db.VarChar(30)
+  booking            EventBooking         @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  provider           String               @db.VarChar(40)
+  providerSessionRef String?              @db.VarChar(191)
+  providerPaymentRef String?              @db.VarChar(191)
+  amount             Decimal              @db.Decimal(18, 3)
+  currency           String               @db.Char(3)
+  status             PaymentAttemptStatus @default(CREATED)
+  checkoutUrl        String?              @db.VarChar(1000)
+  failureCode        String?              @db.VarChar(80)
+  failureReason      String?              @db.VarChar(500)
+  isTest             Boolean              @default(false)
+  initiatedAt        DateTime             @default(now()) @db.DateTime(3)
+  expiresAt          DateTime?            @db.DateTime(3)
+  completedAt        DateTime?            @db.DateTime(3)
+  updatedAt          DateTime             @updatedAt @db.DateTime(3)
+
+  transactions EventBookingTransaction[]
+
+  @@unique([provider, providerSessionRef])
+  @@unique([provider, providerPaymentRef])
+  @@index([bookingId, status])
+}
+
+/// Immutable ledger of VERIFIED ticket-payment events (UPDATE/DELETE blocked by DB triggers).
+model EventBookingTransaction {
+  id                     String                      @id @default(cuid()) @db.VarChar(30)
+  bookingId              String                      @db.VarChar(30)
+  booking                EventBooking                @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  attemptId              String?                     @db.VarChar(30)
+  attempt                EventBookingPaymentAttempt? @relation(fields: [attemptId], references: [id], onDelete: Restrict)
+  webhookEventId         String?                     @db.VarChar(30)
+  webhookEvent           PaymentWebhookEvent?        @relation(fields: [webhookEventId], references: [id], onDelete: Restrict)
+  classification         FinancialClassification     @default(EVENT_TICKET_PAYMENT)
+  provider               String                      @db.VarChar(40)
+  providerTransactionRef String                      @db.VarChar(191)
+  type                   PaymentTransactionType
+  status                 PaymentTransactionStatus
+  amount                 Decimal                     @db.Decimal(18, 3)
+  currency               String                      @db.Char(3)
+  failureCode            String?                     @db.VarChar(80)
+  isTest                 Boolean                     @default(false)
+  occurredAt             DateTime                    @db.DateTime(3)
+  createdAt              DateTime                    @default(now()) @db.DateTime(3)
+
+  @@unique([provider, providerTransactionRef, type])
+  @@index([bookingId])
+  @@index([classification, type, status])
+  @@index([occurredAt])
+}
+
+// ───────────── retryable background work for ticket bookings (Phase 5B.1 outbox) ─────────────
+// Rows are written INSIDE the payment-confirmation transaction (outbox pattern), so a verified payment can never be
+// "confirmed but forgotten": PDF generation and e-mail delivery are retried with back-off and never roll back the payment.
+
+enum EventJobType {
+  TICKET_PDF
+  EMAIL
+}
+
+enum EventJobStatus {
+  PENDING
+  RUNNING
+  DONE
+  FAILED // gave up after the maximum number of attempts (admin can re-queue)
+  SKIPPED // nothing to do / no e-mail provider configured (admin can re-queue)
+}
+
+model EventBookingJob {
+  id          String         @id @default(cuid()) @db.VarChar(30)
+  bookingId   String         @db.VarChar(30)
+  booking     EventBooking   @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  type        EventJobType
+  /// E-mail template key for EMAIL jobs (booking.pending, booking.confirmed, ticket.delivery, ...)
+  template    String?        @db.VarChar(40)
+  ticketId    String?        @db.VarChar(30)
+  /// One job per logical task: repeated enqueueing (duplicate webhook, retries) cannot create duplicates
+  dedupeKey   String         @unique @db.VarChar(120)
+  status      EventJobStatus @default(PENDING)
+  attempts    Int            @default(0)
+  nextRunAt   DateTime       @default(now()) @db.DateTime(3)
+  /// Lease so two runners never execute the same job; expired leases are recoverable
+  lockedUntil DateTime?      @db.DateTime(3)
+  /// Sanitised (no e-mail addresses / tokens), truncated
+  lastError   String?        @db.VarChar(500)
+  completedAt DateTime?      @db.DateTime(3)
+  createdAt   DateTime       @default(now()) @db.DateTime(3)
+  updatedAt   DateTime       @updatedAt @db.DateTime(3)
+
+  @@index([status, nextRunAt])
+  @@index([bookingId])
 }

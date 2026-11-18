@@ -13,6 +13,7 @@ import { CampaignsModule } from './modules/campaigns/campaigns.module';
 import { CmsModule } from './modules/cms/cms.module';
 import { EventsModule } from './modules/events/events.module';
 import { DonationsModule } from './modules/donations/donations.module';
+import { GalaModule } from './modules/gala/gala.module';
 import { FaqModule } from './modules/faq/faq.module';
 import { HealthModule } from './modules/health/health.module';
 import { MediaModule } from './modules/media/media.module';
@@ -47,6 +48,7 @@ import { UsersModule } from './modules/users/users.module';
     FaqModule,
     EventsModule,
     DonationsModule,
+    GalaModule,
     PublicModule,
     HealthModule,
   ],

@@ -123,6 +123,7 @@ export class MediaService {
       ...(q.includeDeleted === 'true' ? {} : { deletedAt: null }),
       ...(q.category ? { category: q.category } : {}),
       ...(q.consentStatus ? { consentStatus: q.consentStatus } : {}),
+      ...(q.provenance ? { provenance: q.provenance } : {}),
       ...(q.search
         ? { OR: [{ originalName: { contains: q.search } }, { altEn: { contains: q.search } }, { altAr: { contains: q.search } }, { sourceFolder: { contains: q.search } }, { code: { contains: q.search } }] }
         : {}),

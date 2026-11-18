@@ -49,6 +49,8 @@ export class CampaignsService {
       ...(q.programmeId ? { programmeId: q.programmeId } : {}),
       ...(q.provenance ? { provenance: q.provenance } : {}),
       ...(q.isFeatured ? { isFeatured: q.isFeatured === 'true' } : {}),
+      ...(q.projectId ? { projectId: q.projectId } : {}),
+      ...(q.startsFrom || q.startsTo ? { startsAt: { ...(q.startsFrom ? { gte: new Date(q.startsFrom) } : {}), ...(q.startsTo ? { lte: new Date(q.startsTo) } : {}) } } : {}),
       ...(q.search ? { OR: [{ titleEn: { contains: q.search } }, { titleAr: { contains: q.search } }, { slug: { contains: q.search } }, { code: { contains: q.search } }] } : {}),
     };
     const [items, total] = await this.prisma.$transaction([
@@ -70,7 +72,11 @@ export class CampaignsService {
     return this.present(c);
   }
 
-  private async validateRefs(dto: Partial<CreateCampaignDto>) {
+  /**
+   * `current` = the stored campaign on update. Phase 6C hierarchy rule (Programme → Cause/project → Campaign): when a campaign
+   * is linked to a project that belongs to a programme, the campaign must belong to that same programme.
+   */
+  private async validateRefs(dto: Partial<CreateCampaignDto>, current?: { programmeId: string | null; projectId: string | null }) {
     await this.media.assertExists([dto.coverMediaId]);
     if (dto.programmeId) {
       const ok = await this.prisma.programme.count({ where: { id: dto.programmeId, deletedAt: null } });
@@ -79,6 +85,14 @@ export class CampaignsService {
     if (dto.projectId) {
       const ok = await this.prisma.project.count({ where: { id: dto.projectId, deletedAt: null } });
       if (!ok) throw new BadRequestException('projectId is invalid');
+    }
+    const programmeId = dto.programmeId !== undefined ? dto.programmeId : (current?.programmeId ?? null);
+    const projectId = dto.projectId !== undefined ? dto.projectId : (current?.projectId ?? null);
+    if (projectId && (dto.programmeId !== undefined || dto.projectId !== undefined)) {
+      const project = await this.prisma.project.findFirst({ where: { id: projectId, deletedAt: null }, select: { programmeId: true } });
+      if (project?.programmeId && project.programmeId !== programmeId) {
+        throw new UnprocessableEntityException({ message: 'The selected project belongs to a different programme', code: 'PROJECT_PROGRAMME_MISMATCH' });
+      }
     }
   }
 
@@ -112,7 +126,7 @@ export class CampaignsService {
   async update(id: string, dto: UpdateCampaignDto, actor: ActorContext) {
     const current = await this.get(id);
     if (current.status === 'ARCHIVED') throw new UnprocessableEntityException('Archived campaigns cannot be edited');
-    await this.validateRefs(dto);
+    await this.validateRefs(dto, current);
     this.assertAmounts(
       dto.minCustomAmount ?? current.minCustomAmount?.toNumber(),
       dto.maxCustomAmount ?? current.maxCustomAmount?.toNumber(),

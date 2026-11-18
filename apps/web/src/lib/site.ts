@@ -15,6 +15,13 @@ export function siteOrigin(): URL | undefined {
   return process.env.NODE_ENV === "production" ? undefined : new URL("http://localhost:3000");
 }
 
+/**
+ * Search-engine indexing of the public pages. OFF until MEKI approves the public launch (single switch: robots meta on every
+ * public page + robots.txt). Booking / status / donation-return pages stay noindex regardless.
+ */
+export const PUBLIC_INDEXING = false;
+export const publicRobots = { index: PUBLIC_INDEXING, follow: PUBLIC_INDEXING } as const;
+
 /** Shared social preview image: 1200×630 JPEG generated from curated MEKI photography (public/og). */
 export const OG_IMAGE = { url: "/og/meki-og.jpg", width: 1200, height: 630, type: "image/jpeg" } as const;
 

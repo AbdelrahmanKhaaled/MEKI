@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { plainToInstance, Transform } from 'class-transformer';
 import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Max, Min, validateSync } from 'class-validator';
 
@@ -111,6 +112,66 @@ export class EnvironmentVariables {
   @IsOptional() @IsString()
   DONATION_RETURN_URL = 'http://localhost:3000/{locale}/donation/return';
 
+  // ── event ticketing (Phase 5B) ──
+  /** HMAC key for purchaser-facing booking access tokens. Falls back to DONATION_TOKEN_SECRET when unset. */
+  @IsOptional() @IsString()
+  EVENT_BOOKING_TOKEN_SECRET?: string;
+
+  /** Web page the provider redirects to after ticket checkout ("processing" until a verified webhook). {locale} → en|ar, {slug} → event slug. */
+  @IsOptional() @IsString()
+  EVENT_BOOKING_RETURN_URL = 'http://localhost:3000/{locale}/events/{slug}/booking';
+
+  /** Unpaid bookings hold their seats for this long when the event has a capacity limit. */
+  @Transform(({ value }) => parseInt(value ?? '60', 10))
+  @IsInt() @Min(5) @Max(1440)
+  EVENT_BOOKING_HOLD_MINUTES = 60;
+
+  /** Private (never web-served) storage for ticket PDFs; keys are generated server-side. */
+  @IsOptional() @IsString()
+  PRIVATE_STORAGE_DIR = './storage/private';
+
+  /**
+   * Ticket PDF fonts. Defaults are the bundled, OFL-licensed Noto Sans / Noto Sans Arabic files in assets/fonts.
+   * UNICODE = Arabic-capable (shaped), LATIN = Latin text inside mixed names. Each override must exist and be a TTF/OTF;
+   * a bad path stops the API at startup instead of producing broken tickets.
+   */
+  @IsOptional() @IsString()
+  TICKET_PDF_UNICODE_FONT_PATH?: string;
+
+  @IsOptional() @IsString()
+  TICKET_PDF_UNICODE_FONT_BOLD_PATH?: string;
+
+  @IsOptional() @IsString()
+  TICKET_PDF_LATIN_FONT_PATH?: string;
+
+  @IsOptional() @IsString()
+  TICKET_PDF_LATIN_FONT_BOLD_PATH?: string;
+
+  /** Directory holding brand/ and fonts/ runtime assets. Default: apps/api/assets (or dist/assets). */
+  @IsOptional() @IsString()
+  ASSETS_DIR?: string;
+
+  // ── booking e-mail / background jobs (Phase 5B.1) ──
+  /** none = no delivery provider (jobs are parked, nothing is sent) | dev-file = write .json messages to MAIL_DEV_OUTBOX_DIR (dev only) | memory = in-process capture (tests only) */
+  @IsIn(['none', 'dev-file', 'memory'])
+  MAIL_TRANSPORT: 'none' | 'dev-file' | 'memory' = 'none';
+
+  @IsOptional() @IsString()
+  MAIL_DEV_OUTBOX_DIR = './storage/mail-outbox';
+
+  /** Seconds between background-job polls (ticket PDF retries, e-mail delivery). 0 disables the poller (tests call it directly). */
+  @Transform(({ value }) => parseInt(value ?? '30', 10))
+  @IsInt() @Min(0) @Max(3600)
+  GALA_JOBS_INTERVAL_SECONDS = 30;
+
+  @Transform(({ value }) => parseInt(value ?? '5', 10))
+  @IsInt() @Min(1) @Max(20)
+  GALA_JOB_MAX_ATTEMPTS = 5;
+
+  /** Arabic e-mail copy is a PROPOSED translation until MEKI approves it; false = Arabic bookings receive the English templates. */
+  @Transform(toBool) @IsBoolean()
+  GALA_EMAIL_ARABIC_APPROVED = false;
+
   /** Public origin of this API (used for provider-hosted pages such as the dev-only mock checkout). */
   @IsOptional() @IsString()
   API_PUBLIC_URL = 'http://localhost:4000';
@@ -154,6 +215,17 @@ export function validateEnv(config: Record<string, unknown>): EnvironmentVariabl
   }
   if (validated.PAYMENTS_ENABLED && (!validated.DONATION_TOKEN_SECRET || validated.DONATION_TOKEN_SECRET.length < 32)) {
     throw new Error('PAYMENTS_ENABLED requires DONATION_TOKEN_SECRET (min 32 chars)');
+  }
+  if (validated.EVENT_BOOKING_TOKEN_SECRET !== undefined && validated.EVENT_BOOKING_TOKEN_SECRET.length < 32) {
+    throw new Error('EVENT_BOOKING_TOKEN_SECRET must be at least 32 characters');
+  }
+  for (const k of ['TICKET_PDF_UNICODE_FONT_PATH', 'TICKET_PDF_UNICODE_FONT_BOLD_PATH', 'TICKET_PDF_LATIN_FONT_PATH', 'TICKET_PDF_LATIN_FONT_BOLD_PATH'] as const) {
+    const v = validated[k];
+    if (v && (!/.(ttf|otf)$/i.test(v) || !existsSync(v))) throw new Error(`${k} must point to an existing .ttf/.otf file`);
+  }
+  if (validated.ASSETS_DIR && !existsSync(validated.ASSETS_DIR)) throw new Error('ASSETS_DIR does not exist');
+  if (validated.MAIL_TRANSPORT !== 'none' && (isProd || validated.NODE_ENV === 'staging')) {
+    throw new Error(`MAIL_TRANSPORT=${validated.MAIL_TRANSPORT} is for development/test only; production needs an approved e-mail provider adapter`);
   }
   if (validated.RATE_LIMIT_STORE === 'redis' && !validated.REDIS_URL) {
     throw new Error('RATE_LIMIT_STORE=redis requires REDIS_URL');

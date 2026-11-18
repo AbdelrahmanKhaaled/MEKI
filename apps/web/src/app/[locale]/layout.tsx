@@ -4,7 +4,7 @@ import "../globals.css";
 import { sourceSerif, lato, arabicText, arabicDisplay } from "@/lib/fonts";
 import { getDict, isLocale, locales } from "@/lib/i18n";
 import { getPageContent } from "@/lib/content";
-import { siteOrigin, socialMeta } from "@/lib/site";
+import { publicRobots, siteOrigin, socialMeta } from "@/lib/site";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     ...socialMeta({ title: t.meta.title, description: t.meta.description, locale, path: `/${locale}`, alt: "MEKI — Lasting Change, Built Together." }),
     icons: { icon: "/brand/MEKI_Icon_Green.svg", apple: "/brand/MEKI_AppIcon_Green_180.png" },
     // Preview build: keep out of search indexes until MEKI approves content and launch.
-    robots: { index: false, follow: false },
+    robots: publicRobots, // indexing waits for MEKI's launch approval (lib/site.ts PUBLIC_INDEXING)
   };
 }
 

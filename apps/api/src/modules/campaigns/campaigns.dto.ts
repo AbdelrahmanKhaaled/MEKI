@@ -63,6 +63,11 @@ export class CampaignQueryDto extends ListQueryDto {
   @ApiPropertyOptional() @IsOptional() @IsString() programmeId?: string;
   @ApiPropertyOptional({ enum: Provenance }) @IsOptional() @IsEnum(Provenance) provenance?: Provenance;
   @ApiPropertyOptional() @IsOptional() @IsIn(['true', 'false']) isFeatured?: string;
+  /** Phase 6C (additive): campaigns of one project (shown as "Cause" in the admin). */
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30) projectId?: string;
+  /** Phase 6C (additive): campaigns whose start date falls within [startsFrom, startsTo]. */
+  @ApiPropertyOptional() @IsOptional() @IsISO8601() startsFrom?: string;
+  @ApiPropertyOptional() @IsOptional() @IsISO8601() startsTo?: string;
 }
 
 export class ApproveCampaignDto {

@@ -18,13 +18,22 @@ import type { WebhookEventQueryDto } from './donations.dto';
 type Tx = Prisma.TransactionClient;
 
 /** Permanent rejection: the event is stored as FAILED (for review) and acknowledged so the provider stops retrying. */
-class WebhookRejection extends Error {}
+export class WebhookRejection extends Error {}
 
-interface Outcome {
+export interface Outcome {
   status: 'PROCESSED' | 'IGNORED' | 'FAILED';
   note?: string;
   notify?: DonationNotificationInput[];
   afterCommit?: () => Promise<void>;
+}
+
+/**
+ * Extension point for payment types that are NOT donations (e.g. event tickets). A handler owns events whose
+ * `attemptReference` starts with its prefix; it runs inside the same verified/stored/transactional pipeline.
+ */
+export interface ExternalWebhookHandler {
+  prefix: string;
+  handle(tx: Prisma.TransactionClient, row: PaymentWebhookEvent, event: NormalizedWebhookEvent): Promise<Outcome>;
 }
 
 const CONFIRMED = ['PAID', 'PARTIALLY_REFUNDED', 'REFUNDED'] as const;
@@ -40,6 +49,7 @@ const CONFIRMED = ['PAID', 'PARTIALLY_REFUNDED', 'REFUNDED'] as const;
 @Injectable()
 export class WebhooksService {
   private readonly logger = new Logger(WebhooksService.name);
+  private readonly external: ExternalWebhookHandler[] = [];
 
   constructor(
     private readonly prisma: PrismaService,
@@ -49,6 +59,10 @@ export class WebhooksService {
     private readonly audit: AuditService,
     @Inject(DONATION_NOTIFIER) private readonly notifier: DonationNotifier,
   ) {}
+
+  registerExternalHandler(handler: ExternalWebhookHandler) {
+    if (!this.external.some((h) => h.prefix === handler.prefix)) this.external.push(handler);
+  }
 
   async ingest(providerCode: string, rawBody: Buffer | undefined, headers: IncomingHttpHeaders) {
     const adapter = this.registry.get(providerCode);
@@ -144,6 +158,8 @@ export class WebhooksService {
   // ───────────────────────── handlers ─────────────────────────
 
   private handle(tx: Tx, row: PaymentWebhookEvent, e: NormalizedWebhookEvent): Promise<Outcome> {
+    const external = e.attemptReference ? this.external.find((h) => e.attemptReference!.startsWith(h.prefix)) : undefined;
+    if (external) return external.handle(tx, row, e);
     switch (e.type) {
       case 'payment.succeeded':
         return this.paymentSucceeded(tx, row, e);

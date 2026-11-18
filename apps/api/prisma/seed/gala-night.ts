@@ -74,3 +74,30 @@ export async function seedGalaNightDraft(prisma: PrismaClient): Promise<boolean>
   });
   return true;
 }
+
+/**
+ * Phase 5B ticket sale configuration for the Gala (create-only; never updates an existing row).
+ * Values are the client-confirmed requirements from the Phase 5B brief. Sales are seeded CLOSED (`salesEnabled = false`):
+ * MEKI/SDI must approve opening them, and no payment provider is configured. No fair-market value is stored.
+ */
+export async function seedGalaTicketConfig(prisma: PrismaClient): Promise<boolean> {
+  const event = await prisma.event.findUnique({ where: { code: GALA_CODE }, select: { id: true } });
+  if (!event) return false;
+  if (await prisma.eventTicketConfig.findUnique({ where: { eventId: event.id } })) return false;
+  await prisma.eventTicketConfig.create({
+    data: {
+      eventId: event.id,
+      ticketNameEn: 'Individual ticket',
+      ticketPrice: '750.00',
+      currency: 'USD',
+      salesEnabled: false,
+      maxTicketsPerBooking: 10,
+      capacity: null, // not provided by the client — never invented
+      displayNameEn: 'Every Light Counts',
+      eventDateLabelEn: 'Saturday, December 12, 2026',
+      venueLabelEn: '583 Park Avenue, New York, USA',
+      provenance: 'PROPOSED',
+    },
+  });
+  return true;
+}

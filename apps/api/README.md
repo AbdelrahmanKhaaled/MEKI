@@ -21,6 +21,7 @@ NestJS 11 modular monolith · MySQL 8 · Prisma 7 (MariaDB driver adapter) · RE
    ADMIN_BOOTSTRAP_EMAIL=... ADMIN_BOOTSTRAP_PASSWORD=... pnpm --filter @meki/api admin:bootstrap
    pnpm --filter @meki/api dev                 # http://localhost:4000/api/v1
    ```
+   **Interactive Super Admin (dev DB only):** `pnpm --filter @meki/api seed:superadmin` prompts for e-mail, name, hidden password + confirmation (argon2id via the app's `PasswordService`, same policy), creates or updates only that account as `SUPER_ADMIN`, re-runnable, never deletes data, never prints the password. Refuses `NODE_ENV=production` and any DB not named `*_dev`; requires a real terminal.
    Optional dev-only accounts (one per role, `@meki.test`): `DEV_ACCOUNTS_PASSWORD=... pnpm --filter @meki/api db:seed:dev`.
 
 ## Database safety
@@ -49,3 +50,21 @@ NestJS 11 modular monolith · MySQL 8 · Prisma 7 (MariaDB driver adapter) · RE
 ## Donations (Phase 3)
 
 See [docs/10-donations-and-payments.md](../../docs/10-donations-and-payments.md). Amounts in the API are **decimal strings**. Payments need server env (`PAYMENTS_ENABLED`, `PAYMENT_PROVIDER`, `DONATION_TOKEN_SECRET`) plus an admin enabling the provider record and `paymentsEnabled`. The `mock` provider is development/test only.
+
+## Gala booking & ticketing (Phase 5B)
+
+See [docs/15](../../docs/15-phase5b-implementation.md) (design), [docs/16](../../docs/16-phase5b-api-reference.md) (endpoints), [docs/17](../../docs/17-phase5b-testing-report.md) (tests). Individual USD 750 tickets, one per guest; ticket revenue is classified `EVENT_TICKET_PAYMENT` and is **never** a donation (separate booking-keyed attempts and append-only ledger; no tax receipts, no fair-market-value is stored). Tickets, QR tokens and PDFs exist only after a **verified** provider notification; the browser return URL never confirms payment. Sales are seeded **closed**; checkout returns 503 until a provider is approved and every payment gate is open (the mock provider stays dev/test only).
+
+- Env (all optional): `EVENT_BOOKING_TOKEN_SECRET`, `EVENT_BOOKING_RETURN_URL`, `EVENT_BOOKING_HOLD_MINUTES`, `PRIVATE_STORAGE_DIR` (private ticket-PDF storage, never web-served), `TICKET_PDF_UNICODE_FONT_PATH`.
+- New permissions `gala.bookings.read|manage`, `gala.guests.read|export`, `gala.tickets.read|manage`, `gala.checkin.validate|manage`; new role `EVENT_CHECKIN_STAFF` (door scanning only). Existing databases receive grants through the apply-once seed version `2026-11-16-phase5b-gala` (`pnpm db:seed`, create-only).
+- Guest list CSV export only (no XLSX library installed). E-mail is composition-only until a provider is wired to `GALA_NOTIFIER`. Calendar (`.ics`) answers 409 `CALENDAR_PENDING` until the event has a confirmed start time and timezone.
+
+## Ticketing QA & hardening (Phase 5B.1)
+
+See [docs/18](../../docs/18-phase5b1-qa-audit.md) (audit), [19](../../docs/19-phase5b1-implementation.md), [20](../../docs/20-phase5b1-testing-report.md), [21](../../docs/21-phase5b1-deployment-requirements.md).
+
+- **Arabic/Unicode ticket PDFs:** bundled SIL-OFL Noto Sans / Noto Sans Arabic (`assets/fonts`), Unicode bidi + shaping; only Latin and Arabic guest names are accepted (422 `UNSUPPORTED_NAME_CHARACTERS` otherwise). Font overrides: `TICKET_PDF_UNICODE_FONT_PATH`/`_BOLD_PATH`, `TICKET_PDF_LATIN_FONT_PATH`/`_BOLD_PATH` — an invalid path stops the API at startup.
+- **Guest export:** `GET …/guests/export?format=csv|xlsx` (same permission, filters, audit, formula-injection guard).
+- **Retryable work:** payment confirmation writes outbox rows (`EventBookingJob`); PDFs and e-mails are retried with back-off and never roll back a verified payment. Admin: `POST …/bookings/:id/resend`, `POST …/jobs/run`. Env: `GALA_JOBS_INTERVAL_SECONDS`, `GALA_JOB_MAX_ATTEMPTS`.
+- **E-mail:** `MAIL_TRANSPORT=none` (default; parks mail, sends nothing) | `dev-file` (dev) | `memory` (tests). No provider is chosen; Arabic templates are proposed copy gated by `GALA_EMAIL_ARABIC_APPROVED`.
+- **Build:** `pnpm --filter @meki/api build` copies runtime assets to `dist/assets`; `pnpm --filter @meki/api verify:assets` checks them.

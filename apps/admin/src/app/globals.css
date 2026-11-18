@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+  /* MEKI brand tokens (same source of truth as apps/web) */
+  --color-deep-green: #0b3b30;
+  --color-deep-green-2: #0f4a3c;
+  --color-deep-green-3: #072a22;
+  --color-meki-green: #008066;
+  --color-meki-green-dark: #006b55;
+  --color-harvest-gold: #d6a146;
+  --color-gold-text: #7a5818;
+  --color-glow: #e6c36f;
+  --color-bg: #f5f7f5;
+  --color-line: #e3e9e5;
+  --color-ink: #13241f;
+  --color-body: #46564e;
+  --color-muted: #7b8a83;
+  --color-mint: #cfe0d6;
+  /* semantic */
+  --color-ok: #1f8a5b;
+  --color-warn: #b7791f;
+  --color-danger: #b4372f;
+  --color-info: #2b6cb0;
+
+  --font-sans: var(--font-lato), "Helvetica Neue", Arial, sans-serif;
+  --font-serif: var(--font-source-serif), Georgia, serif;
+
+  --radius-card: 1rem;
+  --shadow-card: 0 1px 2px rgb(11 59 48 / 0.04), 0 8px 24px -12px rgb(11 59 48 / 0.12);
+  --shadow-pop: 0 12px 40px -12px rgb(11 59 48 / 0.35);
+}
+
+:root[lang="ar"] {
+  --font-sans: var(--font-arabic-text), var(--font-lato), Arial, sans-serif;
+  --font-serif: var(--font-arabic-text), var(--font-source-serif), serif;
+}
+
+@layer base {
+  html { background: var(--color-bg); color: var(--color-ink); }
+  body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; min-height: 100vh; }
+  h1, h2, h3 { font-family: var(--font-serif); }
+  :focus-visible { outline: 2px solid var(--color-harvest-gold); outline-offset: 2px; border-radius: 6px; }
+  ::selection { background: var(--color-glow); color: var(--color-ink); }
+}
+
+@layer components {
+  .card { background: #fff; border: 1px solid var(--color-line); border-radius: var(--radius-card); box-shadow: var(--shadow-card); }
+  .card-title { font-family: var(--font-sans); font-weight: 700; font-size: 1.05rem; color: var(--color-ink); }
+  .btn-admin { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.5rem; padding: .5rem 1rem; border-radius: .75rem; font-weight: 700; font-size: .875rem; transition: background .2s, box-shadow .2s, transform .2s; }
+  .btn-primary { background: var(--color-deep-green); color: #fff; }
+  .btn-primary:hover { background: var(--color-deep-green-2); box-shadow: 0 8px 20px -8px rgb(11 59 48 / .6); }
+  .btn-ghost { background: #fff; border: 1px solid var(--color-line); color: var(--color-ink); }
+  .btn-ghost:hover { border-color: var(--color-meki-green); color: var(--color-meki-green-dark); }
+  .btn-gold { background: var(--color-harvest-gold); color: var(--color-deep-green-3); }
+  .btn-gold:hover { background: var(--color-glow); }
+  .skeleton { background: linear-gradient(90deg, #eef2ef 25%, #f6f9f7 37%, #eef2ef 63%); background-size: 400% 100%; animation: shimmer 1.4s ease infinite; border-radius: .5rem; }
+  .num { font-variant-numeric: tabular-nums; }
+}
+
+@keyframes shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+}

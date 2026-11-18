@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { isLocale, locales } from "@/lib/i18n";
 import { getPageContent } from "@/lib/content";
 import { fetchPublicContent } from "@/lib/api";
-import { siteOrigin, socialMeta } from "@/lib/site";
+import type { PublicTicketing } from "@meki/api-client";
+import { getBookingCopy } from "@/content/booking";
+import { publicRobots, siteOrigin, socialMeta } from "@/lib/site";
 import { getGala, PROPOSED_SPONSORSHIP } from "@/content/gala";
 import { MotionRoot } from "@/components/MotionRoot";
 import { Header } from "@/components/Header";
@@ -41,7 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     description: g.meta.description,
     alternates: { canonical: path, languages: { en: "/en/events/gala-night", ar: "/ar/events/gala-night", "x-default": "/en/events/gala-night" } },
     ...socialMeta({ title: g.meta.title, description: g.meta.description, locale, path, alt }),
-    robots: { index: false, follow: false }, // preview build: indexing waits for MEKI's launch approval
+    robots: publicRobots, // indexing waits for MEKI's launch approval (lib/site.ts PUBLIC_INDEXING)
   };
 }
 
@@ -60,6 +62,10 @@ export default async function GalaNightPage({ params }: { params: Promise<{ loca
   // The page shell shows client-confirmed details either way; a published record may only refine the map link.
   const event = await fetchPublicContent<PublicEvent>(`/public/events/gala-night?locale=${locale}`);
   const mapUrl = event?.mapUrl && /^https:\/\//.test(event.mapUrl) ? event.mapUrl : DEFAULT_MAP;
+
+  // Booking opens only when the API says so (sales switch AND checkout available). Unpublished events return 404 -> closed.
+  const ticketing = await fetchPublicContent<PublicTicketing>(`/public/events/gala-night/ticketing`);
+  const bookingOpen = !!ticketing && ticketing.salesOpen && !ticketing.soldOut && ticketing.checkoutAvailable;
 
   // Proposed (unvalidated) sponsorship tiers: development preview only, never in a production build.
   const sponsorPreview = process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_GALA_PREVIEW === "1";
@@ -80,7 +86,7 @@ export default async function GalaNightPage({ params }: { params: Promise<{ loca
           {/* Six approved causes not yet supplied: renders nothing until approved, event-linked data exists. */}
           <GalaCauses g={g} causes={[]} />
           <GalaFaq g={g} />
-          <GalaBooking g={g} />
+          <GalaBooking g={g} bookHref={bookingOpen ? `/${locale}/events/gala-night/book` : undefined} bookStatus={bookingOpen ? getBookingCopy(locale).tickets.rule : undefined} />
           <p className="bg-deep-green-3 pb-10 text-center">
             <a href={back} className="text-sm font-bold text-mint-line underline-offset-4 hover:text-white hover:underline">
               {g.back}

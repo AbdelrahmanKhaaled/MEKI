@@ -22,4 +22,6 @@ export class MediaQueryDto extends ListQueryDto {
   @ApiPropertyOptional({ enum: MediaCategory }) @IsOptional() @IsEnum(MediaCategory) category?: MediaCategory;
   @ApiPropertyOptional({ enum: ConsentStatus }) @IsOptional() @IsEnum(ConsentStatus) consentStatus?: ConsentStatus;
   @ApiPropertyOptional() @IsOptional() @IsIn(['true', 'false']) includeDeleted?: string;
+  /** Phase 6C (additive): filter by provenance. */
+  @ApiPropertyOptional({ enum: Provenance }) @IsOptional() @IsEnum(Provenance) provenance?: Provenance;
 }

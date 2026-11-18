@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client';
 import type { MediaAsset, PageSection, SectionItem } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -8,7 +8,7 @@ import { PublishingPolicy } from '../../common/publishing/publishing.policy';
 import type { ActorContext } from '../../common/types/auth-request';
 import { defined } from '../../common/utils';
 import { buildSectionSnapshot, type SectionSnapshot, type SnapshotMedia } from './section-snapshot';
-import type { CreateSectionDto, CreateSectionItemDto, UpdatePageDto, UpdateSectionDto, UpdateSectionItemDto } from './cms.dto';
+import type { CreatePageDto, CreateSectionDto, CreateSectionItemDto, UpdatePageDto, UpdateSectionDto, UpdateSectionItemDto } from './cms.dto';
 
 /**
  * Which page a CMS mutation is allowed to touch.
@@ -63,8 +63,32 @@ export class CmsService {
   }
 
   // ── pages ──
-  listPages() {
-    return this.prisma.page.findMany({ orderBy: { slug: 'asc' }, include: { _count: { select: { sections: true } } } });
+  /**
+   * Phase 6D (additive): each row also says whether it is an event landing page (managed through the Events API) and
+   * who last updated it (name only), so the admin can list site pages with "last updated by".
+   */
+  async listPages() {
+    const pages = await this.prisma.page.findMany({
+      orderBy: { slug: 'asc' },
+      include: { _count: { select: { sections: true } }, event: { select: { id: true } } },
+    });
+    const userIds = [...new Set(pages.map((p) => p.updatedById).filter((v): v is string => !!v))];
+    const users = userIds.length ? await this.prisma.adminUser.findMany({ where: { id: { in: userIds } }, select: { id: true, name: true } }) : [];
+    const name = new Map(users.map((u) => [u.id, u.name]));
+    return pages.map(({ event, ...p }) => ({ ...p, isEventPage: !!event, updatedByName: p.updatedById ? (name.get(p.updatedById) ?? null) : null }));
+  }
+
+  /** Phase 6D (additive): create a site content page (DRAFT). Slugs are unique across all pages (incl. event pages). */
+  async createPage(dto: CreatePageDto, actor: ActorContext) {
+    await this.media.assertExists([dto.ogImageId]);
+    if (await this.prisma.page.count({ where: { slug: dto.slug } })) {
+      throw new ConflictException({ message: 'A page with this slug already exists', code: 'PAGE_SLUG_TAKEN' });
+    }
+    const page = await this.prisma.page.create({
+      data: { ...defined(dto), status: 'DRAFT', createdById: actor.userId, updatedById: actor.userId },
+    });
+    await this.audit.record(actor, 'page.create', 'Page', page.id, { slug: page.slug, provenance: page.provenance });
+    return this.getPage(page.slug);
   }
 
   async getPage(slug: string) {
@@ -202,6 +226,21 @@ export class CmsService {
     return this.getSection(id);
   }
 
+  /**
+   * Phase 6D (additive): remove a block (section) from a site page. Only unpublished sections can be removed, so public
+   * content never disappears by deletion — unpublish first. Items go with it (cascade); the audit log keeps the record.
+   */
+  async deleteSection(id: string, actor: ActorContext, scope?: CmsScope) {
+    await this.assertSectionScope(id, scope);
+    const section = await this.prisma.pageSection.findUnique({ where: { id }, select: { id: true, key: true, pageId: true, status: true, titleEn: true } });
+    if (!section) throw new NotFoundException('Section not found');
+    if (section.status === 'PUBLISHED') {
+      throw new ConflictException({ message: 'Unpublish the section before removing it', code: 'SECTION_PUBLISHED' });
+    }
+    await this.prisma.pageSection.delete({ where: { id } });
+    await this.audit.record(actor, 'section.delete', 'PageSection', id, { key: section.key, pageId: section.pageId, titleEn: section.titleEn });
+  }
+
   // ── section items ──
   async createItem(sectionId: string, dto: CreateSectionItemDto, actor: ActorContext, scope?: CmsScope) {
     await this.assertSectionScope(sectionId, scope);
@@ -303,6 +342,14 @@ export class CmsService {
       seoDescriptionAr: page.seoDescriptionAr,
       ogImageUrl: page.ogImage && !page.ogImage.deletedAt ? this.media.url(page.ogImage) : null,
       publishedAt: page.publishedAt,
+      /**
+       * Phase 6D (additive): keys of sections an editor published as HIDDEN. Hidden sections are left out of `sections`
+       * (as before); listing their keys lets the website hide them instead of falling back to its built-in copy.
+       */
+      hiddenSectionKeys: page.sections
+        .map((s) => s.publishedData as unknown as SectionSnapshot | null)
+        .filter((d): d is SectionSnapshot => !!d && d.isVisible === false)
+        .map((d) => d.key),
       sections: page.sections
         .map((s) => s.publishedData as unknown as SectionSnapshot | null)
         .filter((d): d is SectionSnapshot => !!d && d.isVisible === true && allowDemo(d.provenance))

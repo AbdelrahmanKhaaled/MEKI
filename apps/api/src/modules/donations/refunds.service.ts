@@ -117,7 +117,15 @@ export class RefundsService {
       ...(q.search ? { reference: { contains: q.search.toUpperCase() } } : {}),
     };
     const [items, total] = await this.prisma.$transaction([
-      this.prisma.refund.findMany({ where, orderBy: parseSort(q.sort, ['requestedAt', 'status', 'amount'], { requestedAt: 'desc' }), skip: (q.page - 1) * q.pageSize, take: q.pageSize }),
+      // Phase 6B (additive, read-only): the donation reference and test flag let the admin list link to the donation and
+      // badge refunds of test-provider donations. No filtering or refund behaviour changes.
+      this.prisma.refund.findMany({
+        where,
+        include: { donation: { select: { reference: true, isTest: true } } },
+        orderBy: parseSort(q.sort, ['requestedAt', 'status', 'amount'], { requestedAt: 'desc' }),
+        skip: (q.page - 1) * q.pageSize,
+        take: q.pageSize,
+      }),
       this.prisma.refund.count({ where }),
     ]);
     return Paginated.of(items.map((r) => ({ ...r, amount: r.amount.toString() })), total, q.page, q.pageSize);

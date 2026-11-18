@@ -48,12 +48,13 @@ export class ApiRequestError extends Error {
  */
 export async function clientApi<T>(
   path: string,
-  init: { method?: "GET" | "POST"; body?: unknown; token?: string; idempotencyKey?: string; timeoutMs?: number } = {},
+  init: { method?: "GET" | "POST"; body?: unknown; token?: string; bookingToken?: string; idempotencyKey?: string; timeoutMs?: number } = {},
 ): Promise<T> {
   if (!PUBLIC_API_URL) throw new ApiRequestError("API_NOT_CONFIGURED", 0);
   const headers: Record<string, string> = { Accept: "application/json" };
   if (init.body !== undefined) headers["Content-Type"] = "application/json";
   if (init.token) headers["X-Donation-Token"] = init.token;
+  if (init.bookingToken) headers["X-Booking-Token"] = init.bookingToken; // booking tokens travel in a header, never in URLs
   if (init.idempotencyKey) headers["Idempotency-Key"] = init.idempotencyKey;
   let res: Response;
   try {
@@ -76,4 +77,17 @@ export async function clientApi<T>(
   }
   if (!res.ok) throw new ApiRequestError((body as ApiErrorBody | null)?.error?.code ?? "UNKNOWN_ERROR", res.status);
   return (body as ApiEnvelope<T>).data;
+}
+
+/** Authorised binary download (e.g. a ticket PDF). The booking token goes in a header, so it never appears in a URL. */
+export async function clientApiBlob(path: string, bookingToken: string): Promise<Blob> {
+  if (!PUBLIC_API_URL) throw new ApiRequestError("API_NOT_CONFIGURED", 0);
+  let res: Response;
+  try {
+    res = await fetch(`${PUBLIC_API_URL}${path}`, { headers: { "X-Booking-Token": bookingToken }, cache: "no-store", credentials: "omit", signal: AbortSignal.timeout(30000) });
+  } catch {
+    throw new ApiRequestError("NETWORK_ERROR", 0);
+  }
+  if (!res.ok || !(res.headers.get("content-type") ?? "").includes("application/pdf")) throw new ApiRequestError("DOWNLOAD_FAILED", res.status);
+  return res.blob();
 }

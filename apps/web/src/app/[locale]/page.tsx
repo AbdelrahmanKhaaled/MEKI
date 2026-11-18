@@ -25,7 +25,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   // Live API content overlaid on the built-in copy; falls back to the built-in copy if the API is unavailable.
-  const { t, liveCampaigns, showCampaigns } = await getPageContent(locale);
+  const { t, liveCampaigns, showCampaigns, hiddenSections } = await getPageContent(locale);
+  // Sections an editor published as hidden in the CMS (Phase 6D); everything else renders as before.
+  const show = (key: string) => !hiddenSections.includes(key);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -41,21 +43,21 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       <MotionRoot>
         <main id="main">
           <Hero t={t} locale={locale} />
-          <TrustStrip t={t} />
+          {show("TRUST") && <TrustStrip t={t} />}
           <GalaBanner t={t} />
-          <About t={t} />
-          <VisionMission t={t} />
-          <HowWeWork t={t} />
-          <Impact t={t} />
-          <Programmes t={t} />
-          <Enabling t={t} />
+          {show("ABOUT") && <About t={t} />}
+          {show("VISION_MISSION") && <VisionMission t={t} />}
+          {show("HOW_WE_WORK") && <HowWeWork t={t} />}
+          {show("IMPACT") && <Impact t={t} />}
+          {show("PROGRAMMES") && <Programmes t={t} />}
+          {show("ENABLING") && <Enabling t={t} />}
           {/* Hidden until campaigns are formally approved; returns when the API publishes approved campaigns. */}
           {showCampaigns && <Campaigns t={t} />}
-          <WhySupport t={t} />
-          <DonationProcess t={t} />
-          <Gallery t={t} />
-          <Faq t={t} />
-          <FinalCta t={t} />
+          {show("WHY") && <WhySupport t={t} />}
+          {show("PROCESS") && <DonationProcess t={t} />}
+          {show("GALLERY") && <Gallery t={t} />}
+          {show("FAQ") && <Faq t={t} />}
+          {show("FINAL_CTA") && <FinalCta t={t} />}
         </main>
         <Footer t={t} />
       </MotionRoot>

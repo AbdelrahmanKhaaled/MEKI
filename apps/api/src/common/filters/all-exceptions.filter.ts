@@ -72,7 +72,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
         message,
         ...(details !== undefined ? { details } : {}),
         requestId: req.requestId,
-        path: req.originalUrl,
+        // Path only: query strings can carry access tokens (?token=...) and must never be echoed back or logged.
+        path: req.originalUrl.split('?')[0],
         timestamp: new Date().toISOString(),
       },
     });

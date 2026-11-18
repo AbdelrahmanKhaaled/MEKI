@@ -19,7 +19,12 @@ export interface PageContent {
   site: PublicSite | null;
   /** Published FAQ records with their CMS category (empty → built-in questions). */
   faqs: PublicFaq[];
+  /** Homepage sections an editor published as hidden (Phase 6D); empty when the API is unavailable. */
+  hiddenSections: string[];
 }
+
+/** Sections the CMS may hide on the homepage. Hero, quick donate and footer are structural and always shown. */
+export const HIDEABLE_SECTIONS = ["TRUST", "ABOUT", "VISION_MISSION", "HOW_WE_WORK", "IMPACT", "PROGRAMMES", "ENABLING", "WHY", "PROCESS", "GALLERY", "FAQ", "FINAL_CTA"] as const;
 
 const ICONS: IconName[] = ["users", "stethoscope", "graduation", "briefcase", "home", "droplets", "lifebuoy", "landmark", "flask", "handshake", "map", "chart"];
 const icon = (v: string | null | undefined, fallback: IconName): IconName => (v && (ICONS as string[]).includes(v) ? (v as IconName) : fallback);
@@ -227,8 +232,12 @@ export function mergeContent(base: Dict, home: PublicHome): Dict {
     for (const k of ["explore", "programmes", "giving", "contactTitle", "contactPending", "legalPending", "rights", "backToTop"] as const) {
       t.footer[k] = L(footer, k, t.footer[k]);
     }
-    t.nav.links = sameShape(t.nav.links, byCode(footer, "nav-"), (i, _n, f) => ({ href: str(i.href, f.href), label: str(i.title, f.label) }));
-    t.footer.givingLinks = sameShape(t.footer.givingLinks, byCode(footer, "giving-"), (i, _n, f) => ({ href: str(i.href, f.href), label: str(i.title, f.label) }));
+    // Menus are lists of any length (Phase 6D): the header/footer validate them with resolveMenu() and fall back to the
+    // built-in page menu unless every entry is a known page or an https URL.
+    const nav = byCode(footer, "nav-");
+    if (nav.length) t.nav.links = nav.map((i) => ({ href: i.href ?? "", label: i.title ?? "" }));
+    const giving = byCode(footer, "giving-");
+    if (giving.length) t.footer.givingLinks = giving.map((i) => ({ href: i.href ?? "", label: i.title ?? "" }));
   }
   return t;
 }
@@ -278,19 +287,20 @@ function finish(t: Dict, locale: Locale, showCampaigns = false): Dict {
 export const getPageContent = cache(async (locale: Locale): Promise<PageContent> => {
   const base = getDict(locale);
   const home = await fetchPublicContent<PublicHome>(`/public/home?locale=${locale}`);
-  if (!home?.page?.sections) return { t: finish(base, locale), live: false, liveCampaigns: [], showCampaigns: false, site: null, faqs: [] };
+  if (!home?.page?.sections) return { t: finish(base, locale), live: false, liveCampaigns: [], showCampaigns: false, site: null, faqs: [], hiddenSections: [] };
   try {
     return {
       t: finish(mergeContent(base, home), locale, home.campaigns.length > 0),
       live: true,
       site: home.site ?? null,
       faqs: home.faqs ?? [],
+      hiddenSections: (home.page.hiddenSectionKeys ?? []).filter((k) => (HIDEABLE_SECTIONS as readonly string[]).includes(k)),
       showCampaigns: home.campaigns.length > 0 && home.page.sections.some((s) => s.key === "CAMPAIGNS"),
       liveCampaigns: home.campaigns.map((c) => ({ slug: c.slug, title: c.title, currency: c.currency, acceptingDonations: c.acceptingDonations })),
     };
   } catch {
     // Defensive: an unexpected payload never takes the page down.
-    return { t: finish(base, locale), live: false, liveCampaigns: [], showCampaigns: false, site: null, faqs: [] };
+    return { t: finish(base, locale), live: false, liveCampaigns: [], showCampaigns: false, site: null, faqs: [], hiddenSections: [] };
   }
 });
 

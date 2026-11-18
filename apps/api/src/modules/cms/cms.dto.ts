@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsInt, IsObject, IsOptional, IsString, Matches, MaxLength, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsObject, IsOptional, IsString, Matches, MaxLength, Min, MinLength } from 'class-validator';
 import { Provenance, SectionKey } from '../../generated/prisma/enums';
 import { SAFE_HREF } from '../../common/dto/shared.dto';
 
@@ -11,6 +11,22 @@ export class UpdatePageDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) seoDescriptionEn?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) seoDescriptionAr?: string;
   @ApiPropertyOptional({ nullable: true }) @IsOptional() @IsString() ogImageId?: string | null;
+}
+
+/**
+ * Phase 6D (additive): create a site content page (e.g. privacy / terms / cookies, which the website already reads from
+ * /public/pages/:slug). Always starts as DRAFT; content is added as sections ("blocks").
+ */
+export class CreatePageDto {
+  @ApiProperty({ example: 'privacy' }) @IsString() @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/) @MaxLength(80) slug!: string;
+  @ApiProperty() @IsString() @MinLength(2) @MaxLength(255) titleEn!: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(255) titleAr?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(255) seoTitleEn?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(255) seoTitleAr?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) seoDescriptionEn?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(1000) seoDescriptionAr?: string;
+  @ApiPropertyOptional({ nullable: true }) @IsOptional() @IsString() ogImageId?: string | null;
+  @ApiPropertyOptional({ enum: Provenance }) @IsOptional() @IsEnum(Provenance) provenance?: Provenance;
 }
 
 export class SectionContentDto {

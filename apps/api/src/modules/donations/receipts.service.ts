@@ -114,7 +114,8 @@ export class ReceiptsService {
     const [items, total] = await this.prisma.$transaction([
       this.prisma.donationReceipt.findMany({
         where,
-        select: { id: true, receiptNumber: true, donationId: true, version: true, status: true, locale: true, issuedAt: true, voidedAt: true, replacesReceiptId: true },
+        // Phase 6B (additive, read-only): donation reference + test flag for the admin receipts list (no PII, no snapshot).
+        select: { id: true, receiptNumber: true, donationId: true, version: true, status: true, locale: true, issuedAt: true, voidedAt: true, replacesReceiptId: true, donation: { select: { reference: true, isTest: true } } },
         orderBy: parseSort(q.sort, ['issuedAt', 'receiptNumber'], { issuedAt: 'desc' }),
         skip: (q.page - 1) * q.pageSize,
         take: q.pageSize,

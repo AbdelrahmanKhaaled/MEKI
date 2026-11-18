@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowDown, CalendarDays, Flame, MapPin, Plus } from "lucide-react";
 import { media } from "@/content/media";
 import { PROPOSED_SPONSORSHIP, type GalaDict, type SponsorTier } from "@/content/gala";
@@ -322,14 +323,20 @@ export function GalaFaq({ g }: { g: GalaDict }) {
   );
 }
 
-function BookingPanel({ title, text, cta, status, gold }: { title: string; text: string; cta: string; status: string; gold?: boolean }) {
+function BookingPanel({ title, text, cta, status, gold, href }: { title: string; text: string; cta: string; status: string; gold?: boolean; href?: string }) {
   return (
   <div data-reveal className="flex flex-col border-t border-white/20 pt-6">
     <h3 className="mb-3 font-serif text-3xl text-white">{title}</h3>
     <p className="mb-6 text-mint-line">{text}</p>
-    <button type="button" disabled aria-describedby={`status-${title.replace(/\s/g, "")}`} className={`btn mb-4 min-h-14 w-full justify-center disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 sm:w-auto ${gold ? "btn-gold" : "btn-outline-light"}`}>
-      {cta}
-    </button>
+    {href ? (
+      <Link href={href} aria-describedby={`status-${title.replace(/\s/g, "")}`} className={`btn mb-4 min-h-14 w-full justify-center sm:w-auto ${gold ? "btn-gold" : "btn-outline-light"}`}>
+        {cta}
+      </Link>
+    ) : (
+      <button type="button" disabled aria-describedby={`status-${title.replace(/\s/g, "")}`} className={`btn mb-4 min-h-14 w-full justify-center disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 sm:w-auto ${gold ? "btn-gold" : "btn-outline-light"}`}>
+        {cta}
+      </button>
+    )}
     <p id={`status-${title.replace(/\s/g, "")}`} className="text-sm text-mint-line/90">
       {status}
     </p>
@@ -338,7 +345,8 @@ function BookingPanel({ title, text, cta, status, gold }: { title: string; text:
 }
 
 /** Booking & giving. Both actions are disabled until the fiscal sponsor flow and payment arrangements are approved. */
-export function GalaBooking({ g }: { g: GalaDict }) {
+/** `bookHref` is set only when the API reports ticket sales open AND checkout available; otherwise the action stays disabled. */
+export function GalaBooking({ g, bookHref, bookStatus }: { g: GalaDict; bookHref?: string; bookStatus?: string }) {
   const b = g.booking;
   return (
     <section id="booking" aria-labelledby="booking-title" className="section-y relative isolate overflow-hidden bg-deep-green-3 text-white">
@@ -351,7 +359,7 @@ export function GalaBooking({ g }: { g: GalaDict }) {
           {b.title}
         </h2>
         <div className="grid gap-12 md:grid-cols-2 md:gap-16">
-          <BookingPanel {...b.book} gold />
+          <BookingPanel {...b.book} {...(bookHref ? { href: bookHref, status: bookStatus ?? b.book.status } : {})} gold />
           <BookingPanel {...b.give} />
         </div>
       </div>

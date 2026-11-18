@@ -1,9 +1,9 @@
 import { Body, Controller, Delete, Get, Global, HttpCode, Module, Param, Patch, Post, Put, Query } from '@nestjs/common';
-import { ApiCookieAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Actor, RequirePermissions } from '../../common/decorators';
 import { MediaIdsDto } from '../../common/dto/shared.dto';
 import type { ActorContext } from '../../common/types/auth-request';
-import { CreateProgrammeDto, CreateProjectDto, ProgrammeQueryDto, UpdateProgrammeDto, UpdateProjectDto } from './programmes.dto';
+import { CreateProgrammeDto, CreateProjectDto, ProgrammeQueryDto, ProjectQueryDto, UpdateProgrammeDto, UpdateProjectDto } from './programmes.dto';
 import { ProgrammesService } from './programmes.service';
 
 @ApiTags('Admin · Programmes')
@@ -67,9 +67,16 @@ export class ProgrammesController {
 
   @Get('projects')
   @RequirePermissions('programmes.read')
-  @ApiQuery({ name: 'programmeId', required: false })
-  listProjects(@Query('programmeId') programmeId?: string) {
-    return this.programmes.listProjects(programmeId);
+  @ApiOperation({ summary: 'Projects (shown as "Causes" in the admin), optionally filtered by programme, provenance or search' })
+  listProjects(@Query() q: ProjectQueryDto) {
+    return this.programmes.listProjects(q);
+  }
+
+  @Get('projects/:id')
+  @RequirePermissions('programmes.read')
+  @ApiOperation({ summary: 'Project with its programme and campaigns' })
+  getProject(@Param('id') id: string) {
+    return this.programmes.getProject(id);
   }
 
   @Post('projects')

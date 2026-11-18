@@ -14,7 +14,7 @@ import { resolve } from 'node:path';
 import type { PrismaClient } from '../../src/generated/prisma/client';
 import type { Prisma, SectionKey, Provenance } from '../../src/generated/prisma/client';
 import { ALL_PERMISSIONS, PERMISSION_GRANTS, PERMISSIONS, SUPER_ADMIN, SYSTEM_ROLES } from '../../src/modules/users/permissions.catalog';
-import { seedGalaNightDraft } from './gala-night';
+import { seedGalaNightDraft, seedGalaTicketConfig } from './gala-night';
 import { buildSectionSnapshot } from '../../src/modules/cms/section-snapshot';
 import { ar, CAMPAIGN_SOURCES, en, ENABLING_SLUGS, MANDATE_WORDING, SECTION_MEDIA, SOURCES, STAT_META, webMedia } from './seed-data';
 
@@ -588,6 +588,8 @@ export async function runSeed(prisma: PrismaClient, log: (msg: string) => void =
 
   // ───────── events (Phase 2): Gala Night draft — confirmed facts only ─────────
   tally('event', await seedGalaNightDraft(prisma));
+  // Phase 5B: ticket sale configuration (sales CLOSED; create-only)
+  tally('galaTicketConfig', await seedGalaTicketConfig(prisma));
 
   await prisma.auditLog.create({
     data: { action: 'seed.baseline', entityType: 'System', metadata: report as unknown as Prisma.InputJsonValue },

@@ -28,6 +28,11 @@ export interface CreatePaymentSessionInput {
   locale: string;
   returnUrl: string;
   cancelUrl: string;
+  /**
+   * What is being paid. Absent = charitable donation. EVENT_TICKET_PAYMENT = an event booking (then `donationReference`
+   * carries the booking reference and the payment is never a donation).
+   */
+  classification?: 'CHARITABLE_DONATION' | 'EVENT_TICKET_PAYMENT';
   /** Present for the first payment of a recurring donation */
   recurring?: { reference: string; interval: 'MONTHLY'; intervalCount: number };
 }

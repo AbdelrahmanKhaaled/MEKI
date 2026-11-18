@@ -3,7 +3,7 @@ import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Actor, RequirePermissions } from '../../common/decorators';
 import { ReorderDto } from '../../common/dto/shared.dto';
 import type { ActorContext } from '../../common/types/auth-request';
-import { CreateSectionDto, CreateSectionItemDto, UpdatePageDto, UpdateSectionDto, UpdateSectionItemDto } from './cms.dto';
+import { CreatePageDto, CreateSectionDto, CreateSectionItemDto, UpdatePageDto, UpdateSectionDto, UpdateSectionItemDto } from './cms.dto';
 import { CmsService } from './cms.service';
 
 @ApiTags('Admin · CMS')
@@ -16,6 +16,13 @@ export class CmsController {
   @RequirePermissions('content.read')
   listPages() {
     return this.cms.listPages();
+  }
+
+  @Post('pages')
+  @RequirePermissions('content.manage')
+  @ApiOperation({ summary: 'Create a site content page (DRAFT). Event landing pages are created through the Events API.' })
+  createPage(@Body() dto: CreatePageDto, @Actor() actor: ActorContext) {
+    return this.cms.createPage(dto, actor);
   }
 
   @Get('pages/:slug')
@@ -85,6 +92,14 @@ export class CmsController {
   @RequirePermissions('content.publish')
   unpublishSection(@Param('id') id: string, @Actor() actor: ActorContext) {
     return this.cms.unpublishSection(id, actor);
+  }
+
+  @Delete('sections/:id')
+  @HttpCode(204)
+  @RequirePermissions('content.manage')
+  @ApiOperation({ summary: 'Remove an UNPUBLISHED section (block) and its items; 409 SECTION_PUBLISHED otherwise' })
+  async deleteSection(@Param('id') id: string, @Actor() actor: ActorContext) {
+    await this.cms.deleteSection(id, actor);
   }
 
   @Post('sections/:id/items')

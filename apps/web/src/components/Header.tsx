@@ -6,11 +6,12 @@ import type { Dict } from "@/content/en";
 import type { Locale } from "@/lib/i18n";
 import { Logo } from "./Logo";
 import { GiveButton } from "./DonateProvider";
-import { NAV_ORDER, PAGE_PATH, getPages, pageHref, type PageKey } from "@/content/pages";
+import { NAV_ORDER, PAGE_PATH, getPages, pageHref, resolveMenu, type PageKey } from "@/content/pages";
 
 export function Header({ t, locale, current = "home" }: { t: Dict; locale: Locale; current?: PageKey }) {
   const pages = getPages(locale);
-  const links = NAV_ORDER.map((k) => ({ key: k, href: pageHref(locale, k), label: pages.nav[k] }));
+  // CMS-managed menu when a valid one is published (Phase 6D), otherwise the built-in page list
+  const links = resolveMenu(t.nav.links, locale) ?? NAV_ORDER.map((k) => ({ key: k, href: pageHref(locale, k), label: pages.nav[k], external: false }));
   const galaActive = current === "gala";
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -59,6 +60,7 @@ export function Header({ t, locale, current = "home" }: { t: Dict; locale: Local
                   <li key={l.key}>
                     <a
                       href={l.href}
+                      {...(l.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                       aria-current={isActive ? "page" : undefined}
                       className={`group relative inline-flex min-h-11 items-center px-3 text-[0.92rem] font-bold transition-colors ${
                         solid ? "text-ink hover:text-meki-green" : "text-white/90 hover:text-glow"
@@ -128,7 +130,7 @@ export function Header({ t, locale, current = "home" }: { t: Dict; locale: Local
             <ul className="divide-y divide-stone-line border-y border-stone-line">
               {links.map((l, i) => (
                 <li key={l.key} style={{ animation: `menuIn .5s var(--ease-premium) ${i * 0.04}s both` }}>
-                  <a href={l.href} aria-current={current === l.key ? "page" : undefined} onClick={() => setOpen(false)} className="flex min-h-14 items-center justify-between font-serif text-2xl text-ink">
+                  <a href={l.href} {...(l.external ? { target: "_blank", rel: "noopener noreferrer" } : {})} aria-current={current === l.key ? "page" : undefined} onClick={() => setOpen(false)} className="flex min-h-14 items-center justify-between font-serif text-2xl text-ink">
                     {l.label}
                     <span className="text-sm font-sans text-gold-text">0{i + 1}</span>
                   </a>

@@ -335,7 +335,8 @@ export interface paths {
         };
         get: operations["CmsController_listPages_v1"];
         put?: never;
-        post?: never;
+        /** Create a site content page (DRAFT). Event landing pages are created through the Events API. */
+        post: operations["CmsController_createPage_v1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -435,7 +436,8 @@ export interface paths {
         get: operations["CmsController_getSection_v1"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Remove an UNPUBLISHED section (block) and its items; 409 SECTION_PUBLISHED otherwise */
+        delete: operations["CmsController_deleteSection_v1"];
         options?: never;
         head?: never;
         /** Edit section working copy (titles, body, CTAs, media, visibility, labels) */
@@ -612,6 +614,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Projects (shown as "Causes" in the admin), optionally filtered by programme, provenance or search */
         get: operations["ProgrammesController_listProjects_v1"];
         put?: never;
         post: operations["ProgrammesController_createProject_v1"];
@@ -628,7 +631,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Project with its programme and campaigns */
+        get: operations["ProgrammesController_getProject_v1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2121,6 +2125,514 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/events/{slug}/ticketing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ticket offer for a published event: server-controlled price (decimal string), limits, sales/checkout availability, calendar availability */
+        get: operations["PublicEventTicketsController_ticketing_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/events/{slug}/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a PENDING ticket booking (one ticket per guest). The price is calculated by the server; no payment is taken here. */
+        post: operations["PublicEventTicketsController_create_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/events/{slug}/calendar.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** iCalendar file for the event. 409 CALENDAR_PENDING until the schedule (time + timezone) is confirmed. */
+        get: operations["PublicEventTicketsController_calendar_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/bookings/{reference}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Purchaser-safe status (no personal data). confirmed=true only after a verified provider event. */
+        get: operations["PublicBookingsController_status_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/bookings/{reference}/confirmation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Confirmation page data (same safe view; the browser return URL itself never confirms payment) */
+        get: operations["PublicBookingsController_confirmation_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/bookings/{reference}/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start (or reuse) a provider-hosted checkout for the booking. 503 PAYMENTS_UNAVAILABLE until a provider is approved and enabled. */
+        post: operations["PublicBookingsController_checkout_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/bookings/{reference}/tickets/{ticketNumber}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download one guest ticket (PDF). Needs the booking token; only for confirmed, paid bookings and valid tickets. */
+        get: operations["PublicBookingsController_pdf_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/ticketing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ticket sale configuration (server-controlled price, limits, sales switch) */
+        get: operations["AdminGalaController_getConfig_v1"];
+        put?: never;
+        /** Create the ticket configuration (sales start CLOSED; opening them needs events.approve) */
+        post: operations["AdminGalaController_createConfig_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update price/limits/labels; salesEnabled additionally requires events.approve */
+        patch: operations["AdminGalaController_updateConfig_v1"];
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List/search/filter bookings (test-provider bookings excluded unless includeTest=true) */
+        get: operations["AdminGalaController_listBookings_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/bookings/{bookingId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Booking with guests, tickets, payment attempts and ledger entries */
+        get: operations["AdminGalaController_getBooking_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Correct purchaser/guest details. Renaming an issued ticket rotates its QR token and regenerates the PDF. */
+        patch: operations["AdminGalaController_updateBooking_v1"];
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/bookings/{bookingId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel. Unpaid → CANCELLED; paid → REFUND_PENDING (refund completes only via a verified provider event). Tickets are revoked. */
+        post: operations["AdminGalaController_cancelBooking_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/bookings/{bookingId}/regenerate-tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Re-issue (rotate QR + regenerate PDF) every issued ticket of the booking that has no PDF */
+        post: operations["AdminGalaController_regenerate_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/bookings/{bookingId}/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Re-queue failed/parked ticket-PDF and e-mail jobs of a confirmed booking and run them now. Sends nothing if no e-mail provider is configured (jobs stay SKIPPED). */
+        post: operations["AdminGalaController_resend_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/jobs/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run due background jobs now (normally done by the poller) */
+        post: operations["AdminGalaController_runJobs_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/financials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ticket revenue summary (EVENT_TICKET_PAYMENT only — never mixed with donations; no tax-deductible value is computed) */
+        get: operations["AdminGalaController_financials_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/guests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Combined guest list (one row per guest ticket): filter by payment/ticket/check-in status, search name/e-mail/reference */
+        get: operations["AdminGalaController_listGuests_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/guests/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download the guest list as CSV (default) or native XLSX (format=xlsx). Same filters, columns and permission; formula-injection safe; audited. */
+        get: operations["AdminGalaController_exportGuests_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminGalaController_listTickets_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/tickets/{ticketId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminGalaController_getTicket_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/tickets/{ticketId}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download a ticket PDF (private storage; never a public URL) */
+        get: operations["AdminGalaController_ticketPdf_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/tickets/{ticketId}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminGalaController_revoke_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/tickets/{ticketId}/reissue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rotate the QR token and regenerate the PDF (the previous QR stops working immediately) */
+        post: operations["AdminGalaController_reissue_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/check-in/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate a scanned QR token for this event and record the check-in atomically (verifyOnly=true looks up without checking in) */
+        post: operations["AdminGalaController_validate_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/check-in/statistics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminGalaController_statistics_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/tickets/{ticketId}/check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Manual check-in by ticket (damaged QR / lost phone) */
+        post: operations["AdminGalaController_manual_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/tickets/{ticketId}/undo-check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminGalaController_undo_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/gala/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Events with ticketing configured (id, code, slug, title, status, schedule). Needs any gala.* read permission or events.read. */
+        get: operations["AdminGalaEventsController_events_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ticket-PDF and e-mail jobs of the event (status, attempts, sanitised last error) + the configured mail transport. Read-only; retry = POST bookings/:id/resend. */
+        get: operations["AdminGalaOpsController_jobs_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/check-in/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Door lookup by ticket number or guest name (min. 3 chars, max. 10 rows, minimal fields). Does not check in. */
+        get: operations["AdminGalaOpsController_doorLookup_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/check-in/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check-in history of the event from the audit trail (scans, manual check-ins, rejections, undos) */
+        get: operations["AdminGalaOpsController_history_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/site": {
         parameters: {
             query?: never;
@@ -2347,7 +2859,7 @@ export interface components {
             isActive: boolean;
         };
         UpdateRolePermissionsDto: {
-            permissions: ("users.read" | "users.manage" | "roles.read" | "roles.manage" | "settings.read" | "settings.manage" | "content.read" | "content.manage" | "content.publish" | "programmes.read" | "programmes.manage" | "programmes.publish" | "campaigns.read" | "campaigns.manage" | "campaigns.approve" | "campaigns.publish" | "media.read" | "media.upload" | "media.delete" | "statistics.read" | "statistics.manage" | "statistics.verify" | "statistics.publish" | "faq.read" | "faq.manage" | "faq.publish" | "audit.read" | "donations.read" | "events.read" | "events.manage" | "events.approve" | "events.publish" | "donors.read" | "donors.manage" | "donors.anonymize" | "payments.read" | "payments.manage" | "refunds.request" | "refunds.approve" | "refunds.execute" | "receipts.read" | "receipts.issue" | "receipts.regenerate" | "recurring.read" | "recurring.manage" | "reports.read")[];
+            permissions: ("users.read" | "users.manage" | "roles.read" | "roles.manage" | "settings.read" | "settings.manage" | "content.read" | "content.manage" | "content.publish" | "programmes.read" | "programmes.manage" | "programmes.publish" | "campaigns.read" | "campaigns.manage" | "campaigns.approve" | "campaigns.publish" | "media.read" | "media.upload" | "media.delete" | "statistics.read" | "statistics.manage" | "statistics.verify" | "statistics.publish" | "faq.read" | "faq.manage" | "faq.publish" | "audit.read" | "donations.read" | "events.read" | "events.manage" | "events.approve" | "events.publish" | "donors.read" | "donors.manage" | "donors.anonymize" | "payments.read" | "payments.manage" | "refunds.request" | "refunds.approve" | "refunds.execute" | "receipts.read" | "receipts.issue" | "receipts.regenerate" | "recurring.read" | "recurring.manage" | "reports.read" | "gala.bookings.read" | "gala.bookings.manage" | "gala.guests.read" | "gala.guests.export" | "gala.tickets.read" | "gala.tickets.manage" | "gala.checkin.validate" | "gala.checkin.manage")[];
         };
         MediaMetadataDto: {
             altEn?: string;
@@ -2426,6 +2938,19 @@ export interface components {
             paymentsEnabled?: boolean;
             previewNoticeEn?: string;
             previewNoticeAr?: string;
+        };
+        CreatePageDto: {
+            /** @example privacy */
+            slug: string;
+            titleEn: string;
+            titleAr?: string;
+            seoTitleEn?: string;
+            seoTitleAr?: string;
+            seoDescriptionEn?: string;
+            seoDescriptionAr?: string;
+            ogImageId?: Record<string, never> | null;
+            /** @enum {string} */
+            provenance?: "VERIFIED_SOURCE" | "PROPOSED" | "DEMO";
         };
         UpdatePageDto: {
             titleEn?: string;
@@ -3034,6 +3559,89 @@ export interface components {
         RefundDecisionDto: {
             note?: string;
         };
+        PurchaserDto: {
+            /** @example Amira Hassan */
+            fullName: string;
+            email: string;
+            /** @example +1 212 555 0100 */
+            phone: string;
+        };
+        GuestInputDto: {
+            fullName: string;
+            email: string;
+            phone: string;
+            /**
+             * @description Dietary requirements ("None" if there are none)
+             * @example None
+             */
+            dietaryRequirements: string;
+            /** @description The purchaser is this guest (informational) */
+            isPurchaser?: boolean;
+        };
+        CreateBookingDto: {
+            purchaser: components["schemas"]["PurchaserDto"];
+            /** @description One entry per individual ticket; each ticket is issued in that guest's own name */
+            guests: components["schemas"]["GuestInputDto"][];
+            /** @description Optional cross-check: must equal guests.length */
+            ticketCount?: number;
+            /** @enum {string} */
+            locale?: "en" | "ar";
+            /** @description Must be true */
+            privacyConsent: boolean;
+        };
+        CreateTicketConfigDto: {
+            /**
+             * @description Price per guest, decimal string
+             * @example 750.00
+             */
+            ticketPrice: string;
+            /** @example USD */
+            currency?: string;
+            /** @example Every Light Counts */
+            displayNameEn: string;
+            /** @example Saturday, December 12, 2026 */
+            eventDateLabelEn: string;
+            /** @example 583 Park Avenue, New York, USA */
+            venueLabelEn: string;
+            maxTicketsPerBooking?: number;
+            capacity?: number;
+            checkInNoteEn?: string;
+        };
+        UpdateTicketConfigDto: {
+            /** @example 750.00 */
+            ticketPrice?: string;
+            /** @description Opens/closes ticket sales (requires events.approve). Independent of payment availability. */
+            salesEnabled?: boolean;
+            displayNameEn?: string;
+            eventDateLabelEn?: string;
+            venueLabelEn?: string;
+            maxTicketsPerBooking?: number;
+            capacity?: Record<string, never> | null;
+            checkInNoteEn?: string;
+        };
+        UpdateGuestDto: {
+            id: string;
+            fullName?: string;
+            email?: string;
+            phone?: string;
+            dietaryRequirements?: string;
+        };
+        UpdateBookingDto: {
+            purchaserName?: string;
+            purchaserEmail?: string;
+            purchaserPhone?: string;
+            /** @description Changing a name on an issued ticket rotates its QR token and regenerates the PDF */
+            guests?: components["schemas"]["UpdateGuestDto"][];
+        };
+        ValidateCheckInDto: {
+            /**
+             * @description Scanned QR content (opaque token)
+             * @example mkt_…
+             */
+            token: string;
+            /** @description true = look up without recording a check-in */
+            verifyOnly?: boolean;
+        };
     };
     responses: never;
     parameters: never;
@@ -3393,6 +4001,7 @@ export interface operations {
                 category?: "BRAND" | "HERO" | "PROGRAMME" | "CAMPAIGN" | "GALLERY" | "OTHER";
                 consentStatus?: "UNKNOWN" | "CONFIRMED" | "NOT_GRANTED";
                 includeDeleted?: string;
+                provenance?: "VERIFIED_SOURCE" | "PROPOSED" | "DEMO";
             };
             header?: never;
             path?: never;
@@ -3610,6 +4219,27 @@ export interface operations {
             };
         };
     };
+    CmsController_createPage_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePageDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     CmsController_getPage_v1: {
         parameters: {
             query?: never;
@@ -3748,6 +4378,25 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    CmsController_deleteSection_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3916,6 +4565,7 @@ export interface operations {
                 status?: "DRAFT" | "IN_REVIEW" | "PUBLISHED" | "ARCHIVED";
                 kind?: "PROGRAMME" | "ENABLING_FUNCTION";
                 isFeatured?: string;
+                provenance?: "VERIFIED_SOURCE" | "PROPOSED" | "DEMO";
             };
             header?: never;
             path?: never;
@@ -4078,6 +4728,8 @@ export interface operations {
         parameters: {
             query?: {
                 programmeId?: string;
+                search?: string;
+                provenance?: "VERIFIED_SOURCE" | "PROPOSED" | "DEMO";
             };
             header?: never;
             path?: never;
@@ -4107,6 +4759,25 @@ export interface operations {
         };
         responses: {
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProgrammesController_getProject_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4150,6 +4821,9 @@ export interface operations {
                 programmeId?: string;
                 provenance?: "VERIFIED_SOURCE" | "PROPOSED" | "DEMO";
                 isFeatured?: string;
+                projectId?: string;
+                startsFrom?: string;
+                startsTo?: string;
             };
             header?: never;
             path?: never;
@@ -6368,6 +7042,773 @@ export interface operations {
             };
             header?: never;
             path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicEventTicketsController_ticketing_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicEventTicketsController_create_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Client-generated unique key (16-80 chars). Replays return the same booking. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateBookingDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicEventTicketsController_calendar_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicBookingsController_status_v1: {
+        parameters: {
+            query?: {
+                /** @description Booking access token (alternative to the X-Booking-Token header) */
+                token?: string;
+                locale?: "en" | "ar";
+            };
+            header?: {
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                reference: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicBookingsController_confirmation_v1: {
+        parameters: {
+            query?: {
+                /** @description Booking access token (alternative to the X-Booking-Token header) */
+                token?: string;
+                locale?: "en" | "ar";
+            };
+            header?: {
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                reference: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicBookingsController_checkout_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-Booking-Token": string;
+            };
+            path: {
+                reference: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicBookingsController_pdf_v1: {
+        parameters: {
+            query?: {
+                /** @description Booking access token (alternative to the X-Booking-Token header) */
+                token?: string;
+                locale?: "en" | "ar";
+            };
+            header?: {
+                "X-Booking-Token"?: string;
+            };
+            path: {
+                reference: string;
+                ticketNumber: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_getConfig_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_createConfig_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateTicketConfigDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_updateConfig_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTicketConfigDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_listBookings_v1: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                /** @description Free-text search */
+                search?: string;
+                /** @description field:asc|desc, comma separated */
+                sort?: string;
+                bookingStatus?: "PENDING" | "CONFIRMED" | "CANCELLED" | "REFUND_PENDING" | "REFUNDED";
+                paymentStatus?: "UNPAID" | "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+                /** @description Include test-provider bookings (excluded by default) */
+                includeTest?: string;
+                /** @description Booking date (createdAt) >= from (ISO-8601) — Phase 6E */
+                from?: string;
+                /** @description Booking date (createdAt) < to (ISO-8601, exclusive) — Phase 6E */
+                to?: string;
+            };
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_getBooking_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_updateBooking_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateBookingDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_cancelBooking_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_regenerate_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_resend_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                bookingId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_runJobs_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_financials_v1: {
+        parameters: {
+            query?: {
+                /** @description Include test-provider bookings (excluded by default) */
+                includeTest?: string;
+            };
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_listGuests_v1: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                /** @description Free-text search */
+                search?: string;
+                /** @description field:asc|desc, comma separated */
+                sort?: string;
+                paymentStatus?: "UNPAID" | "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+                ticketStatus?: "PENDING" | "ISSUED" | "CHECKED_IN" | "REVOKED" | "REFUNDED";
+                checkInStatus?: "CHECKED_IN" | "NOT_CHECKED_IN";
+                /** @description Include test-provider bookings (excluded by default) */
+                includeTest?: string;
+            };
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_exportGuests_v1: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                /** @description Free-text search */
+                search?: string;
+                /** @description field:asc|desc, comma separated */
+                sort?: string;
+                paymentStatus?: "UNPAID" | "PENDING" | "PAID" | "FAILED" | "REFUNDED";
+                ticketStatus?: "PENDING" | "ISSUED" | "CHECKED_IN" | "REVOKED" | "REFUNDED";
+                checkInStatus?: "CHECKED_IN" | "NOT_CHECKED_IN";
+                /** @description Include test-provider bookings (excluded by default) */
+                includeTest?: string;
+                format?: "csv" | "xlsx";
+            };
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_listTickets_v1: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                /** @description Free-text search */
+                search?: string;
+                /** @description field:asc|desc, comma separated */
+                sort?: string;
+                status?: "PENDING" | "ISSUED" | "CHECKED_IN" | "REVOKED" | "REFUNDED";
+            };
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_getTicket_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_ticketPdf_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_revoke_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_reissue_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_validate_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ValidateCheckInDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_statistics_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_manual_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaController_undo_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                ticketId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReasonDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaEventsController_events_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaOpsController_jobs_v1: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                /** @description Free-text search */
+                search?: string;
+                /** @description field:asc|desc, comma separated */
+                sort?: string;
+                status?: "PENDING" | "RUNNING" | "DONE" | "FAILED" | "SKIPPED";
+                type?: "TICKET_PDF" | "EMAIL";
+            };
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaOpsController_doorLookup_v1: {
+        parameters: {
+            query: {
+                /** @description Ticket number (or part of it) or guest name; at least 3 characters */
+                q: string;
+            };
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGalaOpsController_history_v1: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                /** @description Free-text search */
+                search?: string;
+                /** @description field:asc|desc, comma separated */
+                sort?: string;
+                kind?: "checked_in" | "manual" | "rejected" | "undo";
+            };
+            header?: never;
+            path: {
+                eventId: string;
+            };
             cookie?: never;
         };
         requestBody?: never;

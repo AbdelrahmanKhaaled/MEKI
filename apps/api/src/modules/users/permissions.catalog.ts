@@ -50,6 +50,15 @@ export const PERMISSIONS = {
   'recurring.read': { group: 'finance', description: 'View recurring donations' },
   'recurring.manage': { group: 'finance', description: 'Pause, resume or cancel recurring donations' },
   'reports.read': { group: 'finance', description: 'View financial reports (per currency)' },
+  // Phase 5B — Gala booking & ticketing (ticket revenue is NOT a donation; no tax-receipt permissions exist for tickets)
+  'gala.bookings.read': { group: 'gala', description: 'View event bookings (purchaser details, payment state) and ticket financial summary' },
+  'gala.bookings.manage': { group: 'gala', description: 'Correct booking/guest details, cancel bookings, regenerate tickets' },
+  'gala.guests.read': { group: 'gala', description: 'View the combined guest list (guest personal data)' },
+  'gala.guests.export': { group: 'gala', description: 'Export the guest list (CSV)' },
+  'gala.tickets.read': { group: 'gala', description: 'View tickets and download ticket PDFs' },
+  'gala.tickets.manage': { group: 'gala', description: 'Revoke tickets and re-issue (rotate QR) tickets' },
+  'gala.checkin.validate': { group: 'gala', description: 'Scan/validate QR tickets at the door and view check-in statistics' },
+  'gala.checkin.manage': { group: 'gala', description: 'Manual check-in and undo an erroneous check-in' },
 } as const;
 
 export type PermissionKey = keyof typeof PERMISSIONS;
@@ -58,6 +67,9 @@ export const ALL_PERMISSIONS = Object.keys(PERMISSIONS) as PermissionKey[];
 export const SUPER_ADMIN = 'SUPER_ADMIN';
 
 const readAll = ALL_PERMISSIONS.filter((p) => p.endsWith('.read'));
+
+/** Phase 5B read permissions for finance (no export, no manage; guest data is least-privilege). */
+const FINANCE_GALA: PermissionKey[] = ['gala.bookings.read', 'gala.guests.read', 'gala.tickets.read'];
 
 export const SYSTEM_ROLES: Record<string, { name: string; description: string; permissions: PermissionKey[] }> = {
   SUPER_ADMIN: {
@@ -96,6 +108,11 @@ export const SYSTEM_ROLES: Record<string, { name: string; description: string; p
       (p) => p !== 'users.read' && p !== 'roles.read',
     ),
   },
+  EVENT_CHECKIN_STAFF: {
+    name: 'Event Check-in Staff',
+    description: 'Door staff: validates QR tickets and sees check-in counts. No access to guest lists, bookings or finance.',
+    permissions: ['gala.checkin.validate'],
+  },
 };
 
 /**
@@ -126,6 +143,16 @@ export const PERMISSION_GRANTS: { version: string; grants: Partial<Record<string
         'receipts.issue', 'recurring.read', 'reports.read',
       ],
       CAMPAIGN_MANAGER: ['reports.read'],
+    },
+  },
+  {
+    version: '2026-11-16-phase5b-gala',
+    grants: {
+      ADMINISTRATOR: [
+        'gala.bookings.read', 'gala.bookings.manage', 'gala.guests.read', 'gala.guests.export',
+        'gala.tickets.read', 'gala.tickets.manage', 'gala.checkin.validate', 'gala.checkin.manage',
+      ],
+      FINANCE_MANAGER: FINANCE_GALA,
     },
   },
 ];

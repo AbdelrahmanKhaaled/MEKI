@@ -713,6 +713,19 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "provenance",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "VERIFIED_SOURCE",
+                "PROPOSED",
+                "DEMO"
+              ]
+            }
           }
         ],
         "responses": {
@@ -945,6 +958,34 @@
             "cookie": []
           }
         ],
+        "tags": [
+          "Admin · CMS"
+        ]
+      },
+      "post": {
+        "operationId": "CmsController_createPage_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Create a site content page (DRAFT). Event landing pages are created through the Events API.",
         "tags": [
           "Admin · CMS"
         ]
@@ -1209,6 +1250,33 @@
           }
         ],
         "summary": "Edit section working copy (titles, body, CTAs, media, visibility, labels)",
+        "tags": [
+          "Admin · CMS"
+        ]
+      },
+      "delete": {
+        "operationId": "CmsController_deleteSection_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Remove an UNPUBLISHED section (block) and its items; 409 SECTION_PUBLISHED otherwise",
         "tags": [
           "Admin · CMS"
         ]
@@ -1488,6 +1556,19 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "provenance",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "VERIFIED_SOURCE",
+                "PROPOSED",
+                "DEMO"
+              ]
+            }
           }
         ],
         "responses": {
@@ -1729,6 +1810,27 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "provenance",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "VERIFIED_SOURCE",
+                "PROPOSED",
+                "DEMO"
+              ]
+            }
           }
         ],
         "responses": {
@@ -1741,6 +1843,7 @@
             "cookie": []
           }
         ],
+        "summary": "Projects (shown as \"Causes\" in the admin), optionally filtered by programme, provenance or search",
         "tags": [
           "Admin · Programmes"
         ]
@@ -1774,6 +1877,33 @@
       }
     },
     "/api/v1/admin/projects/{id}": {
+      "get": {
+        "operationId": "ProgrammesController_getProject_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Project with its programme and campaigns",
+        "tags": [
+          "Admin · Programmes"
+        ]
+      },
       "patch": {
         "operationId": "ProgrammesController_updateProject_v1",
         "parameters": [
@@ -1894,6 +2024,30 @@
           },
           {
             "name": "isFeatured",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "projectId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startsFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startsTo",
             "required": false,
             "in": "query",
             "schema": {
@@ -6075,6 +6229,1684 @@
         ]
       }
     },
+    "/api/v1/public/events/{slug}/ticketing": {
+      "get": {
+        "operationId": "PublicEventTicketsController_ticketing_v1",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Ticket offer for a published event: server-controlled price (decimal string), limits, sales/checkout availability, calendar availability",
+        "tags": [
+          "Public · Event tickets"
+        ]
+      }
+    },
+    "/api/v1/public/events/{slug}/bookings": {
+      "post": {
+        "operationId": "PublicEventTicketsController_create_v1",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Client-generated unique key (16-80 chars). Replays return the same booking.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBookingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Create a PENDING ticket booking (one ticket per guest). The price is calculated by the server; no payment is taken here.",
+        "tags": [
+          "Public · Event tickets"
+        ]
+      }
+    },
+    "/api/v1/public/events/{slug}/calendar.ics": {
+      "get": {
+        "operationId": "PublicEventTicketsController_calendar_v1",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "iCalendar file for the event. 409 CALENDAR_PENDING until the schedule (time + timezone) is confirmed.",
+        "tags": [
+          "Public · Event tickets"
+        ]
+      }
+    },
+    "/api/v1/public/bookings/{reference}/status": {
+      "get": {
+        "operationId": "PublicBookingsController_status_v1",
+        "parameters": [
+          {
+            "name": "reference",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "token",
+            "required": false,
+            "in": "query",
+            "description": "Booking access token (alternative to the X-Booking-Token header)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "ar"
+              ]
+            }
+          },
+          {
+            "name": "X-Booking-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Purchaser-safe status (no personal data). confirmed=true only after a verified provider event.",
+        "tags": [
+          "Public · Event tickets"
+        ]
+      }
+    },
+    "/api/v1/public/bookings/{reference}/confirmation": {
+      "get": {
+        "operationId": "PublicBookingsController_confirmation_v1",
+        "parameters": [
+          {
+            "name": "reference",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "token",
+            "required": false,
+            "in": "query",
+            "description": "Booking access token (alternative to the X-Booking-Token header)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "ar"
+              ]
+            }
+          },
+          {
+            "name": "X-Booking-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Confirmation page data (same safe view; the browser return URL itself never confirms payment)",
+        "tags": [
+          "Public · Event tickets"
+        ]
+      }
+    },
+    "/api/v1/public/bookings/{reference}/checkout": {
+      "post": {
+        "operationId": "PublicBookingsController_checkout_v1",
+        "parameters": [
+          {
+            "name": "reference",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Booking-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Start (or reuse) a provider-hosted checkout for the booking. 503 PAYMENTS_UNAVAILABLE until a provider is approved and enabled.",
+        "tags": [
+          "Public · Event tickets"
+        ]
+      }
+    },
+    "/api/v1/public/bookings/{reference}/tickets/{ticketNumber}/pdf": {
+      "get": {
+        "operationId": "PublicBookingsController_pdf_v1",
+        "parameters": [
+          {
+            "name": "reference",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ticketNumber",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "token",
+            "required": false,
+            "in": "query",
+            "description": "Booking access token (alternative to the X-Booking-Token header)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "ar"
+              ]
+            }
+          },
+          {
+            "name": "X-Booking-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Download one guest ticket (PDF). Needs the booking token; only for confirmed, paid bookings and valid tickets.",
+        "tags": [
+          "Public · Event tickets"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/ticketing": {
+      "get": {
+        "operationId": "AdminGalaController_getConfig_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Ticket sale configuration (server-controlled price, limits, sales switch)",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      },
+      "post": {
+        "operationId": "AdminGalaController_createConfig_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTicketConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Create the ticket configuration (sales start CLOSED; opening them needs events.approve)",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      },
+      "patch": {
+        "operationId": "AdminGalaController_updateConfig_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTicketConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Update price/limits/labels; salesEnabled additionally requires events.approve",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/bookings": {
+      "get": {
+        "operationId": "AdminGalaController_listBookings_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Free-text search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "field:asc|desc, comma separated",
+            "schema": {
+              "example": "sortOrder:asc",
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingStatus",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "CONFIRMED",
+                "CANCELLED",
+                "REFUND_PENDING",
+                "REFUNDED"
+              ]
+            }
+          },
+          {
+            "name": "paymentStatus",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "UNPAID",
+                "PENDING",
+                "PAID",
+                "FAILED",
+                "REFUNDED"
+              ]
+            }
+          },
+          {
+            "name": "includeTest",
+            "required": false,
+            "in": "query",
+            "description": "Include test-provider bookings (excluded by default)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Booking date (createdAt) >= from (ISO-8601) — Phase 6E",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "Booking date (createdAt) < to (ISO-8601, exclusive) — Phase 6E",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "List/search/filter bookings (test-provider bookings excluded unless includeTest=true)",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/bookings/{bookingId}": {
+      "get": {
+        "operationId": "AdminGalaController_getBooking_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Booking with guests, tickets, payment attempts and ledger entries",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      },
+      "patch": {
+        "operationId": "AdminGalaController_updateBooking_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBookingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Correct purchaser/guest details. Renaming an issued ticket rotates its QR token and regenerates the PDF.",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/bookings/{bookingId}/cancel": {
+      "post": {
+        "operationId": "AdminGalaController_cancelBooking_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Cancel. Unpaid → CANCELLED; paid → REFUND_PENDING (refund completes only via a verified provider event). Tickets are revoked.",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/bookings/{bookingId}/regenerate-tickets": {
+      "post": {
+        "operationId": "AdminGalaController_regenerate_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Re-issue (rotate QR + regenerate PDF) every issued ticket of the booking that has no PDF",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/bookings/{bookingId}/resend": {
+      "post": {
+        "operationId": "AdminGalaController_resend_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Re-queue failed/parked ticket-PDF and e-mail jobs of a confirmed booking and run them now. Sends nothing if no e-mail provider is configured (jobs stay SKIPPED).",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/jobs/run": {
+      "post": {
+        "operationId": "AdminGalaController_runJobs_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Run due background jobs now (normally done by the poller)",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/financials": {
+      "get": {
+        "operationId": "AdminGalaController_financials_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeTest",
+            "required": false,
+            "in": "query",
+            "description": "Include test-provider bookings (excluded by default)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Ticket revenue summary (EVENT_TICKET_PAYMENT only — never mixed with donations; no tax-deductible value is computed)",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/guests": {
+      "get": {
+        "operationId": "AdminGalaController_listGuests_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Free-text search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "field:asc|desc, comma separated",
+            "schema": {
+              "example": "sortOrder:asc",
+              "type": "string"
+            }
+          },
+          {
+            "name": "paymentStatus",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "UNPAID",
+                "PENDING",
+                "PAID",
+                "FAILED",
+                "REFUNDED"
+              ]
+            }
+          },
+          {
+            "name": "ticketStatus",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "ISSUED",
+                "CHECKED_IN",
+                "REVOKED",
+                "REFUNDED"
+              ]
+            }
+          },
+          {
+            "name": "checkInStatus",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CHECKED_IN",
+                "NOT_CHECKED_IN"
+              ]
+            }
+          },
+          {
+            "name": "includeTest",
+            "required": false,
+            "in": "query",
+            "description": "Include test-provider bookings (excluded by default)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Combined guest list (one row per guest ticket): filter by payment/ticket/check-in status, search name/e-mail/reference",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/guests/export": {
+      "get": {
+        "operationId": "AdminGalaController_exportGuests_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Free-text search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "field:asc|desc, comma separated",
+            "schema": {
+              "example": "sortOrder:asc",
+              "type": "string"
+            }
+          },
+          {
+            "name": "paymentStatus",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "UNPAID",
+                "PENDING",
+                "PAID",
+                "FAILED",
+                "REFUNDED"
+              ]
+            }
+          },
+          {
+            "name": "ticketStatus",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "ISSUED",
+                "CHECKED_IN",
+                "REVOKED",
+                "REFUNDED"
+              ]
+            }
+          },
+          {
+            "name": "checkInStatus",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CHECKED_IN",
+                "NOT_CHECKED_IN"
+              ]
+            }
+          },
+          {
+            "name": "includeTest",
+            "required": false,
+            "in": "query",
+            "description": "Include test-provider bookings (excluded by default)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "csv",
+              "type": "string",
+              "enum": [
+                "csv",
+                "xlsx"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Download the guest list as CSV (default) or native XLSX (format=xlsx). Same filters, columns and permission; formula-injection safe; audited.",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/tickets": {
+      "get": {
+        "operationId": "AdminGalaController_listTickets_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Free-text search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "field:asc|desc, comma separated",
+            "schema": {
+              "example": "sortOrder:asc",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "ISSUED",
+                "CHECKED_IN",
+                "REVOKED",
+                "REFUNDED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/tickets/{ticketId}": {
+      "get": {
+        "operationId": "AdminGalaController_getTicket_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/tickets/{ticketId}/pdf": {
+      "get": {
+        "operationId": "AdminGalaController_ticketPdf_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Download a ticket PDF (private storage; never a public URL)",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/tickets/{ticketId}/revoke": {
+      "post": {
+        "operationId": "AdminGalaController_revoke_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/tickets/{ticketId}/reissue": {
+      "post": {
+        "operationId": "AdminGalaController_reissue_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Rotate the QR token and regenerate the PDF (the previous QR stops working immediately)",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/check-in/validate": {
+      "post": {
+        "operationId": "AdminGalaController_validate_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateCheckInDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Validate a scanned QR token for this event and record the check-in atomically (verifyOnly=true looks up without checking in)",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/check-in/statistics": {
+      "get": {
+        "operationId": "AdminGalaController_statistics_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/tickets/{ticketId}/check-in": {
+      "post": {
+        "operationId": "AdminGalaController_manual_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Manual check-in by ticket (damaged QR / lost phone)",
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/tickets/{ticketId}/undo-check-in": {
+      "post": {
+        "operationId": "AdminGalaController_undo_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · Gala ticketing"
+        ]
+      }
+    },
+    "/api/v1/admin/gala/events": {
+      "get": {
+        "operationId": "AdminGalaEventsController_events_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Events with ticketing configured (id, code, slug, title, status, schedule). Needs any gala.* read permission or events.read.",
+        "tags": [
+          "Admin · Gala operations (Phase 6E)"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/jobs": {
+      "get": {
+        "operationId": "AdminGalaOpsController_jobs_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Free-text search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "field:asc|desc, comma separated",
+            "schema": {
+              "example": "sortOrder:asc",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "RUNNING",
+                "DONE",
+                "FAILED",
+                "SKIPPED"
+              ]
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "TICKET_PDF",
+                "EMAIL"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Ticket-PDF and e-mail jobs of the event (status, attempts, sanitised last error) + the configured mail transport. Read-only; retry = POST bookings/:id/resend.",
+        "tags": [
+          "Admin · Gala operations (Phase 6E)"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/check-in/lookup": {
+      "get": {
+        "operationId": "AdminGalaOpsController_doorLookup_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "description": "Ticket number (or part of it) or guest name; at least 3 characters",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Door lookup by ticket number or guest name (min. 3 chars, max. 10 rows, minimal fields). Does not check in.",
+        "tags": [
+          "Admin · Gala operations (Phase 6E)"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/check-in/history": {
+      "get": {
+        "operationId": "AdminGalaOpsController_history_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Free-text search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "field:asc|desc, comma separated",
+            "schema": {
+              "example": "sortOrder:asc",
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "checked_in",
+                "manual",
+                "rejected",
+                "undo"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Check-in history of the event from the audit trail (scans, manual check-ins, rejections, undos)",
+        "tags": [
+          "Admin · Gala operations (Phase 6E)"
+        ]
+      }
+    },
     "/api/v1/public/site": {
       "get": {
         "operationId": "PublicController_site_v1",
@@ -6614,7 +8446,15 @@
                 "receipts.regenerate",
                 "recurring.read",
                 "recurring.manage",
-                "reports.read"
+                "reports.read",
+                "gala.bookings.read",
+                "gala.bookings.manage",
+                "gala.guests.read",
+                "gala.guests.export",
+                "gala.tickets.read",
+                "gala.tickets.manage",
+                "gala.checkin.validate",
+                "gala.checkin.manage"
               ]
             }
           }
@@ -6850,6 +8690,49 @@
             "type": "string"
           }
         }
+      },
+      "CreatePageDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "privacy"
+          },
+          "titleEn": {
+            "type": "string"
+          },
+          "titleAr": {
+            "type": "string"
+          },
+          "seoTitleEn": {
+            "type": "string"
+          },
+          "seoTitleAr": {
+            "type": "string"
+          },
+          "seoDescriptionEn": {
+            "type": "string"
+          },
+          "seoDescriptionAr": {
+            "type": "string"
+          },
+          "ogImageId": {
+            "type": "object",
+            "nullable": true
+          },
+          "provenance": {
+            "type": "string",
+            "enum": [
+              "VERIFIED_SOURCE",
+              "PROPOSED",
+              "DEMO"
+            ]
+          }
+        },
+        "required": [
+          "slug",
+          "titleEn"
+        ]
       },
       "UpdatePageDto": {
         "type": "object",
@@ -8723,6 +10606,225 @@
             "type": "string"
           }
         }
+      },
+      "PurchaserDto": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "example": "Amira Hassan"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+1 212 555 0100"
+          }
+        },
+        "required": [
+          "fullName",
+          "email",
+          "phone"
+        ]
+      },
+      "GuestInputDto": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "dietaryRequirements": {
+            "type": "string",
+            "example": "None",
+            "description": "Dietary requirements (\"None\" if there are none)"
+          },
+          "isPurchaser": {
+            "type": "boolean",
+            "description": "The purchaser is this guest (informational)"
+          }
+        },
+        "required": [
+          "fullName",
+          "email",
+          "phone",
+          "dietaryRequirements"
+        ]
+      },
+      "CreateBookingDto": {
+        "type": "object",
+        "properties": {
+          "purchaser": {
+            "$ref": "#/components/schemas/PurchaserDto"
+          },
+          "guests": {
+            "description": "One entry per individual ticket; each ticket is issued in that guest's own name",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GuestInputDto"
+            }
+          },
+          "ticketCount": {
+            "type": "number",
+            "description": "Optional cross-check: must equal guests.length"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar"
+            ]
+          },
+          "privacyConsent": {
+            "type": "boolean",
+            "description": "Must be true"
+          }
+        },
+        "required": [
+          "purchaser",
+          "guests",
+          "privacyConsent"
+        ]
+      },
+      "CreateTicketConfigDto": {
+        "type": "object",
+        "properties": {
+          "ticketPrice": {
+            "type": "string",
+            "example": "750.00",
+            "description": "Price per guest, decimal string"
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "displayNameEn": {
+            "type": "string",
+            "example": "Every Light Counts"
+          },
+          "eventDateLabelEn": {
+            "type": "string",
+            "example": "Saturday, December 12, 2026"
+          },
+          "venueLabelEn": {
+            "type": "string",
+            "example": "583 Park Avenue, New York, USA"
+          },
+          "maxTicketsPerBooking": {
+            "type": "number"
+          },
+          "capacity": {
+            "type": "number"
+          },
+          "checkInNoteEn": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ticketPrice",
+          "displayNameEn",
+          "eventDateLabelEn",
+          "venueLabelEn"
+        ]
+      },
+      "UpdateTicketConfigDto": {
+        "type": "object",
+        "properties": {
+          "ticketPrice": {
+            "type": "string",
+            "example": "750.00"
+          },
+          "salesEnabled": {
+            "type": "boolean",
+            "description": "Opens/closes ticket sales (requires events.approve). Independent of payment availability."
+          },
+          "displayNameEn": {
+            "type": "string"
+          },
+          "eventDateLabelEn": {
+            "type": "string"
+          },
+          "venueLabelEn": {
+            "type": "string"
+          },
+          "maxTicketsPerBooking": {
+            "type": "number"
+          },
+          "capacity": {
+            "type": "object",
+            "nullable": true
+          },
+          "checkInNoteEn": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateGuestDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "dietaryRequirements": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "UpdateBookingDto": {
+        "type": "object",
+        "properties": {
+          "purchaserName": {
+            "type": "string"
+          },
+          "purchaserEmail": {
+            "type": "string"
+          },
+          "purchaserPhone": {
+            "type": "string"
+          },
+          "guests": {
+            "description": "Changing a name on an issued ticket rotates its QR token and regenerates the PDF",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UpdateGuestDto"
+            }
+          }
+        }
+      },
+      "ValidateCheckInDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Scanned QR content (opaque token)",
+            "example": "mkt_…"
+          },
+          "verifyOnly": {
+            "type": "boolean",
+            "description": "true = look up without recording a check-in"
+          }
+        },
+        "required": [
+          "token"
+        ]
       }
     }
   }

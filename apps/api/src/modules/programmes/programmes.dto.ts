@@ -52,6 +52,15 @@ export class ProgrammeQueryDto extends ListQueryDto {
   @ApiPropertyOptional({ enum: PublicationStatus }) @IsOptional() @IsEnum(PublicationStatus) status?: PublicationStatus;
   @ApiPropertyOptional({ enum: ProgrammeKind }) @IsOptional() @IsEnum(ProgrammeKind) kind?: ProgrammeKind;
   @ApiPropertyOptional() @IsOptional() @IsIn(['true', 'false']) isFeatured?: string;
+  /** Phase 6C (additive): filter by provenance. */
+  @ApiPropertyOptional({ enum: Provenance }) @IsOptional() @IsEnum(Provenance) provenance?: Provenance;
+}
+
+/** Phase 6C (additive): filters for the (unpaginated) project list. `programmeId` keeps its previous meaning. */
+export class ProjectQueryDto {
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(30) programmeId?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(120) search?: string;
+  @ApiPropertyOptional({ enum: Provenance }) @IsOptional() @IsEnum(Provenance) provenance?: Provenance;
 }
 
 export class CreateProjectDto {
