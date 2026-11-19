@@ -37,7 +37,8 @@ export function setupApp(app: NestExpressApplication) {
     origin: config.corsOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'X-CSRF-Token', 'X-Request-Id', 'Idempotency-Key', 'X-Donation-Token'],
+    // X-Booking-Token: the public booking pages (status, checkout, ticket PDF) send the purchaser token in this header (Phase 7 fix)
+    allowedHeaders: ['Content-Type', 'X-CSRF-Token', 'X-Request-Id', 'Idempotency-Key', 'X-Donation-Token', 'X-Booking-Token'],
     exposedHeaders: ['X-Request-Id'],
   });
 

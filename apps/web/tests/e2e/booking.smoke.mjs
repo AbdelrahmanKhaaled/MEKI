@@ -6,10 +6,11 @@
 //   2. serve it:   API_INTERNAL_URL=http://localhost:4555 pnpm --filter @meki/web start     (port 3000)
 //   3. run:        node tests/e2e/booking.smoke.mjs [outDir]
 //
-// Chrome path: CHROME_PATH or the default Windows location.
+// Chrome path: CHROME_PATH or the default Windows location. Phase 9B: BROWSER=firefox|webkit runs the same flow in Playwright's
+// Firefox / WebKit builds (WebKit = Safari's engine on Windows, not a real Safari device).
 import { createServer } from "node:http";
 import { mkdirSync } from "node:fs";
-import { chromium } from "playwright-core";
+import { chromium, firefox, webkit } from "playwright-core";
 
 const WEB = process.env.WEB_URL ?? "http://localhost:3000";
 const OUT = process.argv[2] ?? "./smoke-out";
@@ -79,7 +80,11 @@ if (process.env.STUB_ONLY) await new Promise(() => {});
 const CTA = process.env.GALA_CTA ?? "closed";
 
 // ───────── browser ─────────
-const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: true });
+const ENGINE = process.env.BROWSER ?? "chromium";
+const browser = ENGINE === "chromium"
+  ? await chromium.launch({ executablePath: process.env.CHROME_PATH ?? "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: true })
+  : await { firefox, webkit }[ENGINE].launch({ headless: true });
+console.log(`engine: ${ENGINE} ${browser.version()}`);
 const results = [];
 const check = (name, ok, extra = "") => { results.push({ name, ok }); console.log(`${ok ? "PASS" : "FAIL"}  ${name}${extra ? "  " + extra : ""}`); };
 const newPage = async (w = 1440, h = 900, locale = "en-US") => {

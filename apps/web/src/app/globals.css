@@ -203,12 +203,12 @@ dialog.donate-dialog[open]::backdrop { animation: fadeIn 0.4s ease; }
 .how-dot { transition: background-color 0.7s var(--ease-premium), color 0.7s var(--ease-premium), border-color 0.7s, transform 0.7s var(--ease-premium), box-shadow 0.7s; }
 .how-ring { transition: box-shadow 0.9s var(--ease-premium), transform 0.9s var(--ease-premium); transform: scale(0.8); }
 .how-num { transition: transform 0.6s var(--ease-premium), opacity 0.6s; transform: scale(0.6); opacity: 0; }
-.how-verb { color: color-mix(in oklab, var(--color-meki-green) 45%, var(--color-limestone)); transition: color 0.7s var(--ease-premium); }
-.how-step { transition: opacity 0.7s var(--ease-premium); opacity: 0.55; }
+/* WCAG 2.2 AA (Phase 9B): the step copy stays at full contrast while a step is still inactive (previously opacity 0.55 → 1.4–2.6:1);
+   the progressive activation is carried by the dot, ring, number, wave and the verb colour (inactive ≥ 3:1 for this large text). */
+.how-verb { color: color-mix(in oklab, var(--color-meki-green) 80%, var(--color-limestone)); transition: color 0.7s var(--ease-premium); }
 [data-step].is-active .how-dot { background: var(--color-deep-green); color: var(--color-glow); border-color: var(--color-deep-green); transform: scale(1.06); box-shadow: 0 18px 40px -16px rgb(11 59 48 / 0.6); }
 [data-step].is-active .how-ring { transform: scale(1.35); box-shadow: 0 0 0 1px rgb(214 161 70 / 0.5), 0 0 0 14px rgb(214 161 70 / 0.08); }
 [data-step].is-active .how-num { transform: scale(1); opacity: 1; }
-.how-step.is-active { opacity: 1; }
 .how-step.is-active .how-verb { color: var(--color-meki-green); }
 .how-node:hover .how-dot { transform: scale(1.12) rotate(-6deg); }
 
@@ -225,3 +225,38 @@ dialog.donate-dialog[open]::backdrop { animation: fadeIn 0.4s ease; }
 
 /* Mobile menu scrolls if taller than the viewport */
 #mobile-menu { max-height: calc(100svh - 72px); overflow-y: auto; }
+
+/* ---------- Phase 10: secondary-page interaction layer ----------
+   NEW classes only (prefixed p10-); no existing rule above is changed, and the homepage uses none of them.
+   Transform/opacity/background-size only (GPU-friendly). The global reduced-motion rule above neutralises every
+   animation and transition here. */
+.p10-zoom img { transition: transform 1.2s var(--ease-premium); }
+.p10-zoom:hover img, .p10-zoom:focus-within img { transform: scale(1.06); }
+.p10-lift { transition: transform 0.6s var(--ease-premium), box-shadow 0.6s var(--ease-premium), border-color 0.4s ease; }
+.p10-lift:hover, .p10-lift:focus-within { transform: translateY(-6px); box-shadow: 0 28px 60px -32px rgb(11 59 48 / 0.45); }
+.p10-underline { background: linear-gradient(currentColor, currentColor) no-repeat 0 100% / 0 1px; transition: background-size 0.5s var(--ease-premium); }
+[dir="rtl"] .p10-underline { background-position: 100% 100%; }
+.p10-underline:hover, .p10-underline:focus-visible { background-size: 100% 1px; }
+.p10-nudge svg { transition: transform 0.4s var(--ease-premium); }
+.p10-nudge:hover svg, .p10-nudge:focus-visible svg { transform: translateX(4px); }
+[dir="rtl"] .p10-nudge:hover svg, [dir="rtl"] .p10-nudge:focus-visible svg { transform: translateX(-4px); }
+.p10-icon { transition: transform 0.6s var(--ease-premium), background-color 0.5s ease, color 0.5s ease; }
+.group:hover .p10-icon, .group:focus-within .p10-icon { transform: rotate(-8deg) scale(1.08); background-color: var(--color-deep-green); color: var(--color-glow); }
+/* Gala lamps: a slow, uneven flicker (infinite, decorative only) */
+@keyframes p10Flicker { 0%, 100% { opacity: 0.8; transform: scale(1); } 40% { opacity: 1; transform: scale(1.07); } 55% { opacity: 0.88; transform: scale(0.98); } 75% { opacity: 0.97; transform: scale(1.04); } }
+.p10-lamp { border-radius: 9999px; background: radial-gradient(circle, rgb(255 236 179 / 0.95) 0%, rgb(230 195 111 / 0.55) 35%, rgb(214 161 70 / 0) 70%); animation: p10Flicker var(--lamp-dur, 5s) ease-in-out infinite; animation-delay: var(--lamp-delay, 0s); }
+@keyframes p10Drift { from { transform: translate3d(-3%, 0, 0) rotate(-2deg); } to { transform: translate3d(3%, -2%, 0) rotate(2deg); } }
+.p10-drift { animation: p10Drift 18s ease-in-out infinite alternate; }
+/* reading progress for long legal pages (CSS scroll-driven animation; absent where unsupported) */
+.p10-progress { display: none; }
+@supports (animation-timeline: scroll()) {
+  .p10-progress { display: block; position: fixed; inset-inline: 0; top: 0; z-index: 60; height: 3px; transform-origin: 0 50%; background: linear-gradient(90deg, var(--color-harvest-gold), var(--color-meki-green)); animation: p10Grow linear both; animation-timeline: scroll(root); }
+  [dir="rtl"] .p10-progress { transform-origin: 100% 50%; }
+  @keyframes p10Grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+}
+/* Gala programme line: a soft light travelling down the timeline (background-position only, one element) */
+@keyframes p10Travel { from { background-position: 50% -40%; } to { background-position: 50% 140%; } }
+.p10-travel { background-image: linear-gradient(180deg, transparent 0%, rgb(255 236 179 / 0.95) 50%, transparent 100%); background-size: 100% 22%; background-repeat: no-repeat; animation: p10Travel 6s ease-in-out infinite; }
+.p10-row { transition: transform 0.5s var(--ease-premium); }
+.p10-row:hover { transform: translateX(6px); }
+[dir="rtl"] .p10-row:hover { transform: translateX(-6px); }

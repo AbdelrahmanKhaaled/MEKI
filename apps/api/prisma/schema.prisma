@@ -435,6 +435,10 @@ model Programme {
   icon             String?           @db.VarChar(40)
   coverMediaId     String?           @db.VarChar(30)
   coverMedia       MediaAsset?       @relation("ProgrammeCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  /// Phase 11A: programme-level fundraising goal. Only an MEKI-approved figure may be stored here; it is NEVER derived
+  /// from campaign targets. Both fields are set together (or both null). Collected totals always come from verified payments.
+  targetAmount     Decimal?          @db.Decimal(14, 2)
+  targetCurrency   String?           @db.Char(3)
   sortOrder        Int               @default(0)
   isFeatured       Boolean           @default(false)
   status           PublicationStatus @default(DRAFT)
@@ -475,24 +479,33 @@ model ProgrammeMedia {
 
 /// Field project evidenced by client material (e.g. a photo folder). Not a fundraiser by itself.
 model Project {
-  id           String            @id @default(cuid()) @db.VarChar(30)
-  code         String            @unique @db.VarChar(60)
-  slug         String            @unique @db.VarChar(120)
-  programmeId  String?           @db.VarChar(30)
-  programme    Programme?        @relation(fields: [programmeId], references: [id], onDelete: SetNull)
-  nameEn       String            @db.VarChar(255)
-  nameAr       String?           @db.VarChar(255)
-  locationEn   String?           @db.VarChar(255)
-  locationAr   String?           @db.VarChar(255)
-  sourceFolder String?           @db.VarChar(255) // original client folder name (traceability)
-  provenance   Provenance        @default(PROPOSED)
-  sourceRef    String?           @db.VarChar(255)
-  status       PublicationStatus @default(DRAFT)
-  createdById  String?           @db.VarChar(30)
-  updatedById  String?           @db.VarChar(30)
-  createdAt    DateTime          @default(now()) @db.DateTime(3)
-  updatedAt    DateTime          @updatedAt @db.DateTime(3)
-  deletedAt    DateTime?         @db.DateTime(3)
+  id            String            @id @default(cuid()) @db.VarChar(30)
+  code          String            @unique @db.VarChar(60)
+  slug          String            @unique @db.VarChar(120)
+  programmeId   String?           @db.VarChar(30)
+  programme     Programme?        @relation(fields: [programmeId], references: [id], onDelete: SetNull)
+  nameEn        String            @db.VarChar(255)
+  nameAr        String?           @db.VarChar(255)
+  locationEn    String?           @db.VarChar(255)
+  locationAr    String?           @db.VarChar(255)
+  sourceFolder  String?           @db.VarChar(255) // original client folder name (traceability)
+  /// Phase 11A (additive): public presentation of the cause on its programme page (approved copy only).
+  summaryEn     String?           @db.Text
+  summaryAr     String?           @db.Text
+  descriptionEn String?           @db.Text
+  descriptionAr String?           @db.Text
+  coverMediaId  String?           @db.VarChar(30)
+  coverMedia    MediaAsset?       @relation("ProjectCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  sortOrder     Int               @default(0)
+  publishedAt   DateTime?         @db.DateTime(3)
+  provenance    Provenance        @default(PROPOSED)
+  sourceRef     String?           @db.VarChar(255)
+  status        PublicationStatus @default(DRAFT)
+  createdById   String?           @db.VarChar(30)
+  updatedById   String?           @db.VarChar(30)
+  createdAt     DateTime          @default(now()) @db.DateTime(3)
+  updatedAt     DateTime          @updatedAt @db.DateTime(3)
+  deletedAt     DateTime?         @db.DateTime(3)
 
   campaigns Campaign[]
 
@@ -604,6 +617,7 @@ model MediaAsset {
 
   programmeCovers  Programme[]      @relation("ProgrammeCover")
   campaignCovers   Campaign[]       @relation("CampaignCover")
+  projectCovers    Project[]        @relation("ProjectCover")
   programmeGallery ProgrammeMedia[]
   campaignGallery  CampaignMedia[]
   sections         PageSection[]    @relation("SectionMedia")
@@ -1310,6 +1324,11 @@ model EventBooking {
   /// Provider checkout session / payment reference once known
   providerReference      String?                 @db.VarChar(191)
   refundedAmount         Decimal                 @default(0) @db.Decimal(18, 3)
+  /// Phase 12: who issues the official tickets. ZEFFY = SDI's hosted form issues tickets, PDFs, QR codes and check-in;
+  /// MEKI never issues, regenerates or e-mails tickets for such a booking (no MEKI ticket rows exist for it).
+  ticketIssuer           GalaTicketIssuer        @default(MEKI)
+  /// Phase 12: paid ticket count as reported by SDI (authoritative for ZEFFY bookings; may differ from the intended guestCount)
+  reportedTicketCount    Int?
   isTest                 Boolean                 @default(false)
   locale                 String                  @default("en") @db.VarChar(5)
   paidAt                 DateTime?               @db.DateTime(3)
@@ -1476,4 +1495,223 @@ model EventBookingJob {
 
   @@index([status, nextRunAt])
   @@index([bookingId])
+}
+
+// ───────────── Phase 8A: provider-side payment records (SDI's Zeffy account) ─────────────
+// A READ MODEL of payments that exist in SDI's Zeffy account, filled from verified webhooks and read-only API reconciliation.
+// It never moves money and is not a ledger: MEKI's ledgers (PaymentTransaction / EventBookingTransaction) are written only
+// through the established confirmation pipelines. It exists because a provider payment can arrive before (or without) any MEKI
+// record it could be attached to, and those payments must stay visible for review instead of being dropped or guessed.
+
+enum ProviderPaymentMatchStatus {
+  UNMATCHED // no MEKI reference in the provider record (e.g. a donation made directly on SDI's form)
+  NEEDS_REVIEW // a reference exists but a correlation rule failed or is ambiguous: never applied automatically
+  MATCHED // every correlation rule passed; not applied (automatic confirmation disabled)
+  CONFIRMED // applied once through the established booking pipeline
+  IGNORED // outside MEKI's configured campaigns
+}
+
+model ProviderPayment {
+  id                      String                     @id @default(cuid()) @db.VarChar(30)
+  provider                String                     @db.VarChar(40)
+  providerPaymentId       String                     @db.VarChar(64)
+  /// Provider status as reported (e.g. succeeded / pending / failed)
+  status                  String                     @db.VarChar(40)
+  /// online | manual | imported
+  type                    String                     @db.VarChar(20)
+  /// Converted exactly from the provider's integer cents
+  amount                  Decimal                    @db.Decimal(18, 2)
+  eligibleAmount          Decimal                    @db.Decimal(18, 2)
+  /// Sum of SUCCEEDED provider refunds
+  refundedAmount          Decimal                    @default(0) @db.Decimal(18, 2)
+  /// none | partial | full
+  refundStatus            String                     @db.VarChar(20)
+  disputeStatus           String?                    @db.VarChar(30)
+  currency                String                     @db.Char(3)
+  campaignId              String?                    @db.VarChar(64)
+  campaignCategory        String?                    @db.VarChar(30)
+  occurrenceId            String?                    @db.VarChar(64)
+  recurringSubscriptionId String?                    @db.VarChar(64)
+  recurringInterval       String?                    @db.VarChar(20)
+  classification          FinancialClassification?
+  /// Item lines without personal data: [{ type, amount, rateId, rateTitle }]
+  items                   Json
+  /// MEKI reference found in the buyer's answers (never trusted alone)
+  correlationRef          String?                    @db.VarChar(40)
+  matchStatus             ProviderPaymentMatchStatus @default(UNMATCHED)
+  matchReason             String?                    @db.VarChar(200)
+  matchedEntityType       String?                    @db.VarChar(40)
+  matchedEntityId         String?                    @db.VarChar(30)
+  providerCreatedAt       DateTime                   @db.DateTime(3)
+  /// The provider reported the payment deleted (404 / payment.deleted). Accounting is never reversed automatically.
+  deletedAtProvider       DateTime?                  @db.DateTime(3)
+  lastEventId             String?                    @db.VarChar(80)
+  lastSyncedAt            DateTime                   @db.DateTime(3)
+  createdAt               DateTime                   @default(now()) @db.DateTime(3)
+  updatedAt               DateTime                   @updatedAt @db.DateTime(3)
+
+  @@unique([provider, providerPaymentId])
+  /// one provider payment per MEKI record (NULLs are not compared, so unmatched rows are unaffected)
+  @@unique([provider, matchedEntityType, matchedEntityId])
+  @@index([matchStatus])
+  @@index([campaignId])
+  @@index([providerCreatedAt])
+}
+
+// ───────────────────────────── Phase 12: SDI hosted forms + report reconciliation ─────────────────────────────
+
+enum GalaTicketIssuer {
+  MEKI // legacy / development: MEKI issues PDF + QR tickets after a verified payment
+  ZEFFY // production (SDI decision 2026-11): Zeffy hosted form issues tickets, QR codes, receipts and check-in
+}
+
+enum ProviderReportKind {
+  RECONCILIATION // daily order report: booking reference, ticket type, amount, status, date (refunds/cancellations)
+  ATTENDEES // attendee list: guest names, ticket types, table numbers, custom answers (operational, NOT proof of payment)
+}
+
+enum ProviderReportStatus {
+  UPLOADED // file stored privately and its headers read; nothing interpreted yet
+  PREVIEWED // rows parsed, validated and matched; NOTHING applied
+  APPLIED // approved by a second administrator and applied in one transaction
+  REJECTED // closed without applying
+}
+
+enum ProviderReportRowStatus {
+  MATCHED // every rule passed; applied only on approval
+  UNMATCHED // well-formed reference that matches no MEKI booking (or no reference at all)
+  AMBIGUOUS // more than one order claims the same booking, or one order conflicts with another
+  INVALID_REFERENCE // reference present but not a valid MEKI booking reference format
+  AMOUNT_MISMATCH // amount / quantity / currency inconsistent with the booking
+  DUPLICATE_ROW // the same order appears twice in this file with conflicting data
+  STALE // older than the state already recorded for this order (out-of-order report)
+  ALREADY_APPLIED // identical state already applied from an earlier report (idempotent no-op)
+  REQUIRES_REVIEW // valid but must be handled by a person (e.g. partial context, donation line, paid → cancelled)
+  INVALID // the row failed validation (amount, date, currency, formula-like value, missing order id)
+  INFO // attendee rows: informational only
+}
+
+/**
+ * One uploaded SDI report. Uploading never changes financial state; applying requires a second administrator.
+ */
+model ProviderReportImport {
+  id               String               @id @default(cuid()) @db.VarChar(30)
+  source           String               @default("SDI") @db.VarChar(20)
+  kind             ProviderReportKind
+  status           ProviderReportStatus @default(UPLOADED)
+  fileName         String               @db.VarChar(255)
+  /// SHA-256 of the exact uploaded bytes (duplicate-file detection)
+  fileSha256       String               @db.Char(64)
+  fileSize         Int
+  fileType         String               @db.VarChar(10)
+  /// private storage key (never a public URL)
+  storageKey       String               @db.VarChar(255)
+  /// column names only (no cell values)
+  headers          Json
+  /// the column mapping used for the preview / apply
+  mapping          Json?
+  mappingProfileId String?              @db.VarChar(30)
+  /// explicitly labelled synthetic fixture: may never be applied in staging/production; ledger entries are isTest
+  isSynthetic      Boolean              @default(false)
+  periodFrom       DateTime?            @db.DateTime(3)
+  periodTo         DateTime?            @db.DateTime(3)
+  rowCount         Int                  @default(0)
+  acceptedCount    Int                  @default(0)
+  rejectedCount    Int                  @default(0)
+  summary          Json?
+  /// re-import of a corrected file for the same period
+  supersedesId     String?              @db.VarChar(30)
+  uploadedById     String               @db.VarChar(30)
+  uploadedAt       DateTime             @default(now()) @db.DateTime(3)
+  previewedAt      DateTime?            @db.DateTime(3)
+  approvedById     String?              @db.VarChar(30)
+  appliedAt        DateTime?            @db.DateTime(3)
+  rejectedById     String?              @db.VarChar(30)
+  rejectedAt       DateTime?            @db.DateTime(3)
+  rejectReason     String?              @db.VarChar(500)
+  notes            String?              @db.Text
+  rows             ProviderReportRow[]
+  attendees        SdiAttendee[]
+
+  @@unique([source, kind, fileSha256])
+  @@index([kind, status])
+  @@index([uploadedAt])
+}
+
+/**
+ * One interpreted reconciliation row. Only mapped, non-personal columns are stored (no buyer name / e-mail / address).
+ */
+model ProviderReportRow {
+  id                  String                  @id @default(cuid()) @db.VarChar(30)
+  importId            String                  @db.VarChar(30)
+  import              ProviderReportImport    @relation(fields: [importId], references: [id], onDelete: Restrict)
+  rowNumber           Int
+  sourceOrderId       String?                 @db.VarChar(64)
+  bookingReferenceRaw String?                 @db.VarChar(80)
+  bookingReference    String?                 @db.VarChar(20)
+  ticketType          String?                 @db.VarChar(120)
+  /// TICKET | DONATION | UNKNOWN (from the mapping's line-type rules; donation lines are never ledgered automatically)
+  lineKind            String                  @db.VarChar(12)
+  quantity            Int?
+  amount              Decimal?                @db.Decimal(18, 2)
+  refundedAmount      Decimal?                @db.Decimal(18, 2)
+  currency            String?                 @db.Char(3)
+  statusRaw           String?                 @db.VarChar(60)
+  /// COMPLETED | PENDING | FAILED | CANCELLED | REFUNDED | PARTIALLY_REFUNDED | UNKNOWN
+  status              String?                 @db.VarChar(20)
+  occurredAt          DateTime?               @db.DateTime(3)
+  matchStatus         ProviderReportRowStatus
+  matchNote           String?                 @db.VarChar(300)
+  bookingId           String?                 @db.VarChar(30)
+  applied             Boolean                 @default(false)
+  appliedAt           DateTime?               @db.DateTime(3)
+  /// validation messages (codes only)
+  errors              Json?
+  createdAt           DateTime                @default(now()) @db.DateTime(3)
+
+  @@unique([importId, rowNumber])
+  @@index([sourceOrderId])
+  @@index([bookingId])
+  @@index([importId, matchStatus])
+}
+
+/**
+ * Attendee-list row (operational seating information; NOT proof of payment). Restricted to gala.guests.read.
+ */
+model SdiAttendee {
+  id               String               @id @default(cuid()) @db.VarChar(30)
+  importId         String               @db.VarChar(30)
+  import           ProviderReportImport @relation(fields: [importId], references: [id], onDelete: Restrict)
+  rowNumber        Int
+  sourceOrderId    String?              @db.VarChar(64)
+  bookingReference String?              @db.VarChar(20)
+  guestName        String               @db.VarChar(200)
+  ticketType       String?              @db.VarChar(120)
+  tableLabel       String?              @db.VarChar(40)
+  /// only the custom-answer columns explicitly mapped by the importer (sanitised strings)
+  answers          Json?
+  createdAt        DateTime             @default(now()) @db.DateTime(3)
+
+  @@unique([importId, rowNumber])
+  @@index([bookingReference])
+}
+
+/**
+ * Saved column mappings. A mapping must be verified against a REAL SDI sample before any report using it can be applied.
+ */
+model ProviderReportMapping {
+  id                    String             @id @default(cuid()) @db.VarChar(30)
+  source                String             @default("SDI") @db.VarChar(20)
+  kind                  ProviderReportKind
+  name                  String             @db.VarChar(80)
+  mapping               Json
+  verifiedAgainstSample Boolean            @default(false)
+  verifiedById          String?            @db.VarChar(30)
+  verifiedAt            DateTime?          @db.DateTime(3)
+  verificationNote      String?            @db.VarChar(500)
+  createdById           String             @db.VarChar(30)
+  createdAt             DateTime           @default(now()) @db.DateTime(3)
+  updatedAt             DateTime           @updatedAt @db.DateTime(3)
+
+  @@unique([source, kind, name])
 }

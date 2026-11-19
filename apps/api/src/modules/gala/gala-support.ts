@@ -1,4 +1,4 @@
-import { BadGatewayException, Injectable, NotFoundException, type PipeTransform } from '@nestjs/common';
+import { BadGatewayException, ConflictException, Injectable, NotFoundException, type PipeTransform } from '@nestjs/common';
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { AppConfigService } from '../../config/app-config.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -75,4 +75,19 @@ export class SafeIdPipe implements PipeTransform<string, string> {
     if (typeof value !== 'string' || !/^[A-Za-z0-9_-]{6,40}$/.test(value)) throw new NotFoundException();
     return value;
   }
+}
+
+/**
+ * Phase 12 — SDI decision: for a booking sold through SDI's Zeffy-hosted form, Zeffy issues the official tickets, PDFs, QR codes
+ * and check-in. MEKI must never issue, regenerate, re-send or e-mail a second set.
+ */
+export class ZeffyOwnedTickets extends ConflictException {
+  constructor() {
+    super({ message: 'Tickets for this booking are issued and delivered by Zeffy (SDI). MEKI does not issue, regenerate or send tickets for it.', code: 'TICKETS_OWNED_BY_ZEFFY' });
+  }
+}
+
+export async function assertMekiIssued(prisma: Pick<PrismaService, 'eventBooking'>, bookingId: string) {
+  const b = await prisma.eventBooking.findUnique({ where: { id: bookingId }, select: { ticketIssuer: true } });
+  if (b?.ticketIssuer === 'ZEFFY') throw new ZeffyOwnedTickets();
 }

@@ -12,6 +12,7 @@ import {
   BookingQueryDto,
   BookingTokenQueryDto,
   CreateBookingDto,
+  CreateHostedBookingDto,
   FinancialQueryDto,
   GuestExportQueryDto,
   GuestQueryDto,
@@ -58,6 +59,16 @@ export class PublicEventTicketsController {
   @ApiOperation({ summary: 'Create a PENDING ticket booking (one ticket per guest). The price is calculated by the server; no payment is taken here.' })
   create(@Param('slug') slug: string, @Body() dto: CreateBookingDto, @Headers('idempotency-key') key: string | undefined) {
     return this.bookings.create(slug, dto, key);
+  }
+
+  /** Phase 12 — SDI hosted model: reserve a MEKI booking reference, then pay on SDI's Zeffy form. */
+  @Post(':slug/hosted-bookings')
+  @SkipCsrf()
+  @Throttle(DONATION_THROTTLE)
+  @ApiHeader({ name: 'Idempotency-Key', required: true, description: 'Client-generated unique key (16-80 chars). Replays return the same reference.' })
+  @ApiOperation({ summary: 'Create a PENDING booking reference for SDI\'s hosted Zeffy ticket form. No payment, guest list or MEKI ticket; confirmation only via an approved SDI report.' })
+  createHosted(@Param('slug') slug: string, @Body() dto: CreateHostedBookingDto, @Headers('idempotency-key') key: string | undefined) {
+    return this.bookings.createHosted(slug, dto, key);
   }
 
   @Get(':slug/calendar.ics')

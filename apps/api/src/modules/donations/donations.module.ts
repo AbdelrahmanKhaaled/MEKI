@@ -55,6 +55,6 @@ import { WebhooksService } from './webhooks.service';
     { provide: DONATION_NOTIFIER, useClass: LogDonationNotifier },
     { provide: RECEIPT_PDF_RENDERER, useClass: NotConfiguredPdfRenderer },
   ],
-  exports: [PaymentProviderRegistry, DONATION_NOTIFIER, DonationConfigService, WebhooksService],
+  exports: [PaymentProviderRegistry, DONATION_NOTIFIER, DonationConfigService, WebhooksService, ReportsService],
 })
 export class DonationsModule {}

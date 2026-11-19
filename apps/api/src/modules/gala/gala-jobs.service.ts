@@ -7,7 +7,7 @@ import type { ActorContext } from '../../common/types/auth-request';
 import { AuditService } from '../audit/audit.service';
 import { GalaEmailComposer } from './gala-email.composer';
 import type { MailTemplate } from './gala-email.templates';
-import { GALA_NOTIFIER, sanitizeError, type GalaNotificationInput, type GalaNotifier } from './gala-support';
+import { assertMekiIssued, GALA_NOTIFIER, sanitizeError, type GalaNotificationInput, type GalaNotifier } from './gala-support';
 
 export { sanitizeError };
 import { hashQrToken } from './gala.rules';
@@ -209,6 +209,7 @@ export class GalaJobsService implements GalaNotifier, OnModuleInit, OnModuleDest
 
   /** Re-queues FAILED/SKIPPED (or missing) jobs of a confirmed booking: tickets' PDFs and confirmation/ticket e-mails. */
   async requeue(bookingId: string, actor: ActorContext) {
+    await assertMekiIssued(this.prisma, bookingId); // Phase 12: no MEKI e-mails/tickets for Zeffy-owned bookings
     const b = await this.prisma.eventBooking.findUniqueOrThrow({ where: { id: bookingId }, include: { tickets: true } });
     const specs: JobSpec[] = [];
     if (b.bookingStatus === 'CONFIRMED' && b.paymentStatus === 'PAID') {

@@ -26,9 +26,10 @@ export const publicRobots = { index: PUBLIC_INDEXING, follow: PUBLIC_INDEXING } 
 export const OG_IMAGE = { url: "/og/meki-og.jpg", width: 1200, height: 630, type: "image/jpeg" } as const;
 
 /** Open Graph + Twitter blocks. Images are included only when an absolute origin is known. */
-export function socialMeta(opts: { title: string; description: string; locale: string; path: string; alt: string }): Pick<Metadata, "openGraph" | "twitter"> {
+export function socialMeta(opts: { title: string; description: string; locale: string; path: string; alt: string; image?: { url: string; width: number; height: number } }): Pick<Metadata, "openGraph" | "twitter"> {
   const origin = siteOrigin();
-  const images = origin ? [{ ...OG_IMAGE, url: new URL(OG_IMAGE.url, origin).toString(), alt: opts.alt }] : undefined;
+  const og = opts.image ?? OG_IMAGE; // Phase 11A: pages may supply their own approved image (e.g. a programme photo)
+  const images = origin ? [{ ...og, url: new URL(og.url, origin).toString(), alt: opts.alt }] : undefined;
   return {
     openGraph: {
       title: opts.title,

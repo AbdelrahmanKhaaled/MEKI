@@ -3,7 +3,7 @@
  * The server is authoritative for price, limits and validation; everything here only guides the visitor and mirrors the
  * backend rules (docs/16): it must never be MORE permissive than the API, and it never sends a price.
  */
-import type { CreateBookingRequest } from "@meki/api-client";
+import type { CreateBookingRequest, CreateHostedBookingRequest } from "@meki/api-client";
 
 export type FieldKey = "fullName" | "email" | "phone" | "dietary";
 export type FieldError = "required" | "email" | "phone" | "name" | "unsupportedName" | "dietaryLong" | "duplicateEmail";
@@ -158,7 +158,7 @@ export function buildRequest(form: BookingForm, locale: "en" | "ar"): CreateBook
   };
 }
 
-export function fingerprint(req: CreateBookingRequest): string {
+export function fingerprint(req: CreateBookingRequest | CreateHostedBookingRequest): string {
   return JSON.stringify(req);
 }
 
@@ -173,7 +173,7 @@ export class IdempotencyKeeper {
   constructor(gen: () => string = () => globalThis.crypto.randomUUID()) {
     this.gen = gen;
   }
-  keyFor(req: CreateBookingRequest): string {
+  keyFor(req: CreateBookingRequest | CreateHostedBookingRequest): string {
     const fp = fingerprint(req);
     if (fp !== this.fp || !this.key) {
       this.fp = fp;
@@ -190,7 +190,7 @@ export type SubmitErrorKey = "network" | "closed" | "unavailable" | "tooMany" | 
 /** Maps API failures to a small set of keys; raw server messages are never shown. */
 export function mapSubmitError(code: string, status: number): SubmitErrorKey {
   if (status === 0) return "network";
-  if (code === "TICKET_SALES_CLOSED") return "closed";
+  if (code === "TICKET_SALES_CLOSED" || code === "HOSTED_BOOKING_DISABLED") return "closed";
   if (code === "PAYMENTS_UNAVAILABLE" || status === 503) return "unavailable";
   if (code === "TOO_MANY_TICKETS") return "tooMany";
   if (code === "INSUFFICIENT_CAPACITY") return "capacity";
@@ -201,6 +201,44 @@ export function mapSubmitError(code: string, status: number): SubmitErrorKey {
   if (status === 409) return "conflict";
   if (status === 400 || status === 422) return "invalid";
   return "unknown";
+}
+
+// ───────────── Phase 12: SDI-hosted (Zeffy) Gala booking ─────────────
+
+export interface HostedForm {
+  quantity: number;
+  fullName: string;
+  email: string;
+  consent: boolean;
+}
+export const newHostedForm = (): HostedForm => ({ quantity: 1, fullName: "", email: "", consent: false });
+
+export function validateHostedForm(f: HostedForm): { fullName?: FieldError; email?: FieldError } {
+  const out: { fullName?: FieldError; email?: FieldError } = {};
+  const n = validateName(f.fullName);
+  if (n) out.fullName = n;
+  const e = validateEmail(f.email);
+  if (e) out.email = e;
+  return out;
+}
+
+/** Reference-only request: no price, no guest list, no phone — payment, tickets and attendee details are handled on SDI's form. */
+export function buildHostedRequest(f: HostedForm, locale: "en" | "ar"): CreateHostedBookingRequest {
+  return { purchaser: { fullName: norm(f.fullName), email: f.email.trim() }, ticketCount: f.quantity, locale, privacyConsent: true };
+}
+
+/** Zeffy hosts SDI's forms. The link is shown only if the BACKEND returned it AND it is https on zeffy.com (no credentials). */
+export const HOSTED_FORM_HOSTS = ["zeffy.com"];
+export function isTrustedHostedFormUrl(url: string | null | undefined): url is string {
+  if (!url) return false;
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "https:" || u.username || u.password) return false;
+    const host = u.hostname.toLowerCase();
+    return HOSTED_FORM_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
+  } catch {
+    return false;
+  }
 }
 
 // ───────────── checkout redirect trust ─────────────

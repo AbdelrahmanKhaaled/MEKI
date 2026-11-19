@@ -110,6 +110,26 @@ export type PagesDict = {
     ctaPrograms: string;
   };
   legal: { eyebrow: string; titles: Record<"privacy" | "terms" | "cookies", string>; pendingTitle: string; pending: string; back: string };
+  /** Phase 11A — single programme page. UI microcopy only (proposed, pending MEKI approval); facts come from approved content/API. */
+  programDetail: {
+    label: string; // "Program {n}"
+    support: string;
+    exploreCauses: string;
+    breadcrumb: string;
+    view: string;
+    nav: { overview: string; fundraising: string; causes: string; impact: string; gallery: string; support: string };
+    overview: { eyebrow: string; title: string; whyTitle: string };
+    funding: {
+      eyebrow: string; title: string; goal: string; collected: string; remaining: string; funded: string; donations: string;
+      noGoalTitle: string; noGoalText: string; otherCurrencies: string; note: string; unavailable: string; progressLabel: string;
+    };
+    causes: { eyebrow: string; title: string; intro: string; empty: string; campaigns: string; otherCampaigns: string; showAll: string; target: string; raised: string; funded: string; status: Record<"PUBLISHED" | "PAUSED" | "COMPLETED", string> };
+    impact: { eyebrow: string; title: string; areas: string; statsTitle: string; statsSource: string };
+    gallery: { eyebrow: string; title: string; open: string; close: string; next: string; previous: string; counter: string };
+    helps: { eyebrow: string; title: string; designation: string };
+    donate: { eyebrow: string; title: string; designatedTo: string; summary: string; cta: string; monthlyUnavailable: string; code: string; hostedCta: string; hostedNote: string; newTab: string };
+    closing: { title: string; text: string };
+  };
 };
 
 export const pagesEn: PagesDict = {
@@ -199,6 +219,48 @@ export const pagesEn: PagesDict = {
     pending: "This document is being prepared and will be published once it has been approved by legal counsel and our fiscal sponsor.",
     back: "Back to home",
   },
+  programDetail: {
+    label: "Program {n}",
+    support: "Support this program",
+    exploreCauses: "Explore its causes",
+    breadcrumb: "Programs",
+    view: "Explore the program",
+    nav: { overview: "Overview", fundraising: "Fundraising", causes: "Causes", impact: "Impact", gallery: "Gallery", support: "Give" },
+    overview: { eyebrow: "The program", title: "What this program does", whyTitle: "Why it matters" },
+    funding: {
+      eyebrow: "Fundraising",
+      title: "Where this program stands",
+      goal: "Goal",
+      collected: "Raised",
+      remaining: "Still needed",
+      funded: "{percent}% funded",
+      donations: "Verified donations: {n}",
+      noGoalTitle: "A fundraising goal has not been published yet",
+      noGoalText: "MEKI publishes a program goal only once it has been approved. Every verified gift designated to this program is recorded against it from the start.",
+      otherCurrencies: "Also raised in other currencies",
+      note: "Verified donations only, net of refunds. Currencies are never combined.",
+      unavailable: "Fundraising figures are temporarily unavailable.",
+      progressLabel: "Fundraising progress",
+    },
+    causes: {
+      eyebrow: "Causes",
+      title: "What this program addresses",
+      intro: "Each cause is a focused area of work within the program.",
+      empty: "The causes within this program are being prepared and will appear here once approved.",
+      campaigns: "Campaigns · {n}",
+      otherCampaigns: "More campaigns in this program",
+      showAll: "Show all {n} campaigns",
+      target: "Target",
+      raised: "Raised",
+      funded: "{percent}% funded",
+      status: { PUBLISHED: "Open", PAUSED: "Paused", COMPLETED: "Completed" },
+    },
+    impact: { eyebrow: "Activities & impact", title: "How the program works", areas: "Focus areas", statsTitle: "Verified results", statsSource: "Source" },
+    gallery: { eyebrow: "Gallery", title: "From the field", open: "Open image {n} of {total}", close: "Close", next: "Next image", previous: "Previous image", counter: "{n} / {total}" },
+    helps: { eyebrow: "How your donation helps", title: "Your gift stays with this program", designation: "When you choose this program, your donation is designated to it — recorded against this program, not a general pool — and reported back with its results." },
+    donate: { eyebrow: "Support", title: "Give to {program}", designatedTo: "Designated to", summary: "Your gift", cta: "Continue", monthlyUnavailable: "Monthly giving will be offered once it is approved.", code: "Programme code", hostedCta: "Give on SDI's secure form", hostedNote: "Gifts are received by our fiscal sponsor, Spring of Dignity International (SDI), on its Zeffy form, which issues your receipt.", newTab: "(opens in a new tab)" },
+    closing: { title: "Help {program} reach further", text: "Choose this program and your gift goes where you intended." },
+  },
 };
 
 export const pagesAr: PagesDict = {
@@ -282,6 +344,48 @@ export const pagesAr: PagesDict = {
     pendingTitle: "قريبًا",
     pending: "هذه الوثيقة قيد الإعداد، وستُنشر بعد اعتمادها من المستشار القانوني والجهة الراعية مالياً.",
     back: "العودة إلى الرئيسية",
+  },
+  programDetail: {
+    label: "البرنامج {n}",
+    support: "ادعم هذا البرنامج",
+    exploreCauses: "استكشف قضاياه",
+    breadcrumb: "البرامج",
+    view: "استكشف البرنامج",
+    nav: { overview: "نظرة عامة", fundraising: "جمع التبرعات", causes: "القضايا", impact: "الأثر", gallery: "الصور", support: "تبرّع" },
+    overview: { eyebrow: "البرنامج", title: "ماذا يفعل هذا البرنامج", whyTitle: "لماذا هو مهم" },
+    funding: {
+      eyebrow: "جمع التبرعات",
+      title: "أين يقف هذا البرنامج",
+      goal: "الهدف",
+      collected: "ما تم جمعه",
+      remaining: "المتبقي",
+      funded: "تم تمويل {percent}%",
+      donations: "التبرعات الموثّقة: {n}",
+      noGoalTitle: "لم يُنشر هدف لجمع التبرعات بعد",
+      noGoalText: "تنشر MEKI هدف البرنامج فقط بعد اعتماده. ويُسجَّل كل تبرع موثّق مخصّص لهذا البرنامج لصالحه منذ البداية.",
+      otherCurrencies: "تم جمعه أيضًا بعملات أخرى",
+      note: "تبرعات موثّقة فقط، بعد خصم المستردات. لا تُجمع العملات المختلفة معًا.",
+      unavailable: "أرقام جمع التبرعات غير متاحة مؤقتًا.",
+      progressLabel: "تقدّم جمع التبرعات",
+    },
+    causes: {
+      eyebrow: "القضايا",
+      title: "ما يعالجه هذا البرنامج",
+      intro: "كل قضية مجال عمل محدد داخل البرنامج.",
+      empty: "يجري إعداد القضايا ضمن هذا البرنامج، وستظهر هنا بعد اعتمادها.",
+      campaigns: "الحملات · {n}",
+      otherCampaigns: "حملات أخرى في هذا البرنامج",
+      showAll: "اعرض كل الحملات ({n})",
+      target: "الهدف",
+      raised: "ما تم جمعه",
+      funded: "تم تمويل {percent}%",
+      status: { PUBLISHED: "مفتوحة", PAUSED: "متوقفة مؤقتًا", COMPLETED: "مكتملة" },
+    },
+    impact: { eyebrow: "الأنشطة والأثر", title: "كيف يعمل البرنامج", areas: "مجالات التركيز", statsTitle: "نتائج موثّقة", statsSource: "المصدر" },
+    gallery: { eyebrow: "الصور", title: "من الميدان", open: "افتح الصورة {n} من {total}", close: "إغلاق", next: "الصورة التالية", previous: "الصورة السابقة", counter: "{n} / {total}" },
+    helps: { eyebrow: "كيف يساعد تبرعك", title: "تبرعك يبقى مع هذا البرنامج", designation: "عندما تختار هذا البرنامج، يُخصَّص تبرعك له — ويُسجَّل لصالح هذا البرنامج لا في صندوق عام — ويُبلَّغ عنه مع نتائجه." },
+    donate: { eyebrow: "ادعم", title: "تبرّع لبرنامج {program}", designatedTo: "مخصّص لـ", summary: "تبرعك", cta: "متابعة", monthlyUnavailable: "سيُتاح التبرع الشهري بعد اعتماده.", code: "رمز البرنامج", hostedCta: "تبرّع عبر نموذج SDI الآمن", hostedNote: "تتلقى التبرعاتِ الجهةُ الراعية مالياً Spring of Dignity International (SDI) عبر نموذجها على Zeffy، والذي يُصدر إيصالك.", newTab: "(يفتح في علامة تبويب جديدة)" },
+    closing: { title: "ساعد {program} على الوصول أبعد", text: "اختر هذا البرنامج ليذهب تبرعك حيث أردت." },
   },
 };
 

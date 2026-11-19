@@ -36,6 +36,9 @@ export const listCauses = (q: { programmeId?: string; search?: string; provenanc
 export const getCause = (cid: string) => apiGet(`/admin/projects/${id(cid)}`, ProjectDetailSchema);
 export const createCause = (b: Body) => apiPost("/admin/projects", ProjectWriteSchema, b);
 export const updateCause = (cid: string, b: Body) => apiPatch(`/admin/projects/${id(cid)}`, ProjectWriteSchema, b);
+/** Phase 11A: a cause appears on its public programme page only once published (programmes.publish). */
+export const publishCause = (cid: string) => apiPost(`/admin/projects/${id(cid)}/publish`, ProjectDetailSchema);
+export const unpublishCause = (cid: string) => apiPost(`/admin/projects/${id(cid)}/unpublish`, ProjectDetailSchema);
 
 // ── campaigns (campaigns.read / .manage / .publish / .approve) ──
 export const listCampaigns = (q: Query) => apiList("/admin/campaigns", CampaignSchema, q);

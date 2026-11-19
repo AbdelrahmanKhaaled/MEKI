@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CalendarPlus, CheckCircle2, Clock, Download, RotateCcw, ShieldQuestion, XCircle } from "lucide-react";
+import { CalendarPlus, CheckCircle2, Clock, Download, ExternalLink, RotateCcw, ShieldQuestion, XCircle } from "lucide-react";
 import type { BookingCheckoutSession, PublicBookingStatus } from "@meki/api-client";
 import { ApiRequestError, PUBLIC_API_URL, clientApi, clientApiBlob } from "@/lib/api";
 import { formatMoney, type Locale } from "@/lib/i18n";
-import { isBookingReference, isTrustedCheckoutUrl, recallBooking, rememberBooking, statusView, type StatusView } from "@/lib/booking";
-import { getBookingCopy } from "@/content/booking";
+import { isBookingReference, isTrustedCheckoutUrl, isTrustedHostedFormUrl, recallBooking, rememberBooking, statusView, type StatusView } from "@/lib/booking";
+import { fill, getBookingCopy } from "@/content/booking";
 
 const POLL_MS = 3000;
 const MAX_POLLS = 20;
@@ -143,7 +143,10 @@ export function BookingStatus({ locale, reference }: { locale: Locale; reference
   }
 
   const view = statusView(data);
-  const v = s.views[view];
+  // Phase 12: Zeffy-owned bookings — SDI's form handles payment, tickets and receipts; MEKI shows only the reconciled state.
+  const zeffy = data.ticketIssuer === "ZEFFY";
+  const v = zeffy && view === "confirmed" ? s.sdi.confirmed : zeffy && view === "awaiting" ? s.sdi.awaiting : s.views[view];
+  const hostedUrl = zeffy && data.hosted?.available && isTrustedHostedFormUrl(data.hosted.formUrl) ? data.hosted.formUrl : null;
   const Icon = ICON[view];
   const money = formatMoney(data.totalAmount, data.currency, locale);
   const calendarOk = data.calendar.available && (() => { try { return new URL(data.calendar.url).origin === TRUST.apiOrigin; } catch { return false; } })();
@@ -174,14 +177,33 @@ export function BookingStatus({ locale, reference }: { locale: Locale; reference
 
         {note && <p role="alert" className="mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">{note === "download" ? s.downloadFailed : note === "untrusted" ? c.submitErrors.untrusted : s.payUnavailable}</p>}
 
-        {(view === "awaiting" || view === "failed") && (
+        {zeffy && view === "awaiting" && (
+          <div className="mb-2">
+            <ol className="mb-4 list-decimal space-y-1.5 ps-5 text-sm">
+              {c.hosted.instructions.map((line) => <li key={line}>{fill(line, { question: data.hosted?.referenceQuestion ?? "MEKI Booking Reference" })}</li>)}
+            </ol>
+            <p className="mb-4 text-sm text-body-grey">{c.hosted.noPrefill}</p>
+            {hostedUrl ? (
+              <a href={hostedUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" className="btn btn-gold min-h-12">
+                {c.hosted.openForm} <ExternalLink className="size-4" aria-hidden="true" /> <span className="sr-only">{c.hosted.newTab}</span>
+              </a>
+            ) : (
+              <p role="status" className="rounded-lg border border-stone-line bg-limestone px-4 py-3 text-sm">{c.hosted.formUnavailable}</p>
+            )}
+            <p className="mt-4 text-sm text-body-grey">{c.hosted.delay}</p>
+            <button type="button" onClick={() => { setState({ kind: "loading" }); setTick((n) => n + 1); }} className="btn btn-outline mt-4 min-h-11 text-sm">{s.refresh}</button>
+          </div>
+        )}
+        {zeffy && view === "confirmed" && <p className="mt-2 border-t border-stone-line pt-6 text-sm">{s.sdi.noTickets}</p>}
+
+        {!zeffy && (view === "awaiting" || view === "failed") && (
           <button type="button" onClick={() => void pay()} disabled={busy === "pay"} className="btn btn-gold min-h-12 disabled:opacity-60">{s.payAgain}</button>
         )}
         {view === "processing" && (
           <button type="button" onClick={() => { setState({ kind: "loading" }); setTick((n) => n + 1); }} className="btn btn-outline min-h-12">{s.refresh}</button>
         )}
 
-        {view === "confirmed" && (
+        {!zeffy && view === "confirmed" && (
           <div className="mt-2 border-t border-stone-line pt-6">
             <h2 className="mb-3 font-serif text-2xl text-deep-green">{s.ticketsHeading}</h2>
             <ul className="space-y-3">

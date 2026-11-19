@@ -5,6 +5,10 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  // Phase 9A: script-neutral CSP directives only (no script-src: Next.js / GSAP inline bootstrapping must keep working)
+  { key: "Content-Security-Policy", value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'" },
+  // Phase 9A: browsers apply HSTS only over HTTPS (ignored on http://localhost); no includeSubDomains — other subdomains are not ours to pin
+  { key: "Strict-Transport-Security", value: "max-age=31536000" },
 ];
 
 /** Uploaded Media Library images are served by the API (/media/*); allow only that origin for next/image. */

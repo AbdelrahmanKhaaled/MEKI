@@ -7,6 +7,7 @@ import { DonateProvider } from "@/components/DonateProvider";
 import { Header } from "@/components/Header";
 import { PreviewNote } from "@/components/PreviewNote";
 import { BookingFlow } from "@/components/booking/BookingFlow";
+import { FlowBand } from "@/components/pages/FlowBand";
 
 /** Booking is visitor-specific and its availability is read live in the browser: never cached, never indexed. */
 export const dynamic = "force-dynamic";
@@ -25,15 +26,17 @@ export default async function GalaBookPage({ params }: { params: Promise<{ local
   return (
     <DonateProvider t={t} locale={locale}>
       <Header t={t} locale={locale} current="gala" />
-      <main id="main" className="min-h-screen bg-limestone pb-24 pt-32">
-        <div className="container-x">
-          <p className="eyebrow mb-4">{c.eyebrow}</p>
-          <h1 className="headline mb-3 text-deep-green">{c.title}</h1>
-          <p className="mb-10">
-            <Link href={`/${locale}/events/gala-night`} className="text-sm font-bold text-meki-green underline underline-offset-4">
+      <main id="main" className="min-h-screen bg-limestone pb-24">
+        <FlowBand>
+          <p className="eyebrow eyebrow-dark mb-4">{c.eyebrow}</p>
+          <h1 className="headline mb-3 text-white">{c.title}</h1>
+          <p>
+            <Link href={`/${locale}/events/gala-night`} className="p10-underline text-sm font-bold text-glow">
               {c.backToGala}
             </Link>
           </p>
+        </FlowBand>
+        <div className="container-x pt-12">
           <BookingFlow locale={locale} />
         </div>
       </main>

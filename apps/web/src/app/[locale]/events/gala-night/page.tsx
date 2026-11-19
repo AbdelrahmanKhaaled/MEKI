@@ -63,9 +63,17 @@ export default async function GalaNightPage({ params }: { params: Promise<{ loca
   const event = await fetchPublicContent<PublicEvent>(`/public/events/gala-night?locale=${locale}`);
   const mapUrl = event?.mapUrl && /^https:\/\//.test(event.mapUrl) ? event.mapUrl : DEFAULT_MAP;
 
-  // Booking opens only when the API says so (sales switch AND checkout available). Unpublished events return 404 -> closed.
+  // Booking opens only when the API says so (sales switch AND checkout available — or, in SDI-hosted mode, the hosted form
+  // switch). Unpublished events return 404 -> closed.
   const ticketing = await fetchPublicContent<PublicTicketing>(`/public/events/gala-night/ticketing`);
-  const bookingOpen = !!ticketing && ticketing.salesOpen && !ticketing.soldOut && ticketing.checkoutAvailable;
+  const hostedMode = ticketing?.mode === "zeffy_hosted";
+  const bookingOpen = !!ticketing && ticketing.salesOpen && !ticketing.soldOut && (hostedMode ? !!ticketing.hosted?.available : ticketing.checkoutAvailable);
+
+  // Single source of truth for the price: once the event is published, the ticketing API (the same value the booking
+  // flow charges) replaces the static brief text. While the event is unpublished (API 404) the client-brief text stays.
+  const apiPrice = ticketing?.ticket?.price && ticketing.ticket.currency && Number.isFinite(Number(ticketing.ticket.price))
+    ? new Intl.NumberFormat(locale === "ar" ? "ar" : "en-US", { style: "currency", currency: ticketing.ticket.currency, currencyDisplay: "code", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(ticketing.ticket.price))
+    : undefined;
 
   // Proposed (unvalidated) sponsorship tiers: development preview only, never in a production build.
   const sponsorPreview = process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_GALA_PREVIEW === "1";
@@ -81,12 +89,12 @@ export default async function GalaNightPage({ params }: { params: Promise<{ loca
           <GalaExperience g={g} />
           <GalaTimeline g={g} />
           <GalaVenue g={g} mapUrl={mapUrl} />
-          <GalaAttendance g={g} />
+          <GalaAttendance g={g} price={apiPrice} />
           <SponsorshipSection g={g} tiers={sponsorPreview ? PROPOSED_SPONSORSHIP : undefined} />
           {/* Six approved causes not yet supplied: renders nothing until approved, event-linked data exists. */}
           <GalaCauses g={g} causes={[]} />
           <GalaFaq g={g} />
-          <GalaBooking g={g} bookHref={bookingOpen ? `/${locale}/events/gala-night/book` : undefined} bookStatus={bookingOpen ? getBookingCopy(locale).tickets.rule : undefined} />
+          <GalaBooking g={g} bookHref={bookingOpen ? `/${locale}/events/gala-night/book` : undefined} bookStatus={bookingOpen ? (hostedMode ? getBookingCopy(locale).hosted.intro : getBookingCopy(locale).tickets.rule) : undefined} />
           <p className="bg-deep-green-3 pb-10 text-center">
             <a href={back} className="text-sm font-bold text-mint-line underline-offset-4 hover:text-white hover:underline">
               {g.back}

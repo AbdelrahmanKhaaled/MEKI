@@ -25,13 +25,14 @@ import {
   type SubmitErrorKey,
 } from "@/lib/booking";
 import { fill, getBookingCopy, type BookingCopy } from "@/content/booking";
+import { HostedBookingFlow } from "./HostedBookingFlow";
 
 const GALA_SLUG = "gala-night";
 const field = "w-full rounded-xl border border-stone-line bg-white px-4 py-3 text-base text-ink outline-none transition focus:border-meki-green focus:ring-2 focus:ring-meki-green/30 aria-[invalid=true]:border-red-700";
 const labelCls = "mb-1.5 block text-[0.75rem] font-bold uppercase tracking-[0.12em] text-body-grey";
 const card = "rounded-2xl border border-stone-line bg-white p-5 sm:p-7";
 
-type Availability = { kind: "loading" } | { kind: "unavailable"; soldOut?: boolean } | { kind: "ready"; ticketing: PublicTicketing };
+type Availability = { kind: "loading" } | { kind: "unavailable"; soldOut?: boolean } | { kind: "ready"; ticketing: PublicTicketing } | { kind: "hosted"; ticketing: PublicTicketing };
 
 /** Browser-side trust settings for hosted-checkout redirects (public build-time values; no secrets). */
 const TRUST = {
@@ -68,7 +69,9 @@ export function BookingFlow({ locale }: { locale: Locale }) {
       try {
         const t = await clientApi<PublicTicketing>(`/public/events/${GALA_SLUG}/ticketing`);
         if (!alive) return;
-        setAvail(t.salesOpen && !t.soldOut && t.checkoutAvailable ? { kind: "ready", ticketing: t } : { kind: "unavailable", soldOut: t.soldOut });
+        // Phase 12: in SDI-hosted mode MEKI only issues a reference; payment happens on SDI's form (never MEKI checkout).
+        if (t.mode === "zeffy_hosted") setAvail(t.salesOpen && !t.soldOut && t.hosted?.available ? { kind: "hosted", ticketing: t } : { kind: "unavailable", soldOut: t.soldOut });
+        else setAvail(t.salesOpen && !t.soldOut && t.checkoutAvailable ? { kind: "ready", ticketing: t } : { kind: "unavailable", soldOut: t.soldOut });
       } catch {
         if (alive) setAvail({ kind: "unavailable" });
       }
@@ -92,6 +95,8 @@ export function BookingFlow({ locale }: { locale: Locale }) {
       </div>
     );
   }
+
+  if (avail.kind === "hosted") return <HostedBookingFlow locale={locale} ticketing={avail.ticketing} />;
 
   const t = avail.ticketing;
   const max = t.maxTicketsPerBooking;

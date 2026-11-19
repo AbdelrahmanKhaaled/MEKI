@@ -36,6 +36,27 @@
 | 26 | [Phase 6C content management](26-phase6c-content-management-implementation.md) | Programs, causes (projects), campaigns lifecycle, media library & picker |
 | 27 | [Phase 6D website CMS](27-phase6d-website-cms-implementation.md) | Homepage CMS, pages, menus, FAQs, statistics, site settings; website reads CMS menus and hidden sections |
 | 28 | [Phase 6E Gala operations](28-phase6e-gala-operations-implementation.md) | Gala overview, bookings, guests, tickets, QR check-in, exports, communications, settings; Zeffy/e-mail status |
+| 29 | [Phase 7 launch readiness report](29-phase7-launch-readiness-report.md) | End-to-end verification, fixes (CORS booking header, e-mail token in fragment, silent CMS fallback, 404), OpenAPI sync, tests, deployment readiness |
+| 30 | [Launch blockers & client requirements](30-meki-launch-blockers-and-client-requirements.md) | Handoff checklist: MEKI, SDI/Zeffy, e-mail provider, hosting, physical check-in — website vs ticket-sales blockers |
+| 31 | [Phase 8A Zeffy integration](31-phase8-zeffy-integration-implementation.md) | Verified Zeffy API facts, webhook verification, read model, correlation rules, reconciliation, admin SDI / Zeffy screen, tests |
+| 32 | [Phase 8 SDI handoff & live-test plan](32-phase8-sdi-handoff-and-live-test-plan.md) | What SDI must provide (secure transmission), booking-reference options, live payment/refund test, Phase 8B entry criteria |
+| 33 | [Phase 9A security audit](33-phase9a-security-audit.md) | Controls verified, fixes (multer DoS, admin camera policy, CSP/HSTS, health probe), accepted risks |
+| 34 | [Phase 9A reliability & testing](34-phase9a-reliability-and-testing.md) | Test inventory, scenario coverage map, ops endpoints, incidents, backup verification |
+| 35 | [Phase 9A performance](35-phase9a-performance-report.md) | Measured API timings, web page weight before/after (font preload fix), watch list |
+| 36 | [Production readiness checklist](36-production-readiness-checklist.md) | Infrastructure, environment, build variables, release gates, security confirmations |
+| 37 | [Deployment & rollback runbook](37-deployment-and-rollback-runbook.md) | Backup, migrate, deploy, verify, rollback, recovery procedures, restore drill |
+| 38 | [Remaining external dependencies](38-remaining-external-dependencies.md) | Consolidated MEKI / SDI / hosting / physical check-in list |
+| 39 | [Phase 9B cross-browser QA](39-phase9b-cross-browser-qa.md) | Chromium / Firefox / WebKit × 5 widths × EN/AR; what WebKit is and is not; engine notes |
+| 40 | [Phase 9B accessibility audit](40-phase9b-accessibility-audit.md) | WCAG 2.2 AA method, 8 fixes, exempt / manual-review items, before/after |
+| 41 | [Phase 9B regression results](41-phase9b-regression-results.md) | Suites, critical journeys, bugs caught by regression, operational validation (restore drill, multi-instance) |
+| 42 | [Phase 9B final readiness report](42-phase9b-final-readiness-report.md) | Readiness verdicts, fixed bugs, exact results, open checks, decisions, blockers |
+| 43 | [Phase 10 website visual enhancement](43-phase10-website-visual-enhancement.md) | Route inventory, homepage-safe design system, page-by-page redesign, images and motion |
+| 44 | [Phase 10 Gala content audit](44-phase10-gala-content-audit.md) | Field-by-field Gala status (client vs DB provenance), booking integrity, missing MEKI/SDI items |
+| 45 | [Phase 10 QA and regression](45-phase10-qa-and-regression-report.md) | Test results, deterministic homepage regression, bugs fixed, limitations |
+| 46 | [Phase 11A programme pages & giving](46-phase11a-program-detail-and-donation-experience.md) | Single programme pages, Programme → Cause → Campaign, attribution rule, verified fundraising, approved goals, cause publishing, programme-designated giving, tests |
+| 47 | [Phase 12 SDI hosted forms — implementation](47-phase12-sdi-hosted-forms-implementation.md) | SDI's decision, integration switches (all off), reference-only Gala booking + Zeffy form, ticket ownership (no MEKI tickets for Zeffy bookings), programme/general hosted giving gates, admin screens, migration |
+| 48 | [Phase 12 reconciliation & financial integrity](48-phase12-reconciliation-and-financial-integrity.md) | Report upload → preview → four-eyes apply, file security, column mapping & verified profiles, strict validation, matching statuses, all-or-nothing apply, refunds, money separation, test results |
+| 49 | [Phase 12 SDI final handoff checklist](49-phase12-sdi-final-handoff-checklist.md) | Remaining MEKI/SDI dependencies, go-live sequence, operator rules, regression notes, verification record |
 
 ## The plan in short
 

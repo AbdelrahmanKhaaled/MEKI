@@ -2,24 +2,20 @@
 
 import { useEffect, useId, useRef } from "react";
 import { X } from "lucide-react";
+import { useDialogFocus } from "./useDialogFocus";
 
-/** Accessible modal: focus moves in, Escape/overlay/close button dismiss, body scroll locked, focus returns to the opener. */
+/** Accessible modal: focus moves in and is kept inside (Tab trap), Escape/overlay/close button dismiss, body scroll locked, focus returns to the opener. */
 export function Modal({ open, title, onClose, closeLabel, children, footer, size = "md" }: { open: boolean; title: string; onClose: () => void; closeLabel: string; children: React.ReactNode; footer?: React.ReactNode; size?: "md" | "xl" }) {
   const id = useId();
   const panel = useRef<HTMLDivElement>(null);
+  useDialogFocus(open, panel, onClose);
   useEffect(() => {
     if (!open) return;
-    const prev = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
-    panel.current?.focus();
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", esc);
     return () => {
       document.body.style.overflow = "";
-      document.removeEventListener("keydown", esc);
-      prev?.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4" role="presentation">

@@ -53,6 +53,23 @@ export class CreateBookingDto {
   @ApiProperty({ description: 'Must be true' }) @Equals(true) privacyConsent!: boolean;
 }
 
+/** Phase 12 — purchaser identity for a hosted (Zeffy) booking: only what MEKI needs to follow up an unmatched order. */
+export class HostedPurchaserDto {
+  @ApiProperty({ example: 'Amira Hassan' }) @Transform(trim) @IsString() @Matches(NAME_PATTERN, { message: 'fullName contains invalid characters' }) fullName!: string;
+  @ApiProperty() @Transform(lower) @IsEmail() @MaxLength(191) email!: string;
+}
+
+/**
+ * Phase 12 — SDI hosted model: MEKI prepares a booking REFERENCE only. Guests, payment, tickets and receipts are handled on SDI's
+ * Zeffy form; the paid ticket count comes from SDI's report. No price/amount field (server-calculated expectation only).
+ */
+export class CreateHostedBookingDto {
+  @ApiProperty({ type: HostedPurchaserDto }) @ValidateNested() @Type(() => HostedPurchaserDto) purchaser!: HostedPurchaserDto;
+  @ApiProperty({ description: 'Intended number of tickets (the final paid number comes from SDI\'s report)' }) @IsInt() @Min(1) ticketCount!: number;
+  @ApiPropertyOptional({ enum: ['en', 'ar'] }) @IsOptional() @IsIn(['en', 'ar']) locale?: 'en' | 'ar';
+  @ApiProperty({ description: 'Must be true' }) @Equals(true) privacyConsent!: boolean;
+}
+
 export class BookingTokenQueryDto {
   @ApiPropertyOptional({ description: 'Booking access token (alternative to the X-Booking-Token header)' }) @IsOptional() @IsString() @MaxLength(100) token?: string;
   @ApiPropertyOptional({ enum: ['en', 'ar'] }) @IsOptional() @IsIn(['en', 'ar']) locale?: 'en' | 'ar';

@@ -465,12 +465,17 @@ describe('Donations, payments, webhooks, recurring, refunds, receipts, reports',
     const live = (await finance.get('/admin/reports/donations/summary').expect(200)).body.data;
     expect(live.confirmed).toEqual([]); // no real (non-test) donations exist
     const withTest = (await finance.get('/admin/reports/donations/summary?includeTest=true').expect(200)).body.data;
-    expect(withTest.confirmed.map((c: { currency: string }) => c.currency)).toEqual(['USD']);
-    const usd = withTest.confirmed[0];
+    // Per currency, never combined: every currency appears exactly once. (Other suites' test fixtures — e.g. Phase 11A's EUR
+    // programme gift — may add currencies to the *test* data set, so assert USD is present rather than that it is alone.)
+    const currencies = withTest.confirmed.map((c: { currency: string }) => c.currency);
+    expect(currencies).toContain('USD');
+    expect(new Set(currencies).size).toBe(currencies.length);
+    const usd = withTest.confirmed.find((c: { currency: string }) => c.currency === 'USD');
     const sum = await ctx.prisma.donation.aggregate({ where: { isTest: true, currency: 'USD', paymentStatus: { in: ['PAID', 'PARTIALLY_REFUNDED', 'REFUNDED'] } }, _sum: { amount: true, refundedAmount: true } });
     expect(usd.gross).toBe(sum._sum.amount!.toFixed(2));
     expect(usd.net).toBe(sum._sum.amount!.minus(sum._sum.refundedAmount!).toFixed(2));
-    expect(withTest.byFrequency.map((f: { frequency: string }) => f.frequency).sort()).toEqual(['MONTHLY', 'ONE_TIME']);
+    // rows are per (frequency, currency): compare the set of frequencies
+    expect([...new Set(withTest.byFrequency.map((f: { frequency: string }) => f.frequency))].sort()).toEqual(['MONTHLY', 'ONE_TIME']);
     for (const path of ['by-campaign', 'by-date']) {
       const rows = (await finance.get(`/admin/reports/donations/${path}?includeTest=true`).expect(200)).body.data;
       expect(rows.every((r: { currency: string; gross: string }) => /^[A-Z]{3}$/.test(r.currency) && /^\d+\.\d{2}$/.test(r.gross))).toBe(true);

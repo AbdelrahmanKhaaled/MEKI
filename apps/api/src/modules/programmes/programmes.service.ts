@@ -29,6 +29,7 @@ export class ProgrammesService {
   present(p: ProgrammeFull) {
     return {
       ...p,
+      targetAmount: p.targetAmount?.toString() ?? null,
       coverMedia: this.media.present(p.coverMedia),
       gallery: p.gallery.filter((g) => !g.media.deletedAt).map((g) => ({ sortOrder: g.sortOrder, media: this.media.present(g.media) })),
     };
@@ -62,8 +63,26 @@ export class ProgrammesService {
     return this.present(p);
   }
 
+  /**
+   * Phase 11A: the programme fundraising goal is an MEKI-approved figure entered by an admin — never derived from campaign
+   * targets. Amount and currency are set together (or both cleared); the currency must exist in the currency table.
+   */
+  private async assertTarget(dto: Pick<UpdateProgrammeDto, 'targetAmount' | 'targetCurrency'>, existing?: { targetAmount: Prisma.Decimal | null; targetCurrency: string | null }) {
+    if (dto.targetAmount === undefined && dto.targetCurrency === undefined) return;
+    const amount = dto.targetAmount !== undefined ? dto.targetAmount : (existing?.targetAmount?.toString() ?? null);
+    const currency = dto.targetCurrency !== undefined ? dto.targetCurrency : (existing?.targetCurrency ?? null);
+    if ((amount === null) !== (currency === null)) {
+      throw new BadRequestException({ message: 'Set the target amount and its currency together (or clear both)', code: 'TARGET_INCOMPLETE' });
+    }
+    if (amount !== null && !(Number(amount) > 0)) throw new BadRequestException({ message: 'The target amount must be greater than zero', code: 'TARGET_NOT_POSITIVE' });
+    if (currency !== null && !(await this.prisma.currency.findUnique({ where: { code: currency }, select: { code: true } }))) {
+      throw new BadRequestException({ message: 'Unknown target currency', code: 'TARGET_CURRENCY_UNKNOWN' });
+    }
+  }
+
   async create(dto: CreateProgrammeDto, actor: ActorContext) {
     await this.media.assertExists([dto.coverMediaId]);
+    await this.assertTarget(dto);
     const slug = dto.slug ?? slugify(dto.nameEn);
     if (!slug) throw new BadRequestException('A slug is required');
     const p = await this.prisma.programme.create({
@@ -74,8 +93,9 @@ export class ProgrammesService {
   }
 
   async update(id: string, dto: UpdateProgrammeDto, actor: ActorContext) {
-    await this.get(id);
+    const existing = await this.get(id);
     await this.media.assertExists([dto.coverMediaId]);
+    await this.assertTarget(dto, { targetAmount: existing.targetAmount === null ? null : new Prisma.Decimal(existing.targetAmount), targetCurrency: existing.targetCurrency });
     await this.prisma.programme.update({ where: { id }, data: { ...defined(dto), updatedById: actor.userId } });
     await this.audit.record(actor, 'programme.update', 'Programme', id, { fields: AuditService.changedFields(dto) });
     return this.get(id);
@@ -150,6 +170,7 @@ export class ProgrammesService {
     const p = await this.prisma.project.findFirst({
       where: { id, deletedAt: null },
       include: {
+        coverMedia: true,
         programme: { select: { id: true, nameEn: true, nameAr: true, slug: true, status: true, kind: true } },
         campaigns: {
           where: { deletedAt: null },
@@ -159,7 +180,7 @@ export class ProgrammesService {
       },
     });
     if (!p) throw new NotFoundException('Project not found');
-    return { ...p, campaigns: p.campaigns.map((c) => ({ ...c, targetAmount: c.targetAmount?.toString() ?? null })) };
+    return { ...p, coverMedia: this.media.present(p.coverMedia), campaigns: p.campaigns.map((c) => ({ ...c, targetAmount: c.targetAmount?.toString() ?? null })) };
   }
 
   private async assertProgramme(programmeId?: string | null) {
@@ -170,6 +191,7 @@ export class ProgrammesService {
 
   async createProject(dto: CreateProjectDto, actor: ActorContext) {
     await this.assertProgramme(dto.programmeId);
+    await this.media.assertExists([dto.coverMediaId]);
     const project = await this.prisma.project.create({
       data: { ...defined(dto), slug: dto.slug ?? slugify(dto.nameEn), createdById: actor.userId, updatedById: actor.userId },
     });
@@ -181,6 +203,7 @@ export class ProgrammesService {
     const existing = await this.prisma.project.findFirst({ where: { id, deletedAt: null } });
     if (!existing) throw new NotFoundException('Project not found');
     await this.assertProgramme(dto.programmeId);
+    await this.media.assertExists([dto.coverMediaId]);
     // Phase 6C hierarchy guard: a project (Cause) that already has campaigns cannot move to another programme (or be
     // detached), otherwise its campaigns would point to a programme the Cause no longer belongs to.
     if (dto.programmeId !== undefined && dto.programmeId !== existing.programmeId) {
@@ -194,7 +217,58 @@ export class ProgrammesService {
     return project;
   }
 
+  /**
+   * Phase 11A: a Cause (project) becomes visible on its programme page only once published. Same rules as programmes:
+   * never DEMO (unless the non-production demo switch), required copy present, and its programme must itself be published.
+   */
+  async publishProject(id: string, actor: ActorContext) {
+    const p = await this.prisma.project.findFirst({ where: { id, deletedAt: null }, include: { programme: { select: { status: true, deletedAt: true } } } });
+    if (!p) throw new NotFoundException('Project not found');
+    this.policy.assertProvenancePublishable(p.provenance);
+    this.policy.assertRequired({ nameEn: p.nameEn, summaryEn: p.summaryEn, slug: p.slug, programmeId: p.programmeId });
+    if (!p.programme || p.programme.deletedAt || p.programme.status !== 'PUBLISHED') {
+      throw new ConflictException({ message: 'Publish the programme before its causes', code: 'PROGRAMME_NOT_PUBLISHED' });
+    }
+    await this.prisma.project.update({ where: { id }, data: { status: 'PUBLISHED', publishedAt: new Date(), updatedById: actor.userId } });
+    await this.audit.record(actor, 'project.publish', 'Project', id);
+    return this.getProject(id);
+  }
+
+  async unpublishProject(id: string, actor: ActorContext) {
+    const p = await this.prisma.project.findFirst({ where: { id, deletedAt: null }, select: { id: true } });
+    if (!p) throw new NotFoundException('Project not found');
+    await this.prisma.project.update({ where: { id }, data: { status: 'DRAFT', updatedById: actor.userId } });
+    await this.audit.record(actor, 'project.unpublish', 'Project', id);
+    return this.getProject(id);
+  }
+
   // ── public ──
+  /**
+   * Phase 11A: public building blocks for the single programme page. Only PUBLISHED, non-DEMO causes of THIS programme;
+   * media that is soft-deleted, DEMO or explicitly NOT_GRANTED consent is never returned.
+   */
+  publicMediaWhere(): Prisma.MediaAssetWhereInput {
+    return { deletedAt: null, provenance: { not: 'DEMO' }, consentStatus: { not: 'NOT_GRANTED' } };
+  }
+
+  async publicCauses(programmeId: string) {
+    const items = await this.prisma.project.findMany({
+      where: { programmeId, deletedAt: null, status: 'PUBLISHED', provenance: { not: 'DEMO' } },
+      orderBy: [{ sortOrder: 'asc' }, { nameEn: 'asc' }],
+      include: { coverMedia: true },
+    });
+    return items.map((p) => ({ ...p, coverMedia: this.media.present(p.coverMedia) }));
+  }
+
+  async publicProgrammeRecord(slug: string) {
+    const p = await this.prisma.programme.findFirst({
+      where: { slug, status: 'PUBLISHED', deletedAt: null, provenance: { not: 'DEMO' } },
+      include: { coverMedia: true, gallery: { where: { media: this.publicMediaWhere() }, orderBy: { sortOrder: 'asc' }, include: { media: true } } },
+    });
+    if (!p) throw new NotFoundException('Programme not found');
+    return { ...p, coverMedia: this.media.present(p.coverMedia), gallery: p.gallery.map((g) => this.media.present(g.media)) };
+  }
+
   async listPublished() {
     const items = await this.prisma.programme.findMany({
       where: { status: 'PUBLISHED', deletedAt: null, provenance: { not: 'DEMO' } },
@@ -216,6 +290,8 @@ export class ProgrammesService {
     return {
       id: p.id,
       slug: p.slug,
+      /** stable internal identifier (e.g. PRG-02) — used for designations instead of a mutable display name */
+      code: p.code,
       kind: p.kind,
       number: p.number,
       nameEn: p.nameEn,

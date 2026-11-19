@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { HandHeart, Info, Layers, Sparkles, type LucideIcon } from "lucide-react";
 import { isLocale } from "@/lib/i18n";
 import { getPageContent } from "@/lib/content";
 import { getGala } from "@/content/gala";
@@ -12,6 +13,7 @@ import { FaqAccordion, type AccordionItem } from "@/components/pages/FaqAccordio
 export const revalidate = 300;
 
 type Cat = "general" | "programs" | "giving" | "gala";
+const CAT_ICON: Record<Cat, LucideIcon> = { general: Info, programs: Layers, giving: HandHeart, gala: Sparkles };
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -66,8 +68,17 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
             <ul className="flex flex-wrap gap-2 lg:sticky lg:top-32 lg:flex-col lg:gap-1">
               {shown.map((c) => (
                 <li key={c.key}>
-                  <a href={`#${c.key}`} className="inline-flex min-h-11 items-center rounded-full border border-stone-line px-5 text-sm font-bold text-ink transition hover:border-meki-green hover:text-meki-green lg:border-0 lg:px-0 lg:text-base">
-                    {c.label}
+                  <a href={`#${c.key}`} className="group p10-lift flex min-h-11 items-center gap-3 rounded-full border border-stone-line bg-paper px-4 py-2 text-sm font-bold text-ink hover:border-meki-green hover:text-meki-green lg:rounded-2xl lg:px-4 lg:py-3 lg:text-base">
+                    {(() => {
+                      const CatIcon = CAT_ICON[c.key as Cat];
+                      return (
+                        <span aria-hidden="true" className="p10-icon grid size-8 shrink-0 place-items-center rounded-full bg-limestone text-meki-green lg:size-10">
+                          <CatIcon className="size-4 lg:size-5" strokeWidth={1.7} />
+                        </span>
+                      );
+                    })()}
+                    <span className="flex-1">{c.label}</span>
+                    <span className="num rounded-full bg-limestone px-2 py-0.5 text-xs text-body-grey" aria-hidden="true">{groups[c.key as Cat].length}</span>
                   </a>
                 </li>
               ))}

@@ -199,7 +199,7 @@ describe("permission-based navigation", () => {
   test("only implemented modules have a route; everything else is flagged as upcoming (no fake pages)", () => {
     const withRoute = NAV.flatMap((g) => g.items).filter((i) => i.href);
     // Phase 6B added the donor-management pages, Phase 6C programs/causes/campaigns/media, Phase 6D the website CMS, Phase 6E Gala operations; everything else is still upcoming.
-    assert.deepEqual(withRoute.map((i) => i.key), ["dashboard", "programs", "causes", "campaigns", "donorList", "donations", "payments", "recurring", "receipts", "galaOverview", "bookings", "guests", "tickets", "checkin", "galaExports", "galaComms", "galaSettings", "homepage", "pages", "menus", "media", "faqs", "statistics", "siteSettings"]);
+    assert.deepEqual(withRoute.map((i) => i.key), ["dashboard", "programs", "causes", "campaigns", "donorList", "donations", "payments", "sdiZeffy", "sdiReconciliation", "recurring", "receipts", "galaOverview", "bookings", "guests", "sdiAttendees", "tickets", "checkin", "galaExports", "galaComms", "galaSettings", "homepage", "pages", "menus", "media", "faqs", "statistics", "siteSettings"]);
   });
   test("can() and door-staff detection", () => {
     assert.equal(can(user("a"), "a", "b"), true);

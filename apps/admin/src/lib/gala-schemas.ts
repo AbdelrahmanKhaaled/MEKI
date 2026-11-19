@@ -41,6 +41,9 @@ export const BookingRowSchema = z.object({
   cancelReason: strN,
   createdAt: iso,
   updatedAt: iso,
+  /** Phase 12: ZEFFY = tickets/QR/receipts/check-in are issued by Zeffy for SDI; MEKI ticket actions do not apply. */
+  ticketIssuer: z.enum(["MEKI", "ZEFFY"]).optional().default("MEKI"),
+  reportedTicketCount: z.number().nullable().optional(),
 });
 export type BookingRow = z.infer<typeof BookingRowSchema>;
 
@@ -64,6 +67,13 @@ export const BookingDetailSchema = BookingRowSchema.extend({
   attempts: z.array(z.object({ reference: z.string(), provider: z.string(), status: z.string(), amount: money, currency: z.string(), failureCode: strN, initiatedAt: iso, completedAt: isoN })),
   transactions: z.array(z.object({ id: z.string(), type: z.string(), status: z.string(), classification: z.string(), amount: money, currency: z.string(), provider: z.string(), providerTransactionRef: z.string(), occurredAt: iso })),
   jobs: z.array(JobSchema),
+  /** Phase 12: SDI orders and report rows for this booking (from approved/previewed SDI reports). */
+  sdi: z
+    .object({
+      orders: z.array(z.object({ orderId: z.string(), status: z.string(), amount: money, refundedAmount: money, currency: z.string(), matchStatus: z.string(), linked: z.boolean(), reportedAt: iso })),
+      reportRows: z.array(z.object({ importId: z.string(), importStatus: z.string(), synthetic: z.boolean(), rowNumber: z.number(), orderId: strN, status: strN, matchStatus: z.string(), note: strN, applied: z.boolean(), amount: money.nullable(), occurredAt: isoN })),
+    })
+    .optional(),
 });
 export type BookingDetail = z.infer<typeof BookingDetailSchema>;
 

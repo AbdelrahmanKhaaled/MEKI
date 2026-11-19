@@ -5,6 +5,7 @@ import { getBookingCopy } from "@/content/booking";
 import { DonateProvider } from "@/components/DonateProvider";
 import { Header } from "@/components/Header";
 import { BookingStatus } from "@/components/booking/BookingStatus";
+import { FlowBand } from "@/components/pages/FlowBand";
 
 /**
  * Return/e-mail landing page: the backend's EVENT_BOOKING_RETURN_URL is `.../events/gala-night/booking?reference=EB-...`.
@@ -26,8 +27,9 @@ export default async function BookingReturnPage({ params, searchParams }: { para
   return (
     <DonateProvider t={t} locale={locale}>
       <Header t={t} locale={locale} current="gala" />
-      <main id="main" className="min-h-screen bg-limestone pb-24 pt-32">
-        <div className="container-x">
+      <main id="main" className="min-h-screen bg-limestone pb-24">
+        <FlowBand />
+        <div className="container-x pt-12">
           <BookingStatus locale={locale} reference={reference ?? null} />
         </div>
       </main>

@@ -1,4 +1,5 @@
 import type { ApiEnvelope, ApiErrorBody } from "@meki/api-client";
+import { contentFailureLevel } from "./content-failure";
 
 /**
  * API base URLs. NEXT_PUBLIC_API_URL is a public value (the browser calls the donation endpoints with it);
@@ -13,23 +14,68 @@ const SERVER_API_URL = (process.env.API_INTERNAL_URL ?? PUBLIC_API_URL).replace(
 export const CONTENT_REVALIDATE_SECONDS = 300;
 
 /**
+ * Phase 7: visitors never wait more than 4 s for CMS content (built-in content is shown instead). During `next build` every
+ * page is generated in parallel and the API answers the same heavy /public/home request many times at once, so the build
+ * waits longer instead of baking the fallback into the static pages.
+ */
+const CONTENT_TIMEOUT_MS = process.env.NEXT_PHASE === "phase-production-build" ? 20_000 : 4000;
+
+/**
  * Server-side GET of PUBLIC, cacheable content. Returns null on any failure (unset URL, timeout, 4xx/5xx,
  * malformed JSON) so callers fall back to the static content instead of rendering broken UI.
  */
-export async function fetchPublicContent<T>(path: string): Promise<T | null> {
+export async function fetchPublicContent<T>(path: string, attempt = 1): Promise<T | null> {
   if (!SERVER_API_URL) return null;
   try {
     const res = await fetch(`${SERVER_API_URL}${path}`, {
       headers: { Accept: "application/json" },
       next: { revalidate: CONTENT_REVALIDATE_SECONDS, tags: ["meki-public"] },
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(CONTENT_TIMEOUT_MS),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      reportContentFailure(path, res.status);
+      return null;
+    }
     const body = (await res.json()) as ApiEnvelope<T>;
     return body?.data ?? null;
-  } catch {
+  } catch (e) {
+    // Phase 7: a connection-level failure or timeout is retried once; HTTP errors are not retried.
+    if (attempt === 1) return fetchPublicContent<T>(path, 2);
+    reportContentFailure(path, 0, e instanceof Error && e.name === "TimeoutError" ? "timeout" : "network");
     return null;
   }
+}
+
+/**
+ * Phase 11A: like fetchPublicContent, but tells "the API says this does not exist" (404 → the page must 404, e.g. an unpublished
+ * programme) apart from "the API is unreachable" (the page may fall back to approved built-in content).
+ */
+export type PublicResource<T> = { status: "ok"; data: T } | { status: "not_found" } | { status: "unavailable" };
+export async function fetchPublicResource<T>(path: string, attempt = 1): Promise<PublicResource<T>> {
+  if (!SERVER_API_URL) return { status: "unavailable" };
+  try {
+    const res = await fetch(`${SERVER_API_URL}${path}`, {
+      headers: { Accept: "application/json" },
+      next: { revalidate: CONTENT_REVALIDATE_SECONDS, tags: ["meki-public"] },
+      signal: AbortSignal.timeout(CONTENT_TIMEOUT_MS),
+    });
+    if (res.status === 404) return { status: "not_found" };
+    if (!res.ok) {
+      reportContentFailure(path, res.status);
+      return { status: "unavailable" };
+    }
+    const body = (await res.json()) as ApiEnvelope<T>;
+    return body?.data ? { status: "ok", data: body.data } : { status: "unavailable" };
+  } catch (e) {
+    if (attempt === 1) return fetchPublicResource<T>(path, 2);
+    reportContentFailure(path, 0, e instanceof Error && e.name === "TimeoutError" ? "timeout" : "network");
+    return { status: "unavailable" };
+  }
+}
+
+function reportContentFailure(path: string, status: number, reason = "network") {
+  const level = contentFailureLevel(path, status);
+  console[level](`[meki-web] CMS content unavailable (${status || reason}) for ${path.split("?")[0]} — built-in content is shown`);
 }
 
 /** Error surfaced to UI code: only a stable code + HTTP status, never raw server messages. */

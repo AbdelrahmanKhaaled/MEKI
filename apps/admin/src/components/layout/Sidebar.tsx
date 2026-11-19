@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   CalendarDays, ChartNoAxesCombined, ChevronsLeft, CircleHelp, CreditCard, FileBarChart, HandCoins, HeartHandshake, Images, Layers, LayoutDashboard, Megaphone, PanelsTopLeft,
-  Receipt, Repeat, ScanQrCode, ScrollText, Settings, ShieldCheck, SlidersHorizontal, Ticket, Users, UsersRound, X, House, Menu, ChartColumn, Sparkles, ClipboardList, FileDown, Mail, Settings2,
+  Receipt, Repeat, ScanQrCode, ScrollText, Settings, ShieldCheck, SlidersHorizontal, Ticket, Users, UsersRound, X, House, Menu, ChartColumn, Sparkles, ClipboardList, FileDown, Mail, Settings2, PlugZap, FileSpreadsheet, ListChecks,
 } from "lucide-react";
-import type { ComponentType } from "react";
+import { useRef, type ComponentType } from "react";
+import { useDialogFocus } from "@/components/common/useDialogFocus";
 import { useLocale } from "@/components/common/Providers";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { visibleNav } from "@/lib/navigation";
@@ -14,7 +15,7 @@ import { visibleNav } from "@/lib/navigation";
 const ICONS: Record<string, ComponentType<{ className?: string; "aria-hidden"?: boolean }>> = {
   LayoutDashboard, ChartNoAxesCombined, Layers, HeartHandshake, Megaphone, Users, HandCoins, CreditCard, Repeat, Receipt, CalendarDays, Ticket, UsersRound, ScanQrCode,
   PanelsTopLeft, Images, CircleHelp, SlidersHorizontal, FileBarChart, ShieldCheck, ScrollText, Settings, House, Menu, ChartColumn,
-  Sparkles, ClipboardList, FileDown, Mail, Settings2,
+  Sparkles, ClipboardList, FileDown, Mail, Settings2, PlugZap, FileSpreadsheet, ListChecks,
 };
 
 /**
@@ -26,6 +27,9 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onClose }: { collapse
   const { user } = useAuth();
   const path = usePathname();
   const groups = visibleNav(user);
+  const drawer = useRef<HTMLDivElement>(null);
+  const closeBtn = useRef<HTMLButtonElement>(null);
+  useDialogFocus(mobileOpen, drawer, onClose, closeBtn); // mobile drawer: focus in, Tab trap, Escape, focus back to the menu button
   const activeHref = groups
     .flatMap((g) => g.items)
     .map((i) => (i.href ? `/${locale}${i.href}` : ""))
@@ -43,7 +47,7 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onClose }: { collapse
       <div className="flex-1 overflow-y-auto px-3 pb-6">
         {groups.map((g) => (
           <div key={g.key} className="mt-5">
-            {!narrow && <p className="mb-2 px-3 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-mint/60">{t.nav.groups[g.key as keyof typeof t.nav.groups]}</p>}
+            {!narrow && <p className="mb-2 px-3 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-mint/70">{t.nav.groups[g.key as keyof typeof t.nav.groups]}</p>}
             {narrow && <div className="mx-3 mb-2 h-px bg-white/10" />}
             <ul className="space-y-1">
               {g.items.map((item) => {
@@ -88,10 +92,10 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onClose }: { collapse
     <>
       <aside className={`sticky top-0 hidden h-screen shrink-0 bg-deep-green transition-[width] duration-300 motion-reduce:transition-none lg:block ${collapsed ? "w-20" : "w-72"}`}>{body(collapsed)}</aside>
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label={t.brand}>
+        <div ref={drawer} className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label={t.brand}>
           <div className="absolute inset-0 bg-deep-green-3/60" onClick={onClose} aria-hidden="true" />
           <aside className="absolute inset-y-0 start-0 w-72 max-w-[85vw] bg-deep-green shadow-[var(--shadow-pop)]">
-            <button type="button" onClick={onClose} aria-label={t.nav.closeMenu} className="absolute end-3 top-4 rounded-lg p-1 text-mint hover:bg-white/10">
+            <button ref={closeBtn} type="button" onClick={onClose} aria-label={t.nav.closeMenu} className="absolute end-3 top-4 rounded-lg p-1 text-mint hover:bg-white/10">
               <X className="size-5" aria-hidden="true" />
             </button>
             {body(false)}

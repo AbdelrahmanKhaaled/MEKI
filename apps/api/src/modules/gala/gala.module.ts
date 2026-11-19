@@ -42,7 +42,7 @@ import { TicketsService } from './tickets.service';
     { provide: MAIL_TRANSPORT, useFactory: createMailTransport, inject: [AppConfigService] },
     { provide: PRIVATE_STORAGE, useClass: LocalPrivateStorage },
   ],
-  exports: [GalaEmailComposer, GalaJobsService, MAIL_TRANSPORT],
+  exports: [GalaEmailComposer, GalaJobsService, MAIL_TRANSPORT, BookingPaymentsService],
 })
 export class GalaModule implements OnModuleInit {
   constructor(

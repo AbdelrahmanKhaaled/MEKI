@@ -1941,6 +1941,63 @@
         ]
       }
     },
+    "/api/v1/admin/projects/{id}/publish": {
+      "post": {
+        "operationId": "ProgrammesController_publishProject_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Publish a Cause (project) on its programme page — never DEMO; programme must be published",
+        "tags": [
+          "Admin · Programmes"
+        ]
+      }
+    },
+    "/api/v1/admin/projects/{id}/unpublish": {
+      "post": {
+        "operationId": "ProgrammesController_unpublishProject_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · Programmes"
+        ]
+      }
+    },
     "/api/v1/admin/campaigns": {
       "get": {
         "operationId": "CampaignsController_list_v1",
@@ -6296,6 +6353,49 @@
         ]
       }
     },
+    "/api/v1/public/events/{slug}/hosted-bookings": {
+      "post": {
+        "operationId": "PublicEventTicketsController_createHosted_v1",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Client-generated unique key (16-80 chars). Replays return the same reference.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateHostedBookingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Create a PENDING booking reference for SDI's hosted Zeffy ticket form. No payment, guest list or MEKI ticket; confirmation only via an approved SDI report.",
+        "tags": [
+          "Public · Event tickets"
+        ]
+      }
+    },
     "/api/v1/public/events/{slug}/calendar.ics": {
       "get": {
         "operationId": "PublicEventTicketsController_calendar_v1",
@@ -7907,6 +8007,797 @@
         ]
       }
     },
+    "/api/v1/integrations/zeffy/webhook": {
+      "post": {
+        "operationId": "ZeffyWebhookController_receive_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Zeffy webhook (payment.completed/created/updated/deleted). Signature verified on the raw body; events stored once per Zeffy event id.",
+        "tags": [
+          "Integrations · Zeffy (SDI)"
+        ]
+      }
+    },
+    "/api/v1/admin/integrations/zeffy/status": {
+      "get": {
+        "operationId": "AdminZeffyController_status_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Runtime status: configuration flags (never values), live API check, verified webhook deliveries, last reconciliation, review queue",
+        "tags": [
+          "Admin · Zeffy (SDI) integration"
+        ]
+      }
+    },
+    "/api/v1/admin/integrations/zeffy/payments": {
+      "get": {
+        "operationId": "AdminZeffyController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Free-text search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "field:asc|desc, comma separated",
+            "schema": {
+              "example": "sortOrder:asc",
+              "type": "string"
+            }
+          },
+          {
+            "name": "matchStatus",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "UNMATCHED",
+                "NEEDS_REVIEW",
+                "MATCHED",
+                "CONFIRMED",
+                "IGNORED"
+              ]
+            }
+          },
+          {
+            "name": "classification",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "CHARITABLE_DONATION",
+                "EVENT_TICKET_PAYMENT"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Provider payments read from SDI’s Zeffy account, with their correlation state (no personal data)",
+        "tags": [
+          "Admin · Zeffy (SDI) integration"
+        ]
+      }
+    },
+    "/api/v1/admin/integrations/zeffy/reconcile": {
+      "post": {
+        "operationId": "AdminZeffyController_reconcile_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReconcileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Read recent payments from Zeffy (GET only) and re-evaluate them. Idempotent; audited.",
+        "tags": [
+          "Admin · Zeffy (SDI) integration"
+        ]
+      }
+    },
+    "/api/v1/admin/integrations/zeffy/payments/{id}/recheck": {
+      "post": {
+        "operationId": "AdminZeffyController_recheck_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Re-read one payment from Zeffy and re-apply the same correlation rules (never marks anything paid by hand)",
+        "tags": [
+          "Admin · Zeffy (SDI) integration"
+        ]
+      }
+    },
+    "/api/v1/admin/sdi/status": {
+      "get": {
+        "operationId": "SdiReportsController_status_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Integration mode, availability switches (no secrets), last applied report, review backlog, missing business days",
+        "tags": [
+          "Admin · SDI reconciliation"
+        ]
+      }
+    },
+    "/api/v1/admin/sdi/reports": {
+      "post": {
+        "operationId": "SdiReportsController_upload_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "RECONCILIATION",
+                      "ATTENDEES"
+                    ]
+                  },
+                  "isSynthetic": {
+                    "type": "boolean"
+                  },
+                  "notes": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Upload an SDI report (.csv / .xlsx, ≤ 5 MB). Stored privately; headers read; NOTHING applied.",
+        "tags": [
+          "Admin · SDI reconciliation"
+        ]
+      },
+      "get": {
+        "operationId": "SdiReportsController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Free-text search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "field:asc|desc, comma separated",
+            "schema": {
+              "example": "sortOrder:asc",
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "RECONCILIATION",
+                "ATTENDEES"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "UPLOADED",
+                "PREVIEWED",
+                "APPLIED",
+                "REJECTED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · SDI reconciliation"
+        ]
+      }
+    },
+    "/api/v1/admin/sdi/reports/{id}": {
+      "get": {
+        "operationId": "SdiReportsController_get_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · SDI reconciliation"
+        ]
+      }
+    },
+    "/api/v1/admin/sdi/reports/{id}/rows": {
+      "get": {
+        "operationId": "SdiReportsController_rows_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Free-text search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "field:asc|desc, comma separated",
+            "schema": {
+              "example": "sortOrder:asc",
+              "type": "string"
+            }
+          },
+          {
+            "name": "matchStatus",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · SDI reconciliation"
+        ]
+      }
+    },
+    "/api/v1/admin/sdi/reports/{id}/preview": {
+      "post": {
+        "operationId": "SdiReportsController_preview_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Validate + match every row with a column mapping. Read-only with respect to bookings and money.",
+        "tags": [
+          "Admin · SDI reconciliation"
+        ]
+      }
+    },
+    "/api/v1/admin/sdi/reports/{id}/apply": {
+      "post": {
+        "operationId": "SdiReportsController_apply_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Apply a previewed report (different administrator; verified mapping; SDI_REPORT_APPLY_ENABLED). One transaction.",
+        "tags": [
+          "Admin · SDI reconciliation"
+        ]
+      }
+    },
+    "/api/v1/admin/sdi/reports/{id}/reject": {
+      "post": {
+        "operationId": "SdiReportsController_reject_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · SDI reconciliation"
+        ]
+      }
+    },
+    "/api/v1/admin/sdi/reports/{id}/export": {
+      "get": {
+        "operationId": "SdiReportsController_export_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Reconciliation results as CSV (formula-safe; contains no personal data)",
+        "tags": [
+          "Admin · SDI reconciliation"
+        ]
+      }
+    },
+    "/api/v1/admin/sdi/mappings": {
+      "get": {
+        "operationId": "SdiReportsController_mappings_v1",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · SDI reconciliation"
+        ]
+      },
+      "post": {
+        "operationId": "SdiReportsController_createMapping_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveMappingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · SDI reconciliation"
+        ]
+      }
+    },
+    "/api/v1/admin/sdi/mappings/{id}": {
+      "put": {
+        "operationId": "SdiReportsController_updateMapping_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveMappingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Update a mapping (clears its verification — re-verify against a real sample)",
+        "tags": [
+          "Admin · SDI reconciliation"
+        ]
+      }
+    },
+    "/api/v1/admin/sdi/mappings/{id}/verify": {
+      "post": {
+        "operationId": "SdiReportsController_verifyMapping_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyMappingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Attest the mapping was checked against a REAL SDI sample report (different administrator)",
+        "tags": [
+          "Admin · SDI reconciliation"
+        ]
+      }
+    },
+    "/api/v1/admin/sdi/attendees": {
+      "get": {
+        "operationId": "SdiReportsController_attendees_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Free-text search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "field:asc|desc, comma separated",
+            "schema": {
+              "example": "sortOrder:asc",
+              "type": "string"
+            }
+          },
+          {
+            "name": "bookingReference",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Latest applied SDI attendee list (operational; not proof of payment)",
+        "tags": [
+          "Admin · SDI reconciliation"
+        ]
+      }
+    },
+    "/api/v1/public/hosted-forms": {
+      "get": {
+        "operationId": "PublicController_hostedForms_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "SDI hosted-form availability: general giving, programme giving (per slug) — URLs only when enabled and SDI-approved",
+        "tags": [
+          "Public"
+        ]
+      }
+    },
     "/api/v1/public/site": {
       "get": {
         "operationId": "PublicController_site_v1",
@@ -8053,6 +8944,43 @@
             "description": ""
           }
         },
+        "tags": [
+          "Public"
+        ]
+      }
+    },
+    "/api/v1/public/programmes/{slug}/detail": {
+      "get": {
+        "operationId": "PublicController_programmePage_v1",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Flatten bilingual fields for a locale (Arabic falls back to English). Omit for both languages.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "ar"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Programme page: approved goal, verified collected totals (per currency), published causes and campaigns",
         "tags": [
           "Public"
         ]
@@ -8250,9 +9178,44 @@
             "description": ""
           }
         },
-        "summary": "Liveness + database readiness",
+        "summary": "Readiness: the process is up AND the database answers within 3 s (503 otherwise)",
         "tags": [
           "Health"
+        ]
+      }
+    },
+    "/api/v1/health/live": {
+      "get": {
+        "operationId": "HealthController_live_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Liveness only (no database call) — for process managers; use /health for load-balancer readiness",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/api/v1/admin/system/status": {
+      "get": {
+        "operationId": "AdminSystemController_status_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Operational status: DB latency, background jobs, webhook failures, storage, transports (no secrets)",
+        "tags": [
+          "Admin · System"
         ]
       }
     }
@@ -8454,7 +9417,9 @@
                 "gala.tickets.read",
                 "gala.tickets.manage",
                 "gala.checkin.validate",
-                "gala.checkin.manage"
+                "gala.checkin.manage",
+                "sdi.reports.upload",
+                "sdi.reports.approve"
               ]
             }
           }
@@ -9119,6 +10084,17 @@
             "type": "object",
             "nullable": true
           },
+          "targetAmount": {
+            "type": "object",
+            "nullable": true,
+            "example": "250000.00",
+            "description": "Approved programme goal; null clears it"
+          },
+          "targetCurrency": {
+            "type": "object",
+            "nullable": true,
+            "example": "USD"
+          },
           "sortOrder": {
             "type": "number"
           },
@@ -9224,6 +10200,17 @@
             "type": "object",
             "nullable": true
           },
+          "targetAmount": {
+            "type": "object",
+            "nullable": true,
+            "example": "250000.00",
+            "description": "Approved programme goal; null clears it"
+          },
+          "targetCurrency": {
+            "type": "object",
+            "nullable": true,
+            "example": "USD"
+          },
           "sortOrder": {
             "type": "number"
           },
@@ -9298,6 +10285,25 @@
           "sourceFolder": {
             "type": "string"
           },
+          "summaryEn": {
+            "type": "string"
+          },
+          "summaryAr": {
+            "type": "string"
+          },
+          "descriptionEn": {
+            "type": "string"
+          },
+          "descriptionAr": {
+            "type": "string"
+          },
+          "coverMediaId": {
+            "type": "object",
+            "nullable": true
+          },
+          "sortOrder": {
+            "type": "number"
+          },
           "provenance": {
             "type": "string",
             "enum": [
@@ -9342,6 +10348,25 @@
           },
           "sourceFolder": {
             "type": "string"
+          },
+          "summaryEn": {
+            "type": "string"
+          },
+          "summaryAr": {
+            "type": "string"
+          },
+          "descriptionEn": {
+            "type": "string"
+          },
+          "descriptionAr": {
+            "type": "string"
+          },
+          "coverMediaId": {
+            "type": "object",
+            "nullable": true
+          },
+          "sortOrder": {
+            "type": "number"
           },
           "provenance": {
             "type": "string",
@@ -10692,6 +11717,50 @@
           "privacyConsent"
         ]
       },
+      "HostedPurchaserDto": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "example": "Amira Hassan"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "fullName",
+          "email"
+        ]
+      },
+      "CreateHostedBookingDto": {
+        "type": "object",
+        "properties": {
+          "purchaser": {
+            "$ref": "#/components/schemas/HostedPurchaserDto"
+          },
+          "ticketCount": {
+            "type": "number",
+            "description": "Intended number of tickets (the final paid number comes from SDI's report)"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar"
+            ]
+          },
+          "privacyConsent": {
+            "type": "boolean",
+            "description": "Must be true"
+          }
+        },
+        "required": [
+          "purchaser",
+          "ticketCount",
+          "privacyConsent"
+        ]
+      },
       "CreateTicketConfigDto": {
         "type": "object",
         "properties": {
@@ -10824,6 +11893,93 @@
         },
         "required": [
           "token"
+        ]
+      },
+      "ReconcileDto": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "number",
+            "description": "Look back this many days (1–400, default 30)"
+          }
+        }
+      },
+      "PreviewReportDto": {
+        "type": "object",
+        "properties": {
+          "mapping": {
+            "type": "object",
+            "description": "Column mapping (see docs/48). Omit when using mappingProfileId."
+          },
+          "mappingProfileId": {
+            "type": "string"
+          },
+          "periodFrom": {
+            "type": "string",
+            "example": "2026-11-18"
+          },
+          "periodTo": {
+            "type": "string",
+            "example": "2026-11-18"
+          },
+          "supersedesId": {
+            "type": "string",
+            "description": "Earlier import this corrected file replaces"
+          }
+        }
+      },
+      "RejectReportDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "SaveMappingDto": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "RECONCILIATION",
+              "ATTENDEES"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "mapping": {
+            "type": "object"
+          },
+          "headers": {
+            "description": "Headers of the file the mapping was built from",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "kind",
+          "name",
+          "mapping",
+          "headers"
+        ]
+      },
+      "VerifyMappingDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "description": "Which REAL SDI sample file this mapping was checked against (name/date)"
+          }
+        },
+        "required": [
+          "note"
         ]
       }
     }

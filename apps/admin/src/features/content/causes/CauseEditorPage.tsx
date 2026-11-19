@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Eye, EyeOff, Plus } from "lucide-react";
 import { Card, CardHeader } from "@/components/cards/Card";
 import { useLocale } from "@/components/common/Providers";
 import { EmptyState, ErrorState, WidgetSkeleton, WidgetState } from "@/components/common/States";
+import { CoverField } from "@/components/content/media";
 import { Bilingual, ContentStatusBadge, ProvenanceBadge, ProvenanceNotice, SaveBar, Select, TextArea, TextInput, useContentError } from "@/components/content/ui";
-import { DateText, Money, Notice, PageHeader, Ref } from "@/components/finance/ui";
+import { ConfirmDialog, DateText, Money, Notice, PageHeader, Ref } from "@/components/finance/ui";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { AuditList } from "@/features/finance/shared";
 import { FinancePage, useBackHref, useHref } from "@/features/finance/FinancePage";
@@ -16,10 +17,10 @@ import { useCause, useContentMutation, useProgrammeOptions } from "@/hooks/useCo
 import { useEntityAudit } from "@/hooks/useFinanceData";
 import { useForm } from "@/hooks/useForm";
 import { causeProgrammeLocked, codeError, slugError } from "@/lib/content";
-import { PROVENANCES, type ProjectDetail } from "@/lib/content-schemas";
+import { PROVENANCES, type Media, type ProjectDetail } from "@/lib/content-schemas";
 import * as svc from "@/services/content";
 
-/** A Cause is the API's `project` (Programme → Cause → Campaign). Only create/update exist — no publish or delete. */
+/** A Cause is the API's `project` (Programme → Cause → Campaign). Phase 11A: public summary/description/cover + publish/unpublish (no delete). */
 export function CauseEditorPage({ id }: { id?: string }) {
   const { t } = useLocale();
   const href = useHref();
@@ -38,13 +39,24 @@ function Existing({ id }: { id: string }) {
   return <Editor key={q.data.id} cause={q.data} />;
 }
 
-type Form = { code: string; slug: string; programmeId: string; nameEn: string; nameAr: string; locationEn: string; locationAr: string; sourceFolder: string; provenance: string; sourceRef: string };
+type Form = {
+  code: string; slug: string; programmeId: string; nameEn: string; nameAr: string; locationEn: string; locationAr: string; sourceFolder: string; provenance: string; sourceRef: string;
+  summaryEn: string; summaryAr: string; descriptionEn: string; descriptionAr: string; sortOrder: string; cover: Media | null;
+};
 const toForm = (c: ProjectDetail | null, programmeId: string): Form => ({
   code: c?.code ?? "", slug: c?.slug ?? "", programmeId: c?.programmeId ?? programmeId, nameEn: c?.nameEn ?? "", nameAr: c?.nameAr ?? "", locationEn: c?.locationEn ?? "", locationAr: c?.locationAr ?? "",
   sourceFolder: c?.sourceFolder ?? "", provenance: c?.provenance ?? "PROPOSED", sourceRef: c?.sourceRef ?? "",
+  summaryEn: c?.summaryEn ?? "", summaryAr: c?.summaryAr ?? "", descriptionEn: c?.descriptionEn ?? "", descriptionAr: c?.descriptionAr ?? "",
+  sortOrder: String(c?.sortOrder ?? 0), cover: c?.coverMedia ?? null,
 });
 const REQUIRED_TEXT = new Set<keyof Form>(["code", "slug", "nameEn", "provenance"]);
-const toApi = (k: keyof Form, f: Form) => (REQUIRED_TEXT.has(k) ? f[k].trim() : f[k].trim() || null);
+const toApi = (k: keyof Form, f: Form): unknown => {
+  if (k === "cover") return f.cover?.id ?? null;
+  if (k === "sortOrder") return Number(f.sortOrder || 0);
+  const v = f[k] as string;
+  return REQUIRED_TEXT.has(k) ? v.trim() : v.trim() || null;
+};
+const apiKey = (k: keyof Form) => (k === "cover" ? "coverMediaId" : k);
 
 function Editor({ cause }: { cause: ProjectDetail | null }) {
   const { locale, t } = useLocale();
@@ -80,12 +92,12 @@ function Editor({ cause }: { cause: ProjectDetail | null }) {
       const body: Record<string, unknown> = {};
       for (const k of Object.keys(v) as (keyof Form)[]) {
         const val = toApi(k, v);
-        if (val) body[k] = val;
+        if (val !== null && val !== "" && !(k === "sortOrder" && val === 0)) body[apiKey(k)] = val;
       }
       return svc.createCause(body);
     }
     const body: Record<string, unknown> = {};
-    for (const k of form.dirty) body[k] = toApi(k, v);
+    for (const k of form.dirty) body[apiKey(k)] = toApi(k, v);
     return svc.updateCause(cause.id, body);
   });
 
@@ -140,6 +152,14 @@ function Editor({ cause }: { cause: ProjectDetail | null }) {
               <Bilingual label={x.fields.location} en={v.locationEn} ar={v.locationAr} onEn={(s) => form.set("locationEn", s)} onAr={(s) => form.set("locationAr", s)} disabled={readOnly} maxLength={255} />
             </div>
           </Card>
+          <Card labelledBy="cp-t">
+            <CardHeader id="cp-t" title={x.publicTitle} subtitle={x.publicNote} />
+            <div className="space-y-5">
+              <Bilingual label={x.summaryField} en={v.summaryEn} ar={v.summaryAr} onEn={(s) => form.set("summaryEn", s)} onAr={(s) => form.set("summaryAr", s)} multiline rows={3} disabled={readOnly} maxLength={2000} />
+              <Bilingual label={x.descriptionField} en={v.descriptionEn} ar={v.descriptionAr} onEn={(s) => form.set("descriptionEn", s)} onAr={(s) => form.set("descriptionAr", s)} multiline rows={6} disabled={readOnly} maxLength={20000} />
+              <CoverField media={v.cover} onChange={(m) => form.set("cover", m)} disabled={readOnly || !can("media.read")} defaultCategory="PROGRAMME" />
+            </div>
+          </Card>
           {cause && <Campaigns cause={cause} />}
         </div>
         <div className="min-w-0 space-y-4 xl:col-span-4">
@@ -149,17 +169,54 @@ function Editor({ cause }: { cause: ProjectDetail | null }) {
               <TextInput label={c.code} value={v.code} onChange={(s) => form.set("code", s.toUpperCase())} disabled={!isNew || readOnly} required={isNew} error={show(errors.code)} dir="ltr" maxLength={60} placeholder="PRJ-WATER-WELLS" />
               <TextInput label={c.slug} value={v.slug} onChange={(s) => form.set("slug", s)} hint={c.slugHint} error={errors.slug} disabled={readOnly} dir="ltr" maxLength={120} />
               <TextInput label={x.fields.sourceFolder} value={v.sourceFolder} onChange={(s) => form.set("sourceFolder", s)} disabled={readOnly} maxLength={255} />
+              <TextInput label={c.sortOrder} value={v.sortOrder} onChange={(s) => form.set("sortOrder", s.replace(/\D/g, ""))} disabled={readOnly} dir="ltr" inputMode="numeric" />
               <Select label={c.provenance} value={v.provenance} onChange={(s) => form.set("provenance", s)} disabled={readOnly} hint={c.provenanceChangeHint} options={PROVENANCES.map((p) => ({ value: p, label: t.content.provenance[p] }))} />
               <TextArea label={c.sourceRef} value={v.sourceRef} onChange={(s) => form.set("sourceRef", s)} hint={c.sourceRefHint} disabled={readOnly} rows={2} maxLength={255} />
               {cause && <p className="text-xs text-muted">{c.updated}: <DateText value={cause.updatedAt} /></p>}
             </div>
           </Card>
-          <Notice>{x.statusNote} {x.noMedia}</Notice>
+          {cause && <CauseLifecycle cause={cause} canPublish={can("programmes.publish")} onChanged={(p) => form.reset(toForm({ ...cause, ...p }, ""))} />}
+          <Notice>{x.statusNote}</Notice>
           {cause && <Audit id={cause.id} />}
         </div>
       </div>
       {!readOnly && <SaveBar dirty={isNew ? form.dirty.length || 1 : form.dirty.length} busy={save.isPending} onSave={onSave} onDiscard={form.discard} disabled={touched && invalid} message={message} error={save.isError ? errText(save.error) : null} />}
     </>
+  );
+}
+
+function CauseLifecycle({ cause, canPublish, onChanged }: { cause: ProjectDetail; canPublish: boolean; onChanged: (p: ProjectDetail) => void }) {
+  const { t } = useLocale();
+  const errText = useContentError();
+  const x = t.content.causes;
+  const c = t.content.common;
+  const [dialog, setDialog] = useState<null | "publish" | "unpublish">(null);
+  const toggle = useContentMutation((publish: boolean) => (publish ? svc.publishCause(cause.id) : svc.unpublishCause(cause.id)));
+  const close = () => { toggle.reset(); setDialog(null); };
+  const published = cause.status === "PUBLISHED";
+  return (
+    <Card labelledBy="cl-t">
+      <CardHeader id="cl-t" title={c.lifecycle} right={<ContentStatusBadge status={cause.status} />} />
+      {published ? (
+        <button type="button" className="btn-admin btn-ghost w-full justify-center" disabled={!canPublish} onClick={() => setDialog("unpublish")}><EyeOff className="size-4" aria-hidden="true" /> {c.unpublish}</button>
+      ) : (
+        <button type="button" className="btn-admin btn-primary w-full justify-center" disabled={!canPublish} onClick={() => setDialog("publish")}><Eye className="size-4" aria-hidden="true" /> {c.publish}</button>
+      )}
+      {cause.publishedAt && <p className="mt-3 text-xs text-muted">{c.publish}: <DateText value={cause.publishedAt} /></p>}
+      {dialog && (
+        <ConfirmDialog
+          open
+          title={dialog === "publish" ? x.publishTitle : x.unpublishTitle}
+          confirmLabel={dialog === "publish" ? c.publish : c.unpublish}
+          busy={toggle.isPending}
+          error={toggle.isError ? errText(toggle.error) : null}
+          onClose={close}
+          onConfirm={() => toggle.mutate(dialog === "publish", { onSuccess: (p) => { onChanged(p); close(); } })}
+        >
+          <p>{dialog === "publish" ? x.publishBody : x.unpublishBody}</p>
+        </ConfirmDialog>
+      )}
+    </Card>
   );
 }
 

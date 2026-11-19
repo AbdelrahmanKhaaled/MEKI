@@ -266,7 +266,7 @@ describe("authorization in navigation (UI only; the API stays authoritative)", (
     assert.deepEqual(items(user("donors.read")).map((i) => i.key), ["dashboard", "donorList"]);
     assert.deepEqual(items(user("recurring.read")).map((i) => i.key), ["dashboard", "recurring"]);
     assert.deepEqual(items(user("receipts.read")).map((i) => i.key), ["dashboard", "receipts"]);
-    assert.deepEqual(items(user("payments.read")).map((i) => i.key), ["dashboard", "payments"]);
+    assert.deepEqual(items(user("payments.read")).map((i) => i.key), ["dashboard", "payments", "sdiZeffy"]); // Phase 8A: SDI / Zeffy provider payments
     assert.deepEqual(items(user("reports.read")).map((i) => i.key).filter((k) => ["donations", "payments", "donorList"].includes(k)), []);
   });
   test("enabled entries point to real route files", () => {

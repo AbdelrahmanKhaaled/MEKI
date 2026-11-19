@@ -75,6 +75,21 @@ try {
   const uniqueTitles = new Set(titles.values());
   check("page titles are unique per page and language", uniqueTitles.size === titles.size, `${uniqueTitles.size}/${titles.size}`);
 
+  // the pages really render CMS content from the API (a misconfigured API base would silently show built-in text)
+  for (const loc of ["en", "ar"]) {
+    const faqs = (await (await fetch(`${API}/public/faqs?locale=${loc}`)).json()).data ?? [];
+    // the Programs page lists the official programmes (enabling functions are a homepage section)
+    const progs = ((await (await fetch(`${API}/public/programmes?locale=${loc}`)).json()).data ?? []).filter((p) => p.kind === "PROGRAMME");
+    await page.goto(`${WEB}/${loc}/faq`, { waitUntil: "networkidle" });
+    const faqText = await page.locator("main").innerText();
+    check(`${loc} faq: published CMS FAQs from the API are rendered (${faqs.length})`, faqs.length > 0 && faqs.slice(0, 3).every((f) => faqText.includes(f.question)), faqs[0]?.question);
+    await page.goto(`${WEB}/${loc}/programs`, { waitUntil: "networkidle" });
+    // English pages use US spelling (lib/content.ts americanize: "Labour" → "Labor"), an existing design decision
+    const us = (s) => (loc === "en" ? s.replace(/our\b/g, "or") : s);
+    const progText = us(await page.locator("main").innerText());
+    check(`${loc} programs: published programmes from the API are rendered (${progs.length})`, progs.length > 0 && progs.every((p) => progText.includes(us(p.name))), progs.find((p) => !progText.includes(us(p.name)))?.name);
+  }
+
   // internal links (header, footer, body) all resolve
   const bad = [];
   for (const l of links) {
@@ -96,7 +111,7 @@ try {
     const bookLinks = await page.locator("a[href*='/events/gala-night/book']").count();
     const open_ = info?.data?.salesOpen && info?.data?.checkoutAvailable;
     check(`${loc} gala: booking CTA is a link only if the API says sales open AND checkout available (now: ${open_ ? "open" : "closed"})`, open_ ? bookLinks > 0 : bookLinks === 0);
-    if (loc === "en") check("en gala: approved facts shown (Every Light Counts · December 12, 2026 · 583 Park Avenue · 750), no invented start time", /Every Light Counts/i.test(text) && /December 12, 2026/.test(text) && /583 Park Avenue/.test(text) && /750/.test(text) && !/\b\d{1,2}:\d{2}\s?(AM|PM)\b/i.test(text));
+    if (loc === "en") check("en gala: approved facts shown (Every Light Counts · December 12, 2026 · 583 Park Avenue · 750), no time beyond the client-briefed doors time (3:30 PM, to be confirmed — docs/12)", /Every Light Counts/i.test(text) && /December 12, 2026/.test(text) && /583 Park Avenue/.test(text) && /750/.test(text) && (text.match(/\b\d{1,2}:\d{2}\s?(AM|PM)\b/gi) ?? []).every((x) => x === "3:30 PM"));
     await page.goto(`${WEB}/${loc}/events/gala-night/book`, { waitUntil: "networkidle" });
     await until(async () => (await page.locator("main").innerText()).length > 50);
     check(`${loc} book page: not available while closed — no form, no payment button`, (await page.locator("main input").count()) === 0 && (await page.getByRole("button", { name: /payment|الدفع/i }).count()) === 0);
@@ -138,8 +153,10 @@ try {
   }
   // unknown route → localized 404
   ({ ctx, page } = await open());
-  const nf = await page.goto(`${WEB}/en/does-not-exist`, { waitUntil: "networkidle" });
-  check("unknown page → 404 with the localized not-found page", nf?.status() === 404 && /not found/i.test(await page.locator("body").innerText()));
+  for (const [loc, txt] of [["en", /Page not found/], ["ar", /الصفحة غير موجودة/]]) {
+    const nf = await page.goto(`${WEB}/${loc}/does-not-exist/deeper`, { waitUntil: "networkidle" });
+    check(`${loc}: unknown page → 404 with the branded, localized not-found page`, nf?.status() === 404 && txt.test(await page.locator("body").innerText()) && (await page.locator("main a").first().getAttribute("href")) === `/${loc}`);
+  }
   await ctx.close();
 } catch (e) {
   check(`unexpected error: ${e.message.split("\n").slice(0, 3).join(" | ")}`, false);

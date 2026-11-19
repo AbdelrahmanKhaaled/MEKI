@@ -14,11 +14,13 @@
   --color-line: #e3e9e5;
   --color-ink: #13241f;
   --color-body: #46564e;
-  --color-muted: #7b8a83;
+  /* Phase 9B (WCAG 1.4.3): muted / ok / warn darkened within the same hue so small text passes 4.5:1 on white, on the page
+     background and on their own 10 % tints (were 3.4 / 3.6 / 3.0:1). Originals: #7b8a83, #1f8a5b, #b7791f. */
+  --color-muted: #66736d;
   --color-mint: #cfe0d6;
   /* semantic */
-  --color-ok: #1f8a5b;
-  --color-warn: #b7791f;
+  --color-ok: #1a744c;
+  --color-warn: #8b5c18;
   --color-danger: #b4372f;
   --color-info: #2b6cb0;
 

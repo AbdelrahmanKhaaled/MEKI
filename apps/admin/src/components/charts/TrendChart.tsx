@@ -4,16 +4,19 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { bucketLabel, formatMoney } from "@/lib/format";
 import type { TrendPoint } from "@/lib/metrics";
 import { useLocale } from "@/components/common/Providers";
+import { ChartTable } from "./ChartTable";
 
-export const CHART = { green: "#0b3b30", teal: "#008066", gold: "#d6a146", mint: "#7fb8a4", grid: "#e3e9e5", axis: "#7b8a83" };
+export const CHART = { green: "#0b3b30", teal: "#008066", gold: "#d6a146", mint: "#7fb8a4", grid: "#e3e9e5", axis: "#66736d" };
 
 /** Chart container is LTR for predictable SVG text; RTL is applied by mirroring the axes and tooltip alignment. */
-export function TrendChart({ data, currency, labels }: { data: TrendPoint[]; currency: string; labels: { gross: string; net: string } }) {
+export function TrendChart({ data, currency, labels, caption, periodLabel }: { data: TrendPoint[]; currency: string; labels: { gross: string; net: string }; caption?: string; periodLabel?: string }) {
   const { locale, rtl } = useLocale();
   return (
-    <div dir="ltr" className="h-64 w-full" role="img" aria-label={`${labels.gross} / ${labels.net}`}>
+    <>
+    <ChartTable caption={caption ?? `${labels.gross} / ${labels.net}`} columns={[periodLabel ?? "", labels.gross, labels.net]} rows={data.map((p) => ({ label: bucketLabel(p.key, locale), values: [formatMoney(p.gross, currency, locale), formatMoney(p.net, currency, locale)] }))} />
+    <div dir="ltr" className="h-64 w-full" aria-hidden="true">
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-        <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+        <AreaChart accessibilityLayer={false} data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id="gGross" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={CHART.teal} stopOpacity={0.35} />
@@ -47,6 +50,7 @@ export function TrendChart({ data, currency, labels }: { data: TrendPoint[]; cur
         </AreaChart>
       </ResponsiveContainer>
     </div>
+    </>
   );
 }
 

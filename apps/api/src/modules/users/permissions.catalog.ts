@@ -59,6 +59,9 @@ export const PERMISSIONS = {
   'gala.tickets.manage': { group: 'gala', description: 'Revoke tickets and re-issue (rotate QR) tickets' },
   'gala.checkin.validate': { group: 'gala', description: 'Scan/validate QR tickets at the door and view check-in statistics' },
   'gala.checkin.manage': { group: 'gala', description: 'Manual check-in and undo an erroneous check-in' },
+  // Phase 12 — SDI hosted forms: payments, tickets and check-in happen on SDI's Zeffy forms; MEKI reconciles SDI's daily reports
+  'sdi.reports.upload': { group: 'finance', description: 'Upload, map and preview SDI reconciliation/attendee reports (no financial effect)' },
+  'sdi.reports.approve': { group: 'finance', description: 'Apply a previewed SDI report and verify mappings (not your own upload)' },
 } as const;
 
 export type PermissionKey = keyof typeof PERMISSIONS;
@@ -153,6 +156,13 @@ export const PERMISSION_GRANTS: { version: string; grants: Partial<Record<string
         'gala.tickets.read', 'gala.tickets.manage', 'gala.checkin.validate', 'gala.checkin.manage',
       ],
       FINANCE_MANAGER: FINANCE_GALA,
+    },
+  },
+  {
+    version: '2026-11-19-phase12-sdi-reports',
+    grants: {
+      ADMINISTRATOR: ['sdi.reports.upload', 'sdi.reports.approve'],
+      FINANCE_MANAGER: ['sdi.reports.upload'],
     },
   },
 ];

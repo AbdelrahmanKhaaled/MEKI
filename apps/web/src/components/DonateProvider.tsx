@@ -18,6 +18,8 @@ export type CheckoutChoice = {
   slug?: string;
   /** Human-readable summary shown in the dialog */
   summary: string;
+  /** Phase 11A: attribution source recorded with the donation (defaults to the homepage quick-donate form) */
+  source?: string;
 };
 
 export type Selection = { amount?: string; frequency?: string; destination?: string; checkout?: CheckoutChoice } | null;
@@ -194,7 +196,7 @@ function CheckoutStep({ t, locale, choice, testMode, onClose }: { t: Dict; local
       marketingConsent: form.marketing,
       isAnonymous: form.anonymous,
       locale,
-      attribution: { source: "landing-quick-donate" },
+      attribution: { source: choice.source ?? "landing-quick-donate" },
     };
     try {
       let created: CreatedDonation;

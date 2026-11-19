@@ -13,6 +13,13 @@ export function robotsRules(indexing: boolean, origin: URL | undefined) {
   };
 }
 
+/** Phase 11A: one entry per programme page (English URL with Arabic alternate). */
+export function programmeSitemapEntries(origin: URL | undefined, slugs: string[]) {
+  if (!origin) return [];
+  const abs = (locale: string, slug: string) => new URL(`/${locale}/programs/${slug}`, origin).toString();
+  return slugs.map((slug) => ({ url: abs("en", slug), alternates: { languages: { en: abs("en", slug), ar: abs("ar", slug) } } }));
+}
+
 export function sitemapEntries(origin: URL | undefined, pagePath: Record<(typeof SITEMAP_PAGES)[number], string>) {
   if (!origin) return []; // no absolute origin known (production build without NEXT_PUBLIC_SITE_URL) → never localhost URLs
   const abs = (locale: string, key: (typeof SITEMAP_PAGES)[number]) => new URL(`/${locale}${pagePath[key]}`, origin).toString();

@@ -20,7 +20,7 @@ import { D, formatAmount } from '../donations/money';
 import { PaymentProviderRegistry } from '../donations/payments/payment-provider.registry';
 import { calendarAvailability } from './calendar';
 import { GalaEmailComposer } from './gala-email.composer';
-import { BookingAccess, GALA_NOTIFIER, sanitizeError, type GalaNotifier } from './gala-support';
+import { assertMekiIssued, BookingAccess, GALA_NOTIFIER, sanitizeError, type GalaNotifier } from './gala-support';
 import {
   calculateTotal,
   canTransitionBooking,
@@ -33,7 +33,7 @@ import {
   normalizeName,
   phoneIsValid,
 } from './gala.rules';
-import type { BookingQueryDto, CreateBookingDto, FinancialQueryDto, UpdateBookingDto } from './gala.dto';
+import type { BookingQueryDto, CreateBookingDto, CreateHostedBookingDto, FinancialQueryDto, UpdateBookingDto } from './gala.dto';
 import { GalaJobsService } from './gala-jobs.service';
 import { TicketsService } from './tickets.service';
 import { isPrintableGuestName } from './ticket-text';
@@ -50,6 +50,8 @@ export class GalaRuleViolation extends UnprocessableEntityException {
 const adminBookingSelect = {
   id: true,
   publicReference: true,
+  ticketIssuer: true, // Phase 12: ZEFFY = tickets/QR/check-in owned by Zeffy (no MEKI ticket actions)
+  reportedTicketCount: true,
   eventId: true,
   purchaserName: true,
   purchaserEmail: true,
@@ -118,21 +120,103 @@ export class BookingsService {
     const [taken, { available }] = await Promise.all([cfg.capacity ? this.seatsTaken(this.prisma, event.id) : Promise.resolve(0), this.donationConfig.availability()]);
     const soldOut = cfg.capacity !== null && taken >= cfg.capacity;
     const cal = calendarAvailability(event);
+    const hosted = this.hostedGate(cfg.salesEnabled && !soldOut);
     return {
+      /** Phase 12: 'zeffy_hosted' = book a MEKI reference here, pay and receive tickets on SDI's Zeffy form */
+      mode: this.config.get('GALA_TICKETING_MODE'),
+      hosted,
       event: { slug: event.slug, name: cfg.displayNameEn, dateLabel: cfg.eventDateLabelEn, venue: cfg.venueLabelEn },
       ticket: { name: cfg.ticketNameEn, type: 'INDIVIDUAL', price: D(cfg.ticketPrice).toFixed(2), currency: cfg.currency, tablesAvailable: false, perGuest: true },
       classification: 'EVENT_TICKET_PAYMENT',
       salesOpen: cfg.salesEnabled && !soldOut,
       soldOut,
       maxTicketsPerBooking: cfg.maxTicketsPerBooking,
-      checkoutAvailable: available,
+      // MEKI-created checkout sessions exist only in the legacy/development mode
+      checkoutAvailable: this.config.get('GALA_TICKETING_MODE') === 'zeffy_hosted' ? false : available,
       calendar: cal.available ? { available: true, url: this.composer.calendarUrl(event.slug) } : { available: false, reason: cal.reason },
+    };
+  }
+
+  /** Phase 12: availability of the SDI hosted Gala form (env switch + approved form URL + admin sales switch). */
+  private hostedGate(salesOpen: boolean) {
+    if (this.config.get('GALA_TICKETING_MODE') !== 'zeffy_hosted') return null;
+    const formUrl = this.config.get('ZEFFY_GALA_TICKET_FORM_URL') ?? null;
+    const available = this.config.get('GALA_HOSTED_SALES_ENABLED') && !!formUrl && salesOpen;
+    return {
+      available,
+      /** only when available — the SDI-approved Zeffy ticketing form */
+      formUrl: available ? formUrl : null,
+      referenceQuestion: this.config.get('SDI_BOOKING_REFERENCE_QUESTION'),
+      referenceFormat: 'EB-XXXXXXXXXXXX',
+      ticketsIssuedBy: 'ZEFFY' as const,
+      /** no URL prefill is assumed: the buyer copies the reference into SDI's custom question */
+      referencePrefill: false,
     };
   }
 
   // ───────────────────────── public: create ─────────────────────────
 
+  /**
+   * Phase 12 — SDI hosted model. Creates a PENDING booking that only reserves a MEKI reference (no guests, no MEKI tickets, no
+   * capacity hold: Zeffy sells and counts the tickets). Payment, tickets, QR codes and receipts happen on SDI's Zeffy form; the
+   * booking is confirmed only from an approved SDI reconciliation report — never from a redirect.
+   */
+  async createHosted(slug: string, dto: CreateHostedBookingDto, idempotencyKey: string | undefined) {
+    if (!idempotencyKey || !KEY_PATTERN.test(idempotencyKey)) {
+      throw new BadRequestException({ message: 'An Idempotency-Key header (16-80 chars, [A-Za-z0-9_-]) is required', code: 'IDEMPOTENCY_KEY_REQUIRED' });
+    }
+    if (this.config.get('GALA_TICKETING_MODE') !== 'zeffy_hosted') throw new GalaRuleViolation('Hosted booking is not used in this environment', 'HOSTED_BOOKING_DISABLED');
+    const requestHash = createHash('sha256').update(canonical({ slug, hosted: true, ...dto })).digest('hex');
+    const existing = await this.prisma.eventBooking.findUnique({ where: { idempotencyKey } });
+    if (existing) return { ...this.replay(existing, requestHash), hosted: this.hostedGate(true) };
+
+    const event = await this.publicEvent(slug);
+    const cfg = event.ticketConfig;
+    const gate = this.hostedGate(!!cfg?.salesEnabled);
+    if (!cfg || !gate?.available) throw new GalaRuleViolation('Ticket sales are not open for this event', 'TICKET_SALES_CLOSED');
+    const n = dto.ticketCount;
+    if (n > cfg.maxTicketsPerBooking) throw new GalaRuleViolation(`At most ${cfg.maxTicketsPerBooking} tickets can be booked at once`, 'TOO_MANY_TICKETS', { max: cfg.maxTicketsPerBooking });
+    if (!isPrintableGuestName(normalizeName(dto.purchaser.fullName))) throw new GalaRuleViolation('Names must use Latin or Arabic letters', 'UNSUPPORTED_NAME_CHARACTERS', { indexes: [0] });
+    const unitPrice = D(cfg.ticketPrice);
+    try {
+      const booking = await this.prisma.$transaction(async (tx) => {
+        const created = await tx.eventBooking.create({
+          data: {
+            publicReference: generateBookingReference(),
+            accessTokenHash: '0'.repeat(64),
+            idempotencyKey,
+            idempotencyRequestHash: requestHash,
+            eventId: event.id,
+            purchaserName: normalizeName(dto.purchaser.fullName),
+            purchaserEmail: normalizeEmail(dto.purchaser.email),
+            purchaserPhone: '', // collected by Zeffy, not MEKI (data minimisation)
+            guestCount: n, // intention only; SDI's report is authoritative for the paid count
+            unitPrice,
+            totalAmount: calculateTotal(unitPrice, n), // expected amount used for reconciliation, never charged by MEKI
+            currency: cfg.currency,
+            ticketIssuer: 'ZEFFY',
+            paymentProvider: 'sdi_hosted',
+            isTest: this.config.get('NODE_ENV') !== 'production',
+            locale: dto.locale ?? 'en',
+          },
+        });
+        return tx.eventBooking.update({ where: { id: created.id }, data: { accessTokenHash: this.access.hash(this.access.tokenFor(created.id)) } });
+      });
+      this.logger.log(`booking.hosted_created ref=${booking.publicReference} intended=${n} test=${booking.isTest}`);
+      return { ...this.createdView(booking), hosted: gate };
+    } catch (e) {
+      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+        const raced = await this.prisma.eventBooking.findUnique({ where: { idempotencyKey } });
+        if (raced) return { ...this.replay(raced, requestHash), hosted: gate };
+      }
+      throw e;
+    }
+  }
+
   async create(slug: string, dto: CreateBookingDto, idempotencyKey: string | undefined) {
+    if (this.config.get('GALA_TICKETING_MODE') === 'zeffy_hosted') {
+      throw new GalaRuleViolation('Bookings are made on SDI\'s hosted ticket form; request a booking reference instead', 'HOSTED_BOOKING_REQUIRED');
+    }
     if (!idempotencyKey || !KEY_PATTERN.test(idempotencyKey)) {
       throw new BadRequestException({ message: 'An Idempotency-Key header (16-80 chars, [A-Za-z0-9_-]) is required', code: 'IDEMPOTENCY_KEY_REQUIRED' });
     }
@@ -261,8 +345,10 @@ export class BookingsService {
     const confirmed = b.bookingStatus === 'CONFIRMED' && b.paymentStatus === 'PAID';
     const cfg = b.event.ticketConfig;
     const cal = calendarAvailability(b.event);
+    const zeffy = b.ticketIssuer === 'ZEFFY';
     let message: string;
-    if (confirmed) message = 'confirmed';
+    if (confirmed) message = zeffy ? 'confirmed_by_sdi' : 'confirmed';
+    else if (zeffy && b.bookingStatus === 'PENDING') message = 'awaiting_sdi_report';
     else if (b.bookingStatus === 'CANCELLED') message = 'cancelled';
     else if (b.bookingStatus === 'REFUNDED') message = 'refunded';
     else if (b.bookingStatus === 'REFUND_PENDING') message = 'refund_pending';
@@ -276,13 +362,16 @@ export class BookingsService {
       /** true only after a verified provider event — never from the browser return URL */
       confirmed,
       message,
-      ticketCount: b.guestCount,
+      ticketCount: b.reportedTicketCount ?? b.guestCount,
       totalAmount: D(b.totalAmount).toFixed(2),
       currency: b.currency,
       classification: b.classification,
+      /** Phase 12: ZEFFY = tickets, QR codes and receipts come from Zeffy by e-mail; MEKI never issues them */
+      ticketIssuer: b.ticketIssuer,
+      hosted: zeffy && b.bookingStatus === 'PENDING' ? this.hostedGate(!!cfg?.salesEnabled) : null,
       event: cfg ? { slug: b.event.slug, name: cfg.displayNameEn, dateLabel: cfg.eventDateLabelEn, venue: cfg.venueLabelEn } : null,
       calendar: cal.available ? { available: true, url: this.composer.calendarUrl(b.event.slug) } : { available: false, reason: cal.reason },
-      tickets: confirmed
+      tickets: confirmed && !zeffy
         ? b.tickets.map((t) => ({ ticketNumber: t.ticketNumber, status: t.status, pdfReady: t.pdfStorageKey !== null, downloadPath: `/api/v1/public/bookings/${b.publicReference}/tickets/${t.ticketNumber}/pdf` }))
         : [],
     };
@@ -299,6 +388,9 @@ export class BookingsService {
    */
   async createCheckout(reference: string, token: string | undefined) {
     const b = await this.findForPurchaser(reference, token);
+    if (b.ticketIssuer === 'ZEFFY' || this.config.get('GALA_TICKETING_MODE') === 'zeffy_hosted') {
+      throw new GalaRuleViolation('Payment for this booking is made on SDI\'s hosted Zeffy form', 'PAYMENT_ON_HOSTED_FORM');
+    }
     if (b.paymentStatus === 'PAID' || b.bookingStatus === 'CONFIRMED') throw new ConflictException({ message: 'This booking is already paid', code: 'BOOKING_ALREADY_PAID' });
     if (b.bookingStatus !== 'PENDING') throw new GalaRuleViolation('This booking can no longer be paid', 'BOOKING_NOT_PAYABLE');
     const cfg = b.event.ticketConfig;
@@ -432,6 +524,19 @@ export class BookingsService {
       attempts: attempts.map((a) => ({ ...a, amount: D(a.amount).toFixed(2) })),
       transactions: transactions.map((t) => ({ ...t, amount: D(t.amount).toFixed(2) })),
       jobs: await this.jobs.jobsFor(b.id),
+      /** Phase 12: what SDI's reports say about this booking (orders + latest report rows); empty for MEKI-issued bookings */
+      sdi: await this.sdiView(b.id, b.publicReference),
+    };
+  }
+
+  private async sdiView(bookingId: string, reference: string) {
+    const [orders, rows] = await Promise.all([
+      this.prisma.providerPayment.findMany({ where: { provider: 'sdi_report', OR: [{ matchedEntityType: 'EventBooking', matchedEntityId: bookingId }, { correlationRef: reference }] }, orderBy: { providerCreatedAt: 'asc' } }),
+      this.prisma.providerReportRow.findMany({ where: { OR: [{ bookingId }, { bookingReference: reference }] }, orderBy: { createdAt: 'desc' }, take: 20, include: { import: { select: { id: true, status: true, uploadedAt: true, isSynthetic: true } } } }),
+    ]);
+    return {
+      orders: orders.map((o) => ({ orderId: o.providerPaymentId, status: o.status, amount: D(o.amount).toFixed(2), refundedAmount: D(o.refundedAmount).toFixed(2), currency: o.currency, matchStatus: o.matchStatus, linked: o.matchedEntityId === bookingId, reportedAt: o.lastSyncedAt })),
+      reportRows: rows.map((r) => ({ importId: r.importId, importStatus: r.import.status, synthetic: r.import.isSynthetic, rowNumber: r.rowNumber, orderId: r.sourceOrderId, status: r.status, matchStatus: r.matchStatus, note: r.matchNote, applied: r.applied, amount: r.amount ? D(r.amount).toFixed(2) : null, occurredAt: r.occurredAt })),
     };
   }
 
@@ -526,6 +631,7 @@ export class BookingsService {
   async regenerateTickets(eventId: string, bookingId: string, actor: ActorContext) {
     const b = await this.prisma.eventBooking.findFirst({ where: { id: bookingId, eventId }, select: { id: true, bookingStatus: true, paymentStatus: true } });
     if (!b) throw new NotFoundException('Booking not found');
+    await assertMekiIssued(this.prisma, b.id); // Phase 12: Zeffy owns these tickets
     if (b.bookingStatus !== 'CONFIRMED' || b.paymentStatus !== 'PAID') throw new GalaRuleViolation('Tickets exist only for confirmed, paid bookings', 'BOOKING_NOT_CONFIRMED');
     const r = await this.tickets.regenerateMissing(b.id, actor);
     await this.audit.record(actor, 'gala.booking.regenerate_tickets', 'EventBooking', b.id, r);

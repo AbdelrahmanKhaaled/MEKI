@@ -5,6 +5,10 @@ import { Public } from '../../common/decorators';
 import { LocaleQueryDto } from '../../common/dto/shared.dto';
 import { localize } from '../../common/utils/localize';
 import { CampaignsService } from '../campaigns/campaigns.service';
+import { DonationsModule } from '../donations/donations.module';
+import { AppConfigService } from '../../config/app-config.service';
+import { parseProgrammeFormUrls } from '../../config/env.validation';
+import { ProgrammeDetailService } from './programme-detail.service';
 import { CmsService } from '../cms/cms.service';
 import { FaqService } from '../faq/faq.module';
 import { MediaService } from '../media/media.service';
@@ -38,7 +42,30 @@ export class PublicController {
     private readonly stats: StatisticsService,
     private readonly faq: FaqService,
     private readonly media: MediaService,
+    private readonly programmeDetail: ProgrammeDetailService,
+    private readonly appConfig: AppConfigService,
   ) {}
+
+  /**
+   * Phase 12 — SDI hosted forms the public site may link to. Only SDI-approved Zeffy URLs from configuration, and only where the
+   * matching switch is on. Programme giving additionally requires SDI to have confirmed how the designation is captured.
+   */
+  @Get('hosted-forms')
+  @Header('Cache-Control', CACHE)
+  @ApiOperation({ summary: 'SDI hosted-form availability: general giving, programme giving (per slug) — URLs only when enabled and SDI-approved' })
+  async hostedForms() {
+    const c = this.appConfig;
+    const general = c.get('SDI_GENERAL_GIVING_ENABLED') && !!c.get('ZEFFY_DONATION_FORM_URL');
+    const programmeOn = c.get('SDI_PROGRAMME_GIVING_ENABLED') && c.get('SDI_PROGRAMME_DESIGNATION_CONFIRMED');
+    const urls = parseProgrammeFormUrls(c.get('SDI_PROGRAMME_FORM_URLS'));
+    const programmes = (await this.programmes.listPublished()).filter((p) => p.kind === 'PROGRAMME');
+    return {
+      mode: 'sdi_hosted_forms',
+      general: { available: general, url: general ? c.get('ZEFFY_DONATION_FORM_URL') : null },
+      programmeDesignationConfirmed: c.get('SDI_PROGRAMME_DESIGNATION_CONFIRMED'),
+      programmes: programmes.map((p) => ({ slug: p.slug, code: p.code, available: programmeOn && !!urls[p.slug], url: programmeOn && urls[p.slug] ? urls[p.slug] : null })),
+    };
+  }
 
   private async siteView() {
     const s = await this.settings.getSite();
@@ -130,6 +157,18 @@ export class PublicController {
     return localize(await this.programmes.listPublished(), q.locale);
   }
 
+  /**
+   * Phase 11A: the single programme page in one response — programme, approved goal + verified fundraising summary, published
+   * causes with their approved campaigns, verified programme statistics and the consent-filtered gallery. 404 unless PUBLISHED
+   * and not DEMO. Declared before programmes/:slug so the more specific route wins.
+   */
+  @Get('programmes/:slug/detail')
+  @Header('Cache-Control', CACHE)
+  @ApiOperation({ summary: 'Programme page: approved goal, verified collected totals (per currency), published causes and campaigns' })
+  async programmePage(@Param('slug') slug: string, @Query() q: LocaleQueryDto) {
+    return localize(await this.programmeDetail.detail(slug), q.locale);
+  }
+
   @Get('programmes/:slug')
   @Header('Cache-Control', CACHE)
   async programme(@Param('slug') slug: string, @Query() q: LocaleQueryDto) {
@@ -163,5 +202,5 @@ export class PublicController {
   }
 }
 
-@Module({ controllers: [PublicController] })
+@Module({ imports: [DonationsModule], controllers: [PublicController], providers: [ProgrammeDetailService] })
 export class PublicModule {}

@@ -121,7 +121,8 @@ export function DataTable<T>({ rows, columns, rowKey, dimmed = false, minW = "mi
   return (
     <>
       {/* ≥ md: real table, horizontally scrollable inside its card */}
-      <div className="-mx-5 hidden overflow-x-auto sm:-mx-6 md:block">
+      {/* focusable, named scroll region: keyboard users can scroll a wide table even when its rows hold no links (WCAG 2.1.1) */}
+      <div tabIndex={0} role="region" aria-label={caption} className="-mx-5 hidden overflow-x-auto outline-none focus-visible:ring-2 focus-visible:ring-meki-green sm:-mx-6 md:block">
         <table className={`w-full ${minW} text-start text-sm`}>
           <caption className="sr-only">{caption}</caption>
           <thead>

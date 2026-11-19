@@ -54,6 +54,9 @@ function Detail({ ev, b }: { ev: GalaEvent; b: BookingDetail }) {
   const rgG = regenerateGate(b, can("gala.tickets.manage"));
   const close = () => { cancel.reset(); resend.reset(); regen.reset(); setDialog(null); };
   const canEdit = can("gala.bookings.manage") && (b.bookingStatus === "PENDING" || b.bookingStatus === "CONFIRMED");
+  // Phase 12: Zeffy owns tickets, PDFs, QR codes, e-mails and check-in for hosted bookings — MEKI's ticket actions are not offered.
+  const zeffy = b.ticketIssuer === "ZEFFY";
+  const z = t.sdi.booking;
 
   return (
     <>
@@ -63,8 +66,8 @@ function Detail({ ev, b }: { ev: GalaEvent; b: BookingDetail }) {
         badges={<><GalaBadge kind="booking" status={b.bookingStatus} /><GalaBadge kind="bookingPayment" status={b.paymentStatus} />{b.isTest && <TestBadge />}</>}
         right={
           <span className="flex flex-wrap gap-2">
-            <button type="button" className="btn-admin btn-ghost" disabled={!rsG.allowed} onClick={() => setDialog("resend")}><Send className="size-4" aria-hidden="true" /> {x.resend}</button>
-            <button type="button" className="btn-admin btn-ghost" disabled={!rgG.allowed} onClick={() => setDialog("regenerate")}><FileCog className="size-4" aria-hidden="true" /> {x.regenerate}</button>
+            {!zeffy && <button type="button" className="btn-admin btn-ghost" disabled={!rsG.allowed} onClick={() => setDialog("resend")}><Send className="size-4" aria-hidden="true" /> {x.resend}</button>}
+            {!zeffy && <button type="button" className="btn-admin btn-ghost" disabled={!rgG.allowed} onClick={() => setDialog("regenerate")}><FileCog className="size-4" aria-hidden="true" /> {x.regenerate}</button>}
             <button type="button" className="btn-admin btn-ghost text-danger" disabled={!cG.allowed} onClick={() => setDialog("cancel")}><Ban className="size-4" aria-hidden="true" /> {x.cancel}</button>
           </span>
         }
@@ -72,6 +75,7 @@ function Detail({ ev, b }: { ev: GalaEvent; b: BookingDetail }) {
       {msg && <p className="rounded-lg bg-ok/10 p-3 text-sm text-ok" role="status">{msg}</p>}
       {b.isTest && <Notice tone="warn">{x.testBooking}</Notice>}
       <Notice><p>{x.financeNote} {c.noTokens}</p></Notice>
+      {zeffy && <Notice tone="gold"><p data-testid="zeffy-owned">{z.zeffyNote}</p></Notice>}
       {!cG.allowed && b.bookingStatus !== "CANCELLED" && b.bookingStatus !== "REFUNDED" && <GalaGateNotice gate={cG} title={x.cancel} />}
 
       <div className="grid gap-4 xl:grid-cols-12">
@@ -88,11 +92,15 @@ function Detail({ ev, b }: { ev: GalaEvent; b: BookingDetail }) {
                 [x.refunded, <Money key="rf" value={b.refundedAmount} currency={b.currency} />],
                 [x.paidAt, <DateText key="p" value={b.paidAt} />],
                 [x.locale, b.locale.toUpperCase()],
+                [z.issuer, zeffy ? z.zeffy : z.meki],
+                ...(zeffy ? ([[z.reported, b.reportedTicketCount != null ? <span key="rt" className="num">{b.reportedTicketCount}</span> : z.pendingReport]] as [string, React.ReactNode][]) : []),
                 ...(b.cancelledAt ? ([[x.cancelledAt, <DateText key="c" value={b.cancelledAt} />], [x.cancelReason, <bdi key="cr">{b.cancelReason ?? "—"}</bdi>]] as [string, React.ReactNode][]) : []),
               ]}
             />
           </Card>
 
+          {zeffy && <SdiCard b={b} />}
+          {!zeffy && (
           <Card labelledBy="bd-g">
             <CardHeader id="bd-g" title={x.guests} />
             <ol className="space-y-3" data-testid="booking-guests">
@@ -124,6 +132,7 @@ function Detail({ ev, b }: { ev: GalaEvent; b: BookingDetail }) {
               ))}
             </ol>
           </Card>
+          )}
 
           <Card labelledBy="bd-p">
             <CardHeader id="bd-p" title={x.paymentInfo} subtitle={t.gala.common.ticketRevenue} />
@@ -248,6 +257,44 @@ function GuestDialog({ ev, b, g, onClose }: { ev: GalaEvent; b: BookingDetail; g
         <TextArea label={x.dietary} value={v.dietaryRequirements} onChange={(s) => setV({ ...v, dietaryRequirements: s })} rows={2} maxLength={500} />
       </div>
     </Modal>
+  );
+}
+
+/** Phase 12: SDI orders and report rows for a Zeffy-owned booking (read-only; changes only through an approved SDI report). */
+function SdiCard({ b }: { b: BookingDetail }) {
+  const { t, locale } = useLocale();
+  const z = t.sdi.booking;
+  const orders = b.sdi?.orders ?? [];
+  const rows = b.sdi?.reportRows ?? [];
+  return (
+    <Card labelledBy="bd-sdi">
+      <CardHeader id="bd-sdi" title={z.orders} subtitle={t.sdi.noApi} />
+      {orders.length === 0 ? <p className="text-sm text-muted">{z.noOrders}</p> : (
+        <ul className="space-y-2 text-sm" data-testid="booking-sdi-orders">
+          {orders.map((o) => (
+            <li key={o.orderId} className="flex flex-wrap items-center gap-2 rounded-lg bg-bg p-2">
+              <Ref>{o.orderId}</Ref><span className="font-bold">{o.status}</span><Money value={o.amount} currency={o.currency} />
+              {o.refundedAmount !== "0.00" && <span className="text-danger">− <Money value={o.refundedAmount} currency={o.currency} /></span>}
+              <span className={o.linked ? "text-ok" : "text-warn"}>{o.linked ? z.linked : z.notLinked}</span><span className="text-muted"><DateText value={o.reportedAt} /></span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <h3 className="mb-2 mt-5 text-sm font-bold text-ink">{z.reportRows}</h3>
+      {rows.length === 0 ? <p className="text-sm text-muted">{z.noReportRows}</p> : (
+        <ul className="space-y-2 text-xs">
+          {rows.map((r) => (
+            <li key={`${r.importId}-${r.rowNumber}`} className="flex flex-wrap items-center gap-2 rounded-lg bg-bg p-2">
+              <a className="font-bold text-meki-green-dark underline-offset-4 hover:underline" href={`/${locale}/payments/sdi-reconciliation/${r.importId}`}>#{r.rowNumber}</a>
+              {r.orderId && <Ref>{r.orderId}</Ref>}<span>{r.status ?? "—"}</span>{r.amount && <Money value={r.amount} currency="USD" />}
+              <span className="font-bold">{t.sdi.rowStatuses[r.matchStatus] ?? r.matchStatus}</span>{r.applied && <span className="text-ok">✓</span>}
+              {r.synthetic && <span className="font-bold uppercase text-warn">{t.sdi.synthetic}</span>}
+              {r.note && <span className="w-full text-muted">{r.note}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   );
 }
 

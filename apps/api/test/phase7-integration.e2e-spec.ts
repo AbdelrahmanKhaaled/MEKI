@@ -45,6 +45,18 @@ describe('Phase 7 — Gala end-to-end integration across modules', () => {
     await ctx.app.close();
   });
 
+  it('CORS: the public booking headers are allowed for the website origin (browser preflight), other origins are not', async () => {
+    const origin = (process.env.CORS_ORIGINS ?? 'http://localhost:3000').split(',')[0].trim();
+    for (const path of ['/public/bookings/EB-AAAAAAAAAAAA/status', '/public/bookings/EB-AAAAAAAAAAAA/checkout', '/public/events/x/bookings']) {
+      const pre = await ctx.http().options(`${API}${path}`).set('Origin', origin).set('Access-Control-Request-Method', path.endsWith('status') ? 'GET' : 'POST').set('Access-Control-Request-Headers', 'x-booking-token,idempotency-key,content-type');
+      expect(pre.status).toBeLessThan(300);
+      expect(pre.headers['access-control-allow-origin']).toBe(origin);
+      expect(String(pre.headers['access-control-allow-headers']).toLowerCase()).toEqual(expect.stringContaining('x-booking-token'));
+    }
+    const evil = await ctx.http().options(`${API}/public/bookings/EB-AAAAAAAAAAAA/status`).set('Origin', 'https://evil.example').set('Access-Control-Request-Method', 'GET').set('Access-Control-Request-Headers', 'x-booking-token');
+    expect(evil.headers['access-control-allow-origin']).toBeUndefined();
+  });
+
   it('booking → verified payment → tickets → e-mail → check-in → attendance → refund', async () => {
     // fixture event (isolated, never Gala Night)
     const id = uid();

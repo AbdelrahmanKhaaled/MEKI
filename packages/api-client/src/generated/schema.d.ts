@@ -641,6 +641,39 @@ export interface paths {
         patch: operations["ProgrammesController_updateProject_v1"];
         trace?: never;
     };
+    "/api/v1/admin/projects/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish a Cause (project) on its programme page — never DEMO; programme must be published */
+        post: operations["ProgrammesController_publishProject_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/projects/{id}/unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ProgrammesController_unpublishProject_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/campaigns": {
         parameters: {
             query?: never;
@@ -2159,6 +2192,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/events/{slug}/hosted-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a PENDING booking reference for SDI's hosted Zeffy ticket form. No payment, guest list or MEKI ticket; confirmation only via an approved SDI report. */
+        post: operations["PublicEventTicketsController_createHosted_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/events/{slug}/calendar.ics": {
         parameters: {
             query?: never;
@@ -2633,6 +2683,308 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/integrations/zeffy/webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Zeffy webhook (payment.completed/created/updated/deleted). Signature verified on the raw body; events stored once per Zeffy event id. */
+        post: operations["ZeffyWebhookController_receive_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/integrations/zeffy/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Runtime status: configuration flags (never values), live API check, verified webhook deliveries, last reconciliation, review queue */
+        get: operations["AdminZeffyController_status_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/integrations/zeffy/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Provider payments read from SDI’s Zeffy account, with their correlation state (no personal data) */
+        get: operations["AdminZeffyController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/integrations/zeffy/reconcile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Read recent payments from Zeffy (GET only) and re-evaluate them. Idempotent; audited. */
+        post: operations["AdminZeffyController_reconcile_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/integrations/zeffy/payments/{id}/recheck": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Re-read one payment from Zeffy and re-apply the same correlation rules (never marks anything paid by hand) */
+        post: operations["AdminZeffyController_recheck_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sdi/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Integration mode, availability switches (no secrets), last applied report, review backlog, missing business days */
+        get: operations["SdiReportsController_status_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sdi/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SdiReportsController_list_v1"];
+        put?: never;
+        /** Upload an SDI report (.csv / .xlsx, ≤ 5 MB). Stored privately; headers read; NOTHING applied. */
+        post: operations["SdiReportsController_upload_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sdi/reports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SdiReportsController_get_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sdi/reports/{id}/rows": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SdiReportsController_rows_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sdi/reports/{id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate + match every row with a column mapping. Read-only with respect to bookings and money. */
+        post: operations["SdiReportsController_preview_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sdi/reports/{id}/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Apply a previewed report (different administrator; verified mapping; SDI_REPORT_APPLY_ENABLED). One transaction. */
+        post: operations["SdiReportsController_apply_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sdi/reports/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["SdiReportsController_reject_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sdi/reports/{id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reconciliation results as CSV (formula-safe; contains no personal data) */
+        get: operations["SdiReportsController_export_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sdi/mappings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["SdiReportsController_mappings_v1"];
+        put?: never;
+        post: operations["SdiReportsController_createMapping_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sdi/mappings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update a mapping (clears its verification — re-verify against a real sample) */
+        put: operations["SdiReportsController_updateMapping_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sdi/mappings/{id}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Attest the mapping was checked against a REAL SDI sample report (different administrator) */
+        post: operations["SdiReportsController_verifyMapping_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sdi/attendees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Latest applied SDI attendee list (operational; not proof of payment) */
+        get: operations["SdiReportsController_attendees_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/hosted-forms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** SDI hosted-form availability: general giving, programme giving (per slug) — URLs only when enabled and SDI-approved */
+        get: operations["PublicController_hostedForms_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/site": {
         parameters: {
             query?: never;
@@ -2708,6 +3060,23 @@ export interface paths {
             cookie?: never;
         };
         get: operations["PublicController_listProgrammes_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/programmes/{slug}/detail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Programme page: approved goal, verified collected totals (per currency), published causes and campaigns */
+        get: operations["PublicController_programmePage_v1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2805,8 +3174,42 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Liveness + database readiness */
+        /** Readiness: the process is up AND the database answers within 3 s (503 otherwise) */
         get: operations["HealthController_check_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/health/live": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Liveness only (no database call) — for process managers; use /health for load-balancer readiness */
+        get: operations["HealthController_live_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/system/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Operational status: DB latency, background jobs, webhook failures, storage, transports (no secrets) */
+        get: operations["AdminSystemController_status_v1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2859,7 +3262,7 @@ export interface components {
             isActive: boolean;
         };
         UpdateRolePermissionsDto: {
-            permissions: ("users.read" | "users.manage" | "roles.read" | "roles.manage" | "settings.read" | "settings.manage" | "content.read" | "content.manage" | "content.publish" | "programmes.read" | "programmes.manage" | "programmes.publish" | "campaigns.read" | "campaigns.manage" | "campaigns.approve" | "campaigns.publish" | "media.read" | "media.upload" | "media.delete" | "statistics.read" | "statistics.manage" | "statistics.verify" | "statistics.publish" | "faq.read" | "faq.manage" | "faq.publish" | "audit.read" | "donations.read" | "events.read" | "events.manage" | "events.approve" | "events.publish" | "donors.read" | "donors.manage" | "donors.anonymize" | "payments.read" | "payments.manage" | "refunds.request" | "refunds.approve" | "refunds.execute" | "receipts.read" | "receipts.issue" | "receipts.regenerate" | "recurring.read" | "recurring.manage" | "reports.read" | "gala.bookings.read" | "gala.bookings.manage" | "gala.guests.read" | "gala.guests.export" | "gala.tickets.read" | "gala.tickets.manage" | "gala.checkin.validate" | "gala.checkin.manage")[];
+            permissions: ("users.read" | "users.manage" | "roles.read" | "roles.manage" | "settings.read" | "settings.manage" | "content.read" | "content.manage" | "content.publish" | "programmes.read" | "programmes.manage" | "programmes.publish" | "campaigns.read" | "campaigns.manage" | "campaigns.approve" | "campaigns.publish" | "media.read" | "media.upload" | "media.delete" | "statistics.read" | "statistics.manage" | "statistics.verify" | "statistics.publish" | "faq.read" | "faq.manage" | "faq.publish" | "audit.read" | "donations.read" | "events.read" | "events.manage" | "events.approve" | "events.publish" | "donors.read" | "donors.manage" | "donors.anonymize" | "payments.read" | "payments.manage" | "refunds.request" | "refunds.approve" | "refunds.execute" | "receipts.read" | "receipts.issue" | "receipts.regenerate" | "recurring.read" | "recurring.manage" | "reports.read" | "gala.bookings.read" | "gala.bookings.manage" | "gala.guests.read" | "gala.guests.export" | "gala.tickets.read" | "gala.tickets.manage" | "gala.checkin.validate" | "gala.checkin.manage" | "sdi.reports.upload" | "sdi.reports.approve")[];
         };
         MediaMetadataDto: {
             altEn?: string;
@@ -3067,6 +3470,13 @@ export interface components {
             focusAreasAr?: string[];
             icon?: string;
             coverMediaId?: Record<string, never> | null;
+            /**
+             * @description Approved programme goal; null clears it
+             * @example 250000.00
+             */
+            targetAmount?: Record<string, never> | null;
+            /** @example USD */
+            targetCurrency?: Record<string, never> | null;
             sortOrder?: number;
             isFeatured?: boolean;
             /** @enum {string} */
@@ -3099,6 +3509,13 @@ export interface components {
             focusAreasAr?: string[];
             icon?: string;
             coverMediaId?: Record<string, never> | null;
+            /**
+             * @description Approved programme goal; null clears it
+             * @example 250000.00
+             */
+            targetAmount?: Record<string, never> | null;
+            /** @example USD */
+            targetCurrency?: Record<string, never> | null;
             sortOrder?: number;
             isFeatured?: boolean;
             /** @enum {string} */
@@ -3122,6 +3539,12 @@ export interface components {
             locationEn?: string;
             locationAr?: string;
             sourceFolder?: string;
+            summaryEn?: string;
+            summaryAr?: string;
+            descriptionEn?: string;
+            descriptionAr?: string;
+            coverMediaId?: Record<string, never> | null;
+            sortOrder?: number;
             /** @enum {string} */
             provenance?: "VERIFIED_SOURCE" | "PROPOSED" | "DEMO";
             sourceRef?: string;
@@ -3135,6 +3558,12 @@ export interface components {
             locationEn?: string;
             locationAr?: string;
             sourceFolder?: string;
+            summaryEn?: string;
+            summaryAr?: string;
+            descriptionEn?: string;
+            descriptionAr?: string;
+            coverMediaId?: Record<string, never> | null;
+            sortOrder?: number;
             /** @enum {string} */
             provenance?: "VERIFIED_SOURCE" | "PROPOSED" | "DEMO";
             sourceRef?: string;
@@ -3589,6 +4018,20 @@ export interface components {
             /** @description Must be true */
             privacyConsent: boolean;
         };
+        HostedPurchaserDto: {
+            /** @example Amira Hassan */
+            fullName: string;
+            email: string;
+        };
+        CreateHostedBookingDto: {
+            purchaser: components["schemas"]["HostedPurchaserDto"];
+            /** @description Intended number of tickets (the final paid number comes from SDI's report) */
+            ticketCount: number;
+            /** @enum {string} */
+            locale?: "en" | "ar";
+            /** @description Must be true */
+            privacyConsent: boolean;
+        };
         CreateTicketConfigDto: {
             /**
              * @description Price per guest, decimal string
@@ -3641,6 +4084,36 @@ export interface components {
             token: string;
             /** @description true = look up without recording a check-in */
             verifyOnly?: boolean;
+        };
+        ReconcileDto: {
+            /** @description Look back this many days (1–400, default 30) */
+            days?: number;
+        };
+        PreviewReportDto: {
+            /** @description Column mapping (see docs/48). Omit when using mappingProfileId. */
+            mapping?: Record<string, never>;
+            mappingProfileId?: string;
+            /** @example 2026-11-18 */
+            periodFrom?: string;
+            /** @example 2026-11-18 */
+            periodTo?: string;
+            /** @description Earlier import this corrected file replaces */
+            supersedesId?: string;
+        };
+        RejectReportDto: {
+            reason: string;
+        };
+        SaveMappingDto: {
+            /** @enum {string} */
+            kind: "RECONCILIATION" | "ATTENDEES";
+            name: string;
+            mapping: Record<string, never>;
+            /** @description Headers of the file the mapping was built from */
+            headers: string[];
+        };
+        VerifyMappingDto: {
+            /** @description Which REAL SDI sample file this mapping was checked against (name/date) */
+            note: string;
         };
     };
     responses: never;
@@ -4799,6 +5272,44 @@ export interface operations {
                 "application/json": components["schemas"]["UpdateProjectDto"];
             };
         };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProgrammesController_publishProject_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProgrammesController_unpublishProject_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
@@ -7099,6 +7610,32 @@ export interface operations {
             };
         };
     };
+    PublicEventTicketsController_createHosted_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Client-generated unique key (16-80 chars). Replays return the same reference. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateHostedBookingDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     PublicEventTicketsController_calendar_v1: {
         parameters: {
             query?: never;
@@ -7821,6 +8358,435 @@ export interface operations {
             };
         };
     };
+    ZeffyWebhookController_receive_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminZeffyController_status_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminZeffyController_list_v1: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                /** @description Free-text search */
+                search?: string;
+                /** @description field:asc|desc, comma separated */
+                sort?: string;
+                matchStatus?: "UNMATCHED" | "NEEDS_REVIEW" | "MATCHED" | "CONFIRMED" | "IGNORED";
+                classification?: "CHARITABLE_DONATION" | "EVENT_TICKET_PAYMENT";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminZeffyController_reconcile_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReconcileDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminZeffyController_recheck_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SdiReportsController_status_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SdiReportsController_list_v1: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                /** @description Free-text search */
+                search?: string;
+                /** @description field:asc|desc, comma separated */
+                sort?: string;
+                kind?: "RECONCILIATION" | "ATTENDEES";
+                status?: "UPLOADED" | "PREVIEWED" | "APPLIED" | "REJECTED";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SdiReportsController_upload_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file?: string;
+                    /** @enum {string} */
+                    kind?: "RECONCILIATION" | "ATTENDEES";
+                    isSynthetic?: boolean;
+                    notes?: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SdiReportsController_get_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SdiReportsController_rows_v1: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                /** @description Free-text search */
+                search?: string;
+                /** @description field:asc|desc, comma separated */
+                sort?: string;
+                matchStatus?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SdiReportsController_preview_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreviewReportDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SdiReportsController_apply_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SdiReportsController_reject_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectReportDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SdiReportsController_export_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SdiReportsController_mappings_v1: {
+        parameters: {
+            query: {
+                kind: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SdiReportsController_createMapping_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveMappingDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SdiReportsController_updateMapping_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaveMappingDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SdiReportsController_verifyMapping_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyMappingDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SdiReportsController_attendees_v1: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                /** @description Free-text search */
+                search?: string;
+                /** @description field:asc|desc, comma separated */
+                sort?: string;
+                bookingReference?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicController_hostedForms_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     PublicController_site_v1: {
         parameters: {
             query?: {
@@ -7911,6 +8877,28 @@ export interface operations {
             };
             header?: never;
             path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicController_programmePage_v1: {
+        parameters: {
+            query?: {
+                /** @description Flatten bilingual fields for a locale (Arabic falls back to English). Omit for both languages. */
+                locale?: "en" | "ar";
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -8032,6 +9020,40 @@ export interface operations {
         };
     };
     HealthController_check_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    HealthController_live_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminSystemController_status_v1: {
         parameters: {
             query?: never;
             header?: never;

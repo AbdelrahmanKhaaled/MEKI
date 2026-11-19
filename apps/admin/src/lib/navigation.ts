@@ -36,6 +36,10 @@ export const NAV: NavGroup[] = [
       { key: "donorList", icon: "Users", href: "/donors", anyOf: ["donors.read"] },
       { key: "donations", icon: "HandCoins", href: "/donations", anyOf: ["donations.read"] },
       { key: "payments", icon: "CreditCard", href: "/payments", anyOf: ["payments.read", "donations.read"] },
+      // Phase 8A: SDI / Zeffy provider payments (read model + reconciliation) — payments.read; actions need payments.manage
+      { key: "sdiZeffy", icon: "PlugZap", href: "/payments/zeffy", anyOf: ["payments.read"] },
+      // Phase 12: SDI daily report import + reconciliation (upload/preview: sdi.reports.upload; apply: sdi.reports.approve)
+      { key: "sdiReconciliation", icon: "FileSpreadsheet", href: "/payments/sdi-reconciliation", anyOf: ["sdi.reports.upload"] },
       { key: "recurring", icon: "Repeat", href: "/recurring", anyOf: ["recurring.read"] },
       { key: "receipts", icon: "Receipt", href: "/receipts", anyOf: ["receipts.read"] },
     ],
@@ -48,6 +52,8 @@ export const NAV: NavGroup[] = [
       { key: "galaOverview", icon: "Sparkles", href: "/gala", anyOf: ["gala.bookings.read"] },
       { key: "bookings", icon: "ClipboardList", href: "/gala/bookings", anyOf: ["gala.bookings.read"] },
       { key: "guests", icon: "UsersRound", href: "/gala/guests", anyOf: ["gala.guests.read"] },
+      // Phase 12: SDI attendee list (operational; Zeffy issues tickets/QR codes — not proof of payment)
+      { key: "sdiAttendees", icon: "ListChecks", href: "/gala/sdi-attendees", anyOf: ["gala.guests.read"] },
       { key: "tickets", icon: "Ticket", href: "/gala/tickets", anyOf: ["gala.tickets.read"] },
       { key: "checkin", icon: "ScanQrCode", href: "/gala/check-in", anyOf: ["gala.checkin.validate"] },
       { key: "galaExports", icon: "FileDown", href: "/gala/exports", anyOf: ["gala.guests.export"] },

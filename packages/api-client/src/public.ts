@@ -143,6 +143,51 @@ export interface PublicStatistic extends Localized {
   sortOrder: number;
 }
 
+/** Phase 11A — verified fundraising figures. Decimal strings, never floats; one currency per object (never combined). */
+export interface PublicProgress {
+  currency: string;
+  goal: string;
+  collected: string;
+  remaining: string;
+  /** collected / goal × 100, one decimal, rounded down (may exceed 100 when a goal is surpassed) */
+  percent: string;
+}
+
+export interface PublicCollected {
+  currency: string;
+  net: string;
+  donations: number;
+}
+
+export interface PublicCampaignWithFundraising extends PublicCampaign {
+  fundraising: { collected: PublicCollected[]; progress: PublicProgress | null };
+}
+
+export interface PublicCause extends Localized {
+  slug: string;
+  name: string;
+  summary: string | null;
+  description: string | null;
+  location: string | null;
+  cover: PublicMedia | null;
+  campaigns: PublicCampaignWithFundraising[];
+}
+
+/** GET /public/programmes/:slug/detail — the single programme page. */
+export interface PublicProgrammeDetail {
+  programme: Omit<PublicProgramme, 'gallery'> & { gallery: PublicMedia[] };
+  fundraising: {
+    /** MEKI-approved programme goal; null → no progress is shown */
+    goal: { amount: string; currency: string } | null;
+    progress: (PublicProgress & { donations: number }) | null;
+    collected: PublicCollected[];
+    note: string;
+  };
+  causes: PublicCause[];
+  otherCampaigns: PublicCampaignWithFundraising[];
+  statistics: PublicStatistic[];
+}
+
 export interface PublicFaq extends Localized {
   id: string;
   question: string;
@@ -266,6 +311,40 @@ export interface PublicTicketing {
   /** All payment gates are open on the server (provider enabled, env, settings). */
   checkoutAvailable: boolean;
   calendar: { available: true; url: string } | { available: false; reason: 'SCHEDULE_PENDING' };
+  /** Phase 12: "zeffy_hosted" = payment, tickets and receipts happen on SDI's Zeffy form; MEKI only issues a booking reference. */
+  mode?: 'meki' | 'zeffy_hosted';
+  /** Present only in zeffy_hosted mode. */
+  hosted?: HostedGalaGate | null;
+}
+
+/** Phase 12 — the SDI-hosted Gala form gate. formUrl is present ONLY while hosted sales are switched on. */
+export interface HostedGalaGate {
+  available: boolean;
+  formUrl?: string;
+  /** Exact label of SDI's custom question the buyer must answer with the MEKI booking reference. */
+  referenceQuestion: string;
+  referenceFormat: 'EB-XXXXXXXXXXXX';
+  ticketsIssuedBy: 'ZEFFY';
+  /** false: the reference is NOT pre-filled into the form (not confirmed by SDI) — the buyer copies it. */
+  referencePrefill: false;
+}
+
+/** POST /public/events/:slug/hosted-bookings (header Idempotency-Key). Creates a reference only; no price, no guests. */
+export interface CreateHostedBookingRequest {
+  purchaser: { fullName: string; email: string };
+  ticketCount: number;
+  locale?: 'en' | 'ar';
+  privacyConsent: true;
+}
+
+export type CreatedHostedBooking = CreatedBooking & { hosted: HostedGalaGate };
+
+/** GET /public/hosted-forms — SDI-hosted giving forms. URLs appear only when the matching switch is on. */
+export interface PublicHostedForms {
+  mode: 'sdi_hosted_forms';
+  general: { available: boolean; url: string | null };
+  programmeDesignationConfirmed: boolean;
+  programmes: { slug: string; code: string; available: boolean; url: string | null }[];
 }
 
 /** POST /public/events/:slug/bookings (header Idempotency-Key). There is deliberately NO price field. */
@@ -308,7 +387,7 @@ export interface PublicBookingStatus {
   paymentStatus: 'UNPAID' | 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
   /** true only after a VERIFIED provider event — never infer it from a redirect. */
   confirmed: boolean;
-  message: 'awaiting_payment' | 'processing' | 'payment_failed' | 'confirmed' | 'cancelled' | 'refund_pending' | 'refunded';
+  message: 'awaiting_payment' | 'processing' | 'payment_failed' | 'confirmed' | 'cancelled' | 'refund_pending' | 'refunded' | 'awaiting_sdi_report' | 'confirmed_by_sdi';
   ticketCount: number;
   totalAmount: string;
   currency: string;
@@ -316,4 +395,7 @@ export interface PublicBookingStatus {
   event: { slug: string; name: string; dateLabel: string; venue: string } | null;
   calendar: { available: true; url: string } | { available: false; reason: 'SCHEDULE_PENDING' };
   tickets: { ticketNumber: string; status: string; pdfReady: boolean; downloadPath: string }[];
+  /** Phase 12: ZEFFY = tickets, QR codes and receipts are issued by Zeffy (tickets is then always empty). */
+  ticketIssuer?: 'MEKI' | 'ZEFFY';
+  hosted?: HostedGalaGate | null;
 }

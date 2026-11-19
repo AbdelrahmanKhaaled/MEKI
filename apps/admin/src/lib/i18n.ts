@@ -6,6 +6,8 @@ import { cmsAr, cmsEn } from "./i18n-cms.ts";
 import { contentAr, contentEn } from "./i18n-content.ts";
 import { finAr, finEn } from "./i18n-finance.ts";
 import { galaAr, galaEn } from "./i18n-gala.ts";
+import { zeffyAr, zeffyEn } from "./i18n-zeffy.ts";
+import { sdiAr, sdiEn } from "./i18n-sdi.ts";
 
 export const locales = ["en", "ar"] as const;
 export type Locale = (typeof locales)[number];
@@ -19,7 +21,7 @@ export const en = {
     groups: { overview: "Overview", programs: "Program management", donors: "Donor management", events: "Event management", website: "Website management", admin: "Reports & administration" },
     items: {
       dashboard: "Dashboard", analytics: "Analytics", programs: "Programs", causes: "Causes", campaigns: "Campaigns", donorList: "Donors", donations: "Donations",
-      payments: "Payments & Refunds", recurring: "Recurring Donations", receipts: "Receipts", events: "Events", bookings: "Bookings", guests: "Guest Management",
+      payments: "Payments & Refunds", sdiZeffy: "SDI / Zeffy", sdiReconciliation: "SDI Reconciliation", sdiAttendees: "SDI Attendee List", recurring: "Recurring Donations", receipts: "Receipts", events: "Events", bookings: "Bookings", guests: "Guest Management",
       checkin: "QR Check-in", galaOverview: "Gala Night", tickets: "Tickets", galaExports: "Guest Export", galaComms: "Communications", galaSettings: "Gala Settings", pages: "Pages", homepage: "Homepage", statistics: "Statistics", menus: "Menus", media: "Media Library", faqs: "FAQs", siteSettings: "Site Settings", reports: "Reports", users: "Users & Roles",
       audit: "Audit Logs", settings: "Settings",
     } as Record<string, string>,
@@ -72,12 +74,15 @@ export const en = {
       statuses: { PAID: "Paid", UNPAID: "Unpaid", AUTHORIZED: "Authorized", PARTIALLY_REFUNDED: "Partially refunded", REFUNDED: "Refunded", FAILED: "Failed" } as Record<string, string>,
     },
     audit: { actions: {} as Record<string, string> },
+    chartTable: { period: "Period", category: "Category", amount: "Amount", share: "Share" },
   },
   empty: { noConfirmed: "No confirmed donations in this period.", noData: "No data for this period.", chartNote: "Charts show verified payments only." },
   fin: finEn,
   content: contentEn,
   cms: cmsEn,
   gala: galaEn,
+  zeffy: zeffyEn,
+  sdi: sdiEn,
 };
 
 export type Dict = typeof en;
@@ -90,7 +95,7 @@ export const ar: Dict = {
     groups: { overview: "نظرة عامة", programs: "إدارة البرامج", donors: "إدارة المتبرعين", events: "إدارة الفعاليات", website: "إدارة الموقع", admin: "التقارير والإدارة" },
     items: {
       dashboard: "لوحة التحكم", analytics: "التحليلات", programs: "البرامج", causes: "القضايا", campaigns: "الحملات", donorList: "المتبرعون", donations: "التبرعات",
-      payments: "المدفوعات والمستردات", recurring: "التبرعات المتكررة", receipts: "الإيصالات", events: "الفعاليات", bookings: "الحجوزات", guests: "إدارة الضيوف",
+      payments: "المدفوعات والمستردات", sdiZeffy: "SDI / Zeffy", sdiReconciliation: "مطابقة تقارير SDI", sdiAttendees: "قائمة حضور SDI", recurring: "التبرعات المتكررة", receipts: "الإيصالات", events: "الفعاليات", bookings: "الحجوزات", guests: "إدارة الضيوف",
       checkin: "تسجيل الدخول بـ QR", galaOverview: "ليلة الحفل", tickets: "التذاكر", galaExports: "تصدير الضيوف", galaComms: "المراسلات", galaSettings: "إعدادات الحفل", pages: "الصفحات", homepage: "الصفحة الرئيسية", statistics: "الإحصاءات", menus: "القوائم", media: "مكتبة الوسائط", faqs: "الأسئلة الشائعة", siteSettings: "إعدادات الموقع", reports: "التقارير", users: "المستخدمون والأدوار",
       audit: "سجل التدقيق", settings: "الإعدادات",
     },
@@ -143,12 +148,15 @@ export const ar: Dict = {
       statuses: { PAID: "مدفوع", UNPAID: "غير مدفوع", AUTHORIZED: "مصرّح به", PARTIALLY_REFUNDED: "مسترد جزئياً", REFUNDED: "مسترد", FAILED: "فاشل" },
     },
     audit: { actions: {} },
+    chartTable: { period: "الفترة", category: "الفئة", amount: "المبلغ", share: "النسبة" },
   },
   empty: { noConfirmed: "لا توجد تبرعات مؤكدة في هذه الفترة.", noData: "لا توجد بيانات لهذه الفترة.", chartNote: "تعرض الرسوم المدفوعات الموثّقة فقط." },
   fin: finAr,
   content: contentAr,
   cms: cmsAr,
   gala: galaAr,
+  zeffy: zeffyAr,
+  sdi: sdiAr,
 };
 
 export const getDict = (l: Locale): Dict => (l === "ar" ? ar : en);

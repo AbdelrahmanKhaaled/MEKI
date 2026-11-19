@@ -90,6 +90,22 @@ export class ProgrammesController {
   updateProject(@Param('id') id: string, @Body() dto: UpdateProjectDto, @Actor() actor: ActorContext) {
     return this.programmes.updateProject(id, dto, actor);
   }
+
+  /** Phase 11A: a Cause appears on its public programme page only once published (same permission as programmes). */
+  @Post('projects/:id/publish')
+  @HttpCode(200)
+  @RequirePermissions('programmes.publish')
+  @ApiOperation({ summary: 'Publish a Cause (project) on its programme page — never DEMO; programme must be published' })
+  publishProject(@Param('id') id: string, @Actor() actor: ActorContext) {
+    return this.programmes.publishProject(id, actor);
+  }
+
+  @Post('projects/:id/unpublish')
+  @HttpCode(200)
+  @RequirePermissions('programmes.publish')
+  unpublishProject(@Param('id') id: string, @Actor() actor: ActorContext) {
+    return this.programmes.unpublishProject(id, actor);
+  }
 }
 
 @Global()

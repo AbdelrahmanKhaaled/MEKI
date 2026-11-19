@@ -5,7 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import type { ActorContext } from '../../common/types/auth-request';
 import { Paginated, parseSort } from '../../common/utils';
-import { sanitizeError } from './gala-support';
+import { assertMekiIssued, sanitizeError, ZeffyOwnedTickets } from './gala-support';
 import { canTransitionTicket, generateQrToken, hashQrToken } from './gala.rules';
 import type { TicketQueryDto } from './gala.dto';
 import { newTicketPdfKey, PRIVATE_STORAGE, type PrivateStoragePort } from './ticket-storage';
@@ -55,6 +55,9 @@ export class TicketsService {
    * transaction. Idempotent: tickets that are not PENDING are left untouched, so a repeated call issues nothing new.
    */
   async issueInTx(tx: Tx, bookingId: string, at: Date): Promise<IssuedTicket[]> {
+    // Phase 12 defence in depth: never issue MEKI tickets for a booking whose official tickets come from Zeffy.
+    const owner = await tx.eventBooking.findUnique({ where: { id: bookingId }, select: { ticketIssuer: true } });
+    if (owner?.ticketIssuer === 'ZEFFY') throw new ZeffyOwnedTickets();
     const pending = await tx.eventTicket.findMany({ where: { bookingId, status: 'PENDING' }, select: { id: true } });
     const issued: IssuedTicket[] = [];
     for (const t of pending) {
@@ -133,6 +136,7 @@ export class TicketsService {
 
   /** Re-issues every ISSUED ticket of a booking that has no PDF (failed generation after payment). */
   async regenerateMissing(bookingId: string, actor: ActorContext | null) {
+    await assertMekiIssued(this.prisma, bookingId);
     const missing = await this.prisma.eventTicket.findMany({ where: { bookingId, status: 'ISSUED', pdfStorageKey: null }, select: { id: true } });
     const results = [];
     for (const m of missing) results.push(await this.reissue(m.id, actor, 'regenerate-missing-pdf'));

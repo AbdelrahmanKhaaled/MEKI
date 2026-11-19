@@ -72,6 +72,14 @@ const ProjectRow = z.object({
   locationEn: strN,
   locationAr: strN,
   sourceFolder: strN,
+  // Phase 11A (additive; optional so older payloads still parse)
+  summaryEn: strN.optional(),
+  summaryAr: strN.optional(),
+  descriptionEn: strN.optional(),
+  descriptionAr: strN.optional(),
+  coverMediaId: strN.optional(),
+  sortOrder: z.number().optional(),
+  publishedAt: iso.nullable().optional(),
   provenance: z.string(),
   sourceRef: strN,
   status: z.string(),
@@ -100,6 +108,9 @@ export const ProgrammeSchema = z.object({
   icon: strN,
   coverMediaId: strN,
   coverMedia: MediaSchema.nullable(),
+  /** Phase 11A: MEKI-approved programme goal (decimal string) + currency; null when not approved */
+  targetAmount: z.string().nullable().optional(),
+  targetCurrency: strN.optional(),
   gallery: z.array(GalleryEntry),
   projects: z.array(ProjectRow),
   sortOrder: z.number(),
@@ -125,6 +136,7 @@ export const ProjectSchema = ProjectRow.extend({ programme: ProgrammeRef.nullabl
 export type Project = z.infer<typeof ProjectSchema>;
 
 export const ProjectDetailSchema = ProjectRow.extend({
+  coverMedia: MediaSchema.nullable().optional(),
   programme: ProgrammeRef.nullable(),
   campaigns: z.array(
     z.object({

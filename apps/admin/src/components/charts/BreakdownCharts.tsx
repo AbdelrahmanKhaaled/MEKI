@@ -4,6 +4,10 @@ import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer,
 import { formatMoney, formatPercent } from "@/lib/format";
 import { useLocale } from "@/components/common/Providers";
 import { CHART } from "./TrendChart";
+import { ChartTable } from "./ChartTable";
+
+/** Headers of the visually hidden data table that accompanies every chart. */
+export interface ChartTableLabels { caption: string; category: string; amount: string; share?: string }
 
 const PALETTE = [CHART.green, CHART.teal, CHART.gold, CHART.mint, "#145a45", "#b9d9cb"];
 
@@ -28,15 +32,16 @@ export interface SliceDatum {
 }
 
 /** Donut + legend rows (share %, amount). Values are net donations in ONE currency. */
-export function DonutChart({ data, currency, centerLabel }: { data: SliceDatum[]; currency: string; centerLabel: string }) {
+export function DonutChart({ data, currency, centerLabel, table }: { data: SliceDatum[]; currency: string; centerLabel: string; table?: ChartTableLabels }) {
   const { locale, rtl } = useLocale();
   const total = data.reduce((a, d) => a + d.value, 0);
   return (
     <div>
-      <div dir="ltr" className="relative mx-auto h-48 w-48" role="img" aria-label={centerLabel}>
+      <ChartTable caption={table?.caption ?? centerLabel} columns={[table?.category ?? "", table?.amount ?? "", table?.share ?? ""]} rows={data.map((d) => ({ label: d.label, values: [formatMoney(d.value, currency, locale), formatPercent(total > 0 ? Math.round((d.value / total) * 1000) / 10 : null, locale)] }))} />
+      <div dir="ltr" className="relative mx-auto h-48 w-48" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-          <PieChart>
-            <Pie data={data} dataKey="value" nameKey="label" innerRadius={62} outerRadius={90} paddingAngle={2} startAngle={rtl ? 450 : 90} endAngle={rtl ? 90 : -270} stroke="none" isAnimationActive={false}>
+          <PieChart accessibilityLayer={false}>
+            <Pie rootTabIndex={-1} data={data} dataKey="value" nameKey="label" innerRadius={62} outerRadius={90} paddingAngle={2} startAngle={rtl ? 450 : 90} endAngle={rtl ? 90 : -270} stroke="none" isAnimationActive={false}>
               {data.map((d, i) => (
                 <Cell key={d.key} fill={PALETTE[i % PALETTE.length]} />
               ))}
@@ -69,12 +74,14 @@ export function DonutChart({ data, currency, centerLabel }: { data: SliceDatum[]
 const trunc = (s: string, n = 14) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
 /** Vertical gradient bars (one value per category, ONE currency). */
-export function VerticalBars({ data, currency }: { data: { name: string; value: number }[]; currency: string }) {
+export function VerticalBars({ data, currency, table }: { data: { name: string; value: number }[]; currency: string; table?: ChartTableLabels }) {
   const { locale, rtl } = useLocale();
   return (
-    <div dir="ltr" className="h-60 w-full" role="img" aria-label="bar chart">
+    <>
+    <ChartTable caption={table?.caption ?? ""} columns={[table?.category ?? "", table?.amount ?? ""]} rows={data.map((d) => ({ label: d.name, values: [formatMoney(d.value, currency, locale)] }))} />
+    <div dir="ltr" className="h-60 w-full" aria-hidden="true">
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-        <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+        <BarChart accessibilityLayer={false} data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id="gBar" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={CHART.teal} />
@@ -89,16 +96,19 @@ export function VerticalBars({ data, currency }: { data: { name: string; value: 
         </BarChart>
       </ResponsiveContainer>
     </div>
+    </>
   );
 }
 
 /** Stacked bars: net + refunded per category (ONE currency). */
-export function StackedBars({ data, currency, labels }: { data: { name: string; net: number; refunded: number }[]; currency: string; labels: { net: string; refunded: string } }) {
+export function StackedBars({ data, currency, labels, table }: { data: { name: string; net: number; refunded: number }[]; currency: string; labels: { net: string; refunded: string }; table?: ChartTableLabels }) {
   const { locale, rtl } = useLocale();
   return (
-    <div dir="ltr" className="h-60 w-full" role="img" aria-label={`${labels.net} / ${labels.refunded}`}>
+    <>
+    <ChartTable caption={table?.caption ?? `${labels.net} / ${labels.refunded}`} columns={[table?.category ?? "", labels.net, labels.refunded]} rows={data.map((d) => ({ label: d.name, values: [formatMoney(d.net, currency, locale), formatMoney(d.refunded, currency, locale)] }))} />
+    <div dir="ltr" className="h-60 w-full" aria-hidden="true">
       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-        <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+        <BarChart accessibilityLayer={false} data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
           <CartesianGrid stroke={CHART.grid} strokeDasharray="3 3" vertical={false} />
           <XAxis dataKey="name" reversed={rtl} tick={{ fill: CHART.axis, fontSize: 12 }} tickLine={false} axisLine={false} />
           <YAxis orientation={rtl ? "right" : "left"} tickFormatter={(v: number) => formatMoney(v, currency, locale, { compact: true })} tick={{ fill: CHART.axis, fontSize: 12 }} tickLine={false} axisLine={false} width={56} />
@@ -116,5 +126,6 @@ export function StackedBars({ data, currency, labels }: { data: { name: string; 
         </BarChart>
       </ResponsiveContainer>
     </div>
+    </>
   );
 }

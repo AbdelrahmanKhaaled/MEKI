@@ -117,6 +117,13 @@ export class BookingPaymentsService implements ExternalWebhookHandler {
     });
     if (moved.count !== 1) throw new Error('booking state changed concurrently');
 
+    // Phase 12 — Zeffy owns the official tickets (SDI decision): the verified payment confirms MEKI's operational booking,
+    // but MEKI issues NO ticket, PDF, QR code or e-mail. Zeffy already e-mailed the guest's ticket and receipt.
+    if (booking.ticketIssuer === 'ZEFFY') {
+      await this.audit.record(null, 'gala.booking.confirmed', 'EventBooking', booking.id, { source: 'verified-payment', provider: row.provider, ticketIssuer: 'ZEFFY', ticketsIssued: 0, webhookEventId: row.id }, tx);
+      return { status: 'PROCESSED' };
+    }
+
     const issued = await this.tickets.issueInTx(tx, booking.id, e.occurredAt);
     await this.audit.record(null, 'gala.booking.confirmed', 'EventBooking', booking.id, { source: 'verified-payment', provider: row.provider, ticketsIssued: issued.length, webhookEventId: row.id }, tx);
 
@@ -211,6 +218,11 @@ export class BookingPaymentsService implements ExternalWebhookHandler {
       data: { paymentStatus: 'REFUNDED', bookingStatus: 'REFUNDED', refundedAmount: booking.totalAmount },
     });
     if (moved.count !== 1) throw new Error('booking state changed concurrently');
+    if (booking.ticketIssuer === 'ZEFFY') {
+      // Zeffy voids its own tickets and notifies the guest; MEKI has no ticket rows and sends nothing.
+      await this.audit.record(null, 'gala.booking.refunded', 'EventBooking', booking.id, { source: 'verified-refund', provider: row.provider, ticketIssuer: 'ZEFFY', webhookEventId: row.id }, tx);
+      return { status: 'PROCESSED' };
+    }
     // Refunded tickets can never be checked in; checkedInAt history is preserved.
     const revoked = await tx.eventTicket.updateMany({ where: { bookingId: booking.id, status: { not: 'REFUNDED' } }, data: { status: 'REFUNDED' } });
     await this.audit.record(null, 'gala.booking.refunded', 'EventBooking', booking.id, { source: 'verified-refund', provider: row.provider, ticketsRefunded: revoked.count, webhookEventId: row.id }, tx);

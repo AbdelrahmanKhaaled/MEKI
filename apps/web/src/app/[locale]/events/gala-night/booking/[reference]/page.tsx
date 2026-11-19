@@ -5,6 +5,7 @@ import { getBookingCopy } from "@/content/booking";
 import { DonateProvider } from "@/components/DonateProvider";
 import { Header } from "@/components/Header";
 import { BookingStatus } from "@/components/booking/BookingStatus";
+import { FlowBand } from "@/components/pages/FlowBand";
 
 /** Booking status: private to the booking holder, never cached or indexed; the reference alone grants no access. */
 export const dynamic = "force-dynamic";
@@ -22,8 +23,9 @@ export default async function BookingStatusPage({ params }: { params: Promise<{ 
   return (
     <DonateProvider t={t} locale={locale}>
       <Header t={t} locale={locale} current="gala" />
-      <main id="main" className="min-h-screen bg-limestone pb-24 pt-32">
-        <div className="container-x">
+      <main id="main" className="min-h-screen bg-limestone pb-24">
+        <FlowBand />
+        <div className="container-x pt-12">
           <BookingStatus locale={locale} reference={reference} />
         </div>
       </main>

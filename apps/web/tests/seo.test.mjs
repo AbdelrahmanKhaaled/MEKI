@@ -5,6 +5,7 @@ import { join } from "node:path";
 import test, { describe } from "node:test";
 import { PRIVATE_PATHS, SITEMAP_PAGES, robotsRules, sitemapEntries } from "../src/lib/seo.ts";
 import { PAGE_PATH } from "../src/content/pages.ts";
+import { contentFailureLevel } from "../src/lib/content-failure.ts";
 
 const origin = new URL("https://meki.example");
 const src = (p) => readFileSync(join(import.meta.dirname, "../src", p), "utf8");
@@ -35,5 +36,18 @@ describe("robots and sitemap", () => {
     for (const f of ["app/[locale]/events/gala-night/book/page.tsx", "app/[locale]/events/gala-night/booking/page.tsx", "app/[locale]/events/gala-night/booking/[reference]/page.tsx", "app/[locale]/donation/return/page.tsx"]) {
       assert.match(src(f), /robots: \{ index: false, follow: false \}/, f);
     }
+  });
+});
+
+describe("CMS fetch failures are never silent (Phase 7)", () => {
+  test("missing core endpoints, network failures and 5xx are errors; other 4xx are warnings", () => {
+    assert.equal(contentFailureLevel("/public/home?locale=en", 404), "error"); // e.g. NEXT_PUBLIC_API_URL without /api/v1
+    assert.equal(contentFailureLevel("/public/site", 404), "error");
+    assert.equal(contentFailureLevel("/public/faqs", 0), "error");
+    assert.equal(contentFailureLevel("/public/faqs", 503), "error");
+    assert.equal(contentFailureLevel("/public/pages/privacy?locale=en", 404), "warn"); // unpublished legal page
+  });
+  test("the example environment documents the /api/v1 prefix", () => {
+    for (const f of ["../../../.env.example", "../.env.example"]) assert.match(readFileSync(join(import.meta.dirname, f), "utf8"), /NEXT_PUBLIC_API_URL=http:\/\/localhost:4000\/api\/v1/, f);
   });
 });

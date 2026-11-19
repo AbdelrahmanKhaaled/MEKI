@@ -14,7 +14,8 @@ export function FaqAccordion({ items, pendingLabel }: { items: AccordionItem[]; 
       {items.map((item, i) => {
         const on = open === i;
         return (
-          <li key={item.q} className="border-b border-stone-line first:border-t">
+          <li key={item.q} className="relative border-b border-stone-line first:border-t">
+            <span aria-hidden="true" className={`absolute -start-4 inset-y-4 w-0.5 origin-top rounded-full bg-harvest-gold transition-transform duration-500 ease-[var(--ease-premium)] sm:-start-6 ${on ? "scale-y-100" : "scale-y-0"}`} />
             <h3 className="font-sans text-base">
               <button
                 type="button"

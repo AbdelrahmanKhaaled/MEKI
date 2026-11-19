@@ -94,6 +94,38 @@ export class ReportsService {
     return [...acc.values()].map((r) => ({ ...r, gross: r.gross.toFixed(minor(r.currency)), net: r.net.toFixed(minor(r.currency)) }));
   }
 
+  /**
+   * Phase 11A — verified totals for ONE programme, per currency, net of refunds (same rules as every other report).
+   *
+   * Attribution rule (authoritative, set when the donation is created — DonationsService): every donation has exactly ONE
+   * allocation, and its `programmeId` is the selected programme (designation PROGRAMME) or the campaign's programme
+   * (designation CAMPAIGN). GENERAL_FUND allocations carry no programme. Summing allocations by `programmeId` therefore counts
+   * each donation once: a campaign gift counts toward its programme, never twice, and never toward a "cause" (allocations do
+   * not record a project). Only verified captures (CONFIRMED_PAYMENT + confirmedAt), never test records. Gala ticket money
+   * lives in EventBooking*, never in Donation, so it can never appear here.
+   */
+  async programmeTotals(programmeId: string): Promise<Totals[]> {
+    const allocations = await this.prisma.donationAllocation.findMany({
+      where: { programmeId, donation: this.confirmedWhere({} as ReportQueryDto) },
+      select: { amount: true, currency: true, donation: { select: { id: true, amount: true, refundedAmount: true } } },
+    });
+    const minor = await this.config.minorUnitsFn();
+    const acc = new Map<string, { donations: Set<string>; gross: Prisma.Decimal; net: Prisma.Decimal; refunded: Prisma.Decimal }>();
+    for (const a of allocations) {
+      const share = D(a.amount).div(a.donation.amount);
+      const refundedShare = D(a.donation.refundedAmount).times(share);
+      const cur = acc.get(a.currency) ?? { donations: new Set<string>(), gross: ZERO, net: ZERO, refunded: ZERO };
+      cur.donations.add(a.donation.id);
+      cur.gross = cur.gross.plus(a.amount);
+      cur.refunded = cur.refunded.plus(refundedShare);
+      cur.net = cur.net.plus(D(a.amount).minus(refundedShare));
+      acc.set(a.currency, cur);
+    }
+    return [...acc.entries()]
+      .map(([currency, r]) => ({ currency, count: r.donations.size, gross: r.gross.toFixed(minor(currency)), refunded: r.refunded.toFixed(minor(currency)), net: r.net.toFixed(minor(currency)) }))
+      .sort((a, b) => a.currency.localeCompare(b.currency));
+  }
+
   async campaignTotals(campaignId: string, q: ReportQueryDto) {
     const campaign = await this.prisma.campaign.findUnique({ where: { id: campaignId }, select: { id: true, slug: true, titleEn: true, currency: true, targetAmount: true } });
     if (!campaign) throw new NotFoundException('Campaign not found');

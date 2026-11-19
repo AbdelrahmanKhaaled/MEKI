@@ -1,9 +1,30 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, CalendarDays, Flame, MapPin, Plus } from "lucide-react";
+import { ArrowDown, CalendarDays, Check, Flame, Gavel, GlassWater, MapPin, Palette, Plus, Sparkles, UtensilsCrossed, type LucideIcon } from "lucide-react";
 import { media } from "@/content/media";
 import { PROPOSED_SPONSORSHIP, type GalaDict, type SponsorTier } from "@/content/gala";
 import { Pattern, PointsOfLight, GoldArc } from "../Decor";
+
+/** Icons for the six client-confirmed experience items, in dictionary order (EN and AR share the order). */
+const EXPERIENCE_ICONS: LucideIcon[] = [Sparkles, UtensilsCrossed, GlassWater, Flame, Palette, Gavel];
+
+/**
+ * A field of softly flickering lamps: the evening's own metaphor ("each guest lights a lamp; together they illuminate").
+ * Purely decorative (aria-hidden), deterministic positions (no hydration mismatch), CSS-only infinite motion.
+ */
+function LampField({ count = 18, className = "" }: { count?: number; className?: string }) {
+  return (
+    <div aria-hidden="true" className={`pointer-events-none absolute inset-0 ${className}`}>
+      {Array.from({ length: count }, (_, i) => {
+        const x = (i * 37 + 11) % 100;
+        const y = (i * 53 + 7) % 100;
+        const size = 10 + ((i * 7) % 4) * 6;
+        const style = { insetInlineStart: `${x}%`, top: `${y}%`, width: size, height: size, "--lamp-delay": `${(i % 7) * 0.7}s`, "--lamp-dur": `${4 + (i % 5)}s` } as React.CSSProperties;
+        return <span key={i} className="p10-lamp absolute" style={style} />;
+      })}
+    </div>
+  );
+}
 
 /**
  * Gala page sections. All server components; motion comes from MotionRoot's data-reveal / data-stagger attributes
@@ -14,11 +35,17 @@ export function GalaHero({ g }: { g: GalaDict }) {
   const h = g.hero;
   return (
     <section id="top" className="relative isolate overflow-hidden bg-deep-green text-white">
-      <Image src={media["field-sky"].src} alt="" fill priority sizes="100vw" className="-z-20 object-cover opacity-25" />
+      <div aria-hidden="true" className="absolute inset-0 -z-20 overflow-hidden">
+        <div data-parallax="0.1" className="absolute -inset-[10%]">
+          <Image src={media["field-sky"].src} alt="" fill priority sizes="100vw" className="kenburns object-cover opacity-25" />
+        </div>
+      </div>
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(110%_80%_at_50%_0%,rgb(20_89_74/0.85)_0%,rgb(11_59_48/0.92)_55%,#072a22_100%)]" />
       <Pattern opacity={0.06} className="-z-10" />
       <PointsOfLight className="-z-10" count={26} />
       <GoldArc className="-end-24 top-10 hidden size-[460px] opacity-60 lg:block" />
+      <LampField count={14} className="-z-10 opacity-70" />
+      <div aria-hidden="true" className="spin-slower-rev pointer-events-none absolute -end-40 top-1/2 -z-10 hidden size-[640px] -translate-y-1/2 rounded-full border border-dashed border-glow/15 lg:block" />
       <div className="container-x relative flex min-h-[92svh] flex-col justify-center pb-24 pt-36">
         <p data-hero-item className="eyebrow eyebrow-dark mb-7">
           {h.eyebrow}
@@ -46,6 +73,9 @@ export function GalaHero({ g }: { g: GalaDict }) {
           <p className="text-sm text-mint-line/80">{h.ctaNote}</p>
         </div>
       </div>
+      <a href="#purpose" aria-label={g.purpose.eyebrow} className="float-y absolute bottom-8 start-1/2 hidden -translate-x-1/2 rounded-full border border-white/25 p-3 text-glow transition-colors hover:bg-white/10 sm:block rtl:translate-x-1/2">
+        <ArrowDown className="size-4" aria-hidden="true" />
+      </a>
     </section>
   );
 }
@@ -54,7 +84,7 @@ export function GalaPurpose({ g }: { g: GalaDict }) {
   const p = g.purpose;
   return (
     <section id="purpose" aria-labelledby="purpose-title" className="section-y bg-paper">
-      <div className="container-x grid gap-10 lg:grid-cols-12">
+      <div className="container-x grid items-center gap-10 lg:grid-cols-12">
         <div className="lg:col-span-5">
           <p data-reveal className="eyebrow mb-6">
             {p.eyebrow}
@@ -69,6 +99,12 @@ export function GalaPurpose({ g }: { g: GalaDict }) {
               {b}
             </p>
           ))}
+          {/* "One light is small. Together, they illuminate." Many small lamps around one shared glow. */}
+          <div data-reveal="scale" aria-hidden="true" className="relative isolate mt-10 aspect-[16/9] overflow-hidden rounded-[2rem] bg-deep-green">
+            <div className="absolute inset-0 bg-[radial-gradient(45%_60%_at_50%_55%,rgb(230_195_111/0.35)_0%,transparent_70%)]" />
+            <LampField count={26} />
+            <span className="pulse-soft absolute start-1/2 top-1/2 size-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgb(255_236_179/0.9)_0%,rgb(230_195_111/0.4)_45%,transparent_70%)] rtl:translate-x-1/2" />
+          </div>
         </div>
       </div>
     </section>
@@ -92,18 +128,25 @@ export function GalaExperience({ g }: { g: GalaDict }) {
           </p>
         </div>
         {/* Editorial list rather than a card grid: numbered lines with generous space. */}
-        <ol data-stagger className="grid gap-x-16 border-t border-stone-line md:grid-cols-2">
-          {e.items.map((item, i) => (
-            <li key={item.title} data-stagger-item className="flex gap-6 border-b border-stone-line py-8">
-              <span className="font-serif text-3xl text-harvest-gold-dark" aria-hidden="true">
-                0{i + 1}
-              </span>
-              <div>
-                <h3 className="mb-2 font-serif text-2xl text-ink">{item.title}</h3>
-                <p className="text-body-grey">{item.text}</p>
-              </div>
-            </li>
-          ))}
+        <ol data-stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {e.items.map((item, i) => {
+            const ExpIcon = EXPERIENCE_ICONS[i % EXPERIENCE_ICONS.length];
+            return (
+              <li key={item.title} data-stagger-item className="group p10-lift relative overflow-hidden rounded-[1.75rem] border border-stone-line bg-paper p-7">
+                <span aria-hidden="true" className="absolute -end-12 -top-12 size-36 rounded-full bg-[radial-gradient(circle,rgb(230_195_111/0.28)_0%,transparent_70%)] transition-transform duration-700 group-hover:scale-150" />
+                <div className="relative mb-6 flex items-center justify-between">
+                  <span className="p10-icon grid size-12 place-items-center rounded-2xl bg-limestone text-meki-green">
+                    <ExpIcon className="size-6" strokeWidth={1.6} aria-hidden="true" />
+                  </span>
+                  <span className="font-serif text-2xl text-gold-text" aria-hidden="true">
+                    0{i + 1}
+                  </span>
+                </div>
+                <h3 className="relative mb-2 font-serif text-2xl text-ink">{item.title}</h3>
+                <p className="relative text-body-grey">{item.text}</p>
+              </li>
+            );
+          })}
         </ol>
         <p data-reveal className="mt-8 text-sm text-gold-text">
           {e.pendingNote}
@@ -133,8 +176,9 @@ export function GalaTimeline({ g }: { g: GalaDict }) {
           <ol className="relative">
             {/* The vertical line of light */}
             <span aria-hidden="true" className="absolute inset-y-2 start-[7px] w-px bg-gradient-to-b from-harvest-gold/70 via-white/25 to-white/5" />
+            <span aria-hidden="true" className="p10-travel absolute inset-y-2 start-[6px] w-[3px] rounded-full" />
             {t.items.map((item, i) => (
-              <li key={item.title} data-reveal className="relative pb-10 ps-12 last:pb-0">
+              <li key={item.title} data-reveal className="p10-row relative pb-10 ps-12 last:pb-0">
                 <span
                   aria-hidden="true"
                   className={`absolute start-0 top-1.5 grid size-4 place-items-center rounded-full ${
@@ -179,19 +223,34 @@ export function GalaVenue({ g, mapUrl }: { g: GalaDict; mapUrl: string }) {
             <MapPin className="size-4" aria-hidden="true" /> {v.mapLabel}
           </a>
         </div>
-        <div data-reveal className="border-s-2 border-harvest-gold ps-8 lg:col-span-5 lg:col-start-8">
-          <h3 className="mb-3 font-sans text-xs font-bold uppercase tracking-[0.22em] text-gold-text">{v.arrival}</h3>
-          <p className="text-lg text-body-grey">{v.arrivalPending}</p>
+        <div className="space-y-6 lg:col-span-5 lg:col-start-8">
+          {/* Stylised location card (no venue photography is approved yet): a city grid with a pulsing pin. */}
+          <a data-reveal href={mapUrl} target="_blank" rel="noopener noreferrer" aria-label={`${v.mapLabel}: ${v.address}`} className="group p10-lift relative isolate block aspect-[16/10] overflow-hidden rounded-[2rem] bg-deep-green text-white">
+            <span aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(rgb(255_255_255/0.06)_1px,transparent_1px),linear-gradient(90deg,rgb(255_255_255/0.06)_1px,transparent_1px)] bg-[size:36px_36px] transition-transform duration-[1400ms] group-hover:scale-110" />
+            <span aria-hidden="true" className="absolute inset-y-0 start-[58%] -z-10 w-6 -skew-x-12 bg-white/10" />
+            <span aria-hidden="true" className="absolute start-1/2 top-[44%] -translate-x-1/2 -translate-y-full rtl:translate-x-1/2">
+              <span className="pulse-soft absolute start-1/2 top-full size-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-harvest-gold/30 rtl:translate-x-1/2" />
+              <MapPin className="relative size-10 text-glow drop-shadow-[0_6px_14px_rgb(0_0_0/0.4)] transition-transform duration-500 group-hover:-translate-y-1" />
+            </span>
+            <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-deep-green-3 to-transparent p-6 pt-14">
+              <span className="block font-serif text-2xl">{v.address}</span>
+            </span>
+          </a>
+          <div data-reveal className="border-s-2 border-harvest-gold ps-8">
+            <h3 className="mb-3 font-sans text-xs font-bold uppercase tracking-[0.22em] text-gold-text">{v.arrival}</h3>
+            <p className="text-lg text-body-grey">{v.arrivalPending}</p>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-export function GalaAttendance({ g }: { g: GalaDict }) {
+/** `price`: the published ticketing API value when available (single source with the booking flow); otherwise the brief text. */
+export function GalaAttendance({ g, price }: { g: GalaDict; price?: string }) {
   const a = g.attendance;
   return (
-    <section id="attendance" aria-labelledby="attendance-title" className="section-y bg-limestone">
+    <section id="attendance" aria-labelledby="attendance-title" className="section-y overflow-hidden bg-limestone">
       <div className="container-x grid items-center gap-12 lg:grid-cols-12">
         <div className="lg:col-span-5">
           <p data-reveal className="eyebrow mb-6">
@@ -204,10 +263,18 @@ export function GalaAttendance({ g }: { g: GalaDict }) {
         {/* Informational panel — deliberately not a ticket card / purchase UI. */}
         <div data-reveal className="lg:col-span-6 lg:col-start-7">
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-gold-text">{a.ticket}</p>
-          <p className="mb-6 font-serif text-[clamp(3rem,7vw,5rem)] leading-none text-deep-green">{a.price}</p>
-          <ul className="mb-6 space-y-2 border-t border-stone-line pt-6 text-lg text-ink">
+          <p className="relative mb-6 inline-block font-serif text-[clamp(3rem,7vw,5rem)] leading-none text-deep-green">
+            <span aria-hidden="true" className="p10-lamp absolute -end-8 -top-4 size-8" />
+            {price ?? a.price}
+          </p>
+          <ul className="mb-6 space-y-3 border-t border-stone-line pt-6 text-lg text-ink">
             {a.rules.map((r) => (
-              <li key={r}>{r}</li>
+              <li key={r} className="flex items-center gap-3">
+                <span aria-hidden="true" className="grid size-7 shrink-0 place-items-center rounded-full bg-meki-green/10 text-meki-green">
+                  <Check className="size-4" />
+                </span>
+                {r}
+              </li>
             ))}
           </ul>
           <p className="text-sm text-body-grey">{a.note}</p>
@@ -306,7 +373,7 @@ export function GalaFaq({ g }: { g: GalaDict }) {
         </div>
         <div className="lg:col-span-7 lg:col-start-6">
           {f.items.map((item) => (
-            <details key={item.q} className="group border-b border-stone-line first:border-t">
+            <details key={item.q} className="group border-b border-stone-line transition-colors first:border-t hover:bg-paper/60">
               <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-6 py-5 [&::-webkit-details-marker]:hidden">
                 <span className="font-serif text-xl text-ink group-open:text-meki-green sm:text-2xl">{item.q}</span>
                 <Plus className="size-5 shrink-0 transition-transform duration-300 group-open:rotate-45" aria-hidden="true" />
@@ -351,6 +418,7 @@ export function GalaBooking({ g, bookHref, bookStatus }: { g: GalaDict; bookHref
   return (
     <section id="booking" aria-labelledby="booking-title" className="section-y relative isolate overflow-hidden bg-deep-green-3 text-white">
       <PointsOfLight count={12} className="-z-10" />
+      <LampField count={10} className="-z-10 opacity-50" />
       <div className="container-x">
         <p data-reveal className="eyebrow eyebrow-dark mb-6">
           {b.eyebrow}

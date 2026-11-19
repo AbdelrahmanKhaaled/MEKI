@@ -44,6 +44,8 @@ type Form = {
   nameEn: string; nameAr: string; altNameEn: string; altNameAr: string; shortDescEn: string; shortDescAr: string; mandateEn: string; mandateAr: string;
   descriptionEn: string; descriptionAr: string; focusAreasEn: string; focusAreasAr: string; seoTitleEn: string; seoTitleAr: string; seoDescriptionEn: string; seoDescriptionAr: string;
   cover: Media | null;
+  /** Phase 11A: approved programme goal (sent as a pair) */
+  targetAmount: string; targetCurrency: string;
 };
 
 const toForm = (p: Programme | null): Form => ({
@@ -52,6 +54,7 @@ const toForm = (p: Programme | null): Form => ({
   shortDescEn: p?.shortDescEn ?? "", shortDescAr: p?.shortDescAr ?? "", mandateEn: p?.mandateEn ?? "", mandateAr: p?.mandateAr ?? "", descriptionEn: p?.descriptionEn ?? "", descriptionAr: p?.descriptionAr ?? "",
   focusAreasEn: (p?.focusAreasEn ?? []).join("\n"), focusAreasAr: (p?.focusAreasAr ?? []).join("\n"), seoTitleEn: p?.seoTitleEn ?? "", seoTitleAr: p?.seoTitleAr ?? "",
   seoDescriptionEn: p?.seoDescriptionEn ?? "", seoDescriptionAr: p?.seoDescriptionAr ?? "", cover: p?.coverMedia ?? null,
+  targetAmount: p?.targetAmount ?? "", targetCurrency: p?.targetCurrency ?? "",
 });
 
 /** Form field → API value. Optional text columns are cleared with null (the DTOs accept null for optional fields). */
@@ -62,6 +65,8 @@ function toApi(k: keyof Form, f: Form): unknown {
     case "number": return f.number.trim() ? Number(f.number) : null;
     case "sortOrder": return Number(f.sortOrder || 0);
     case "isFeatured": return f.isFeatured;
+    case "targetAmount": return f.targetAmount.trim() || null;
+    case "targetCurrency": return f.targetCurrency.trim().toUpperCase() || null;
     case "focusAreasEn":
     case "focusAreasAr": {
       const lines = (v as string).split("\n").map((s) => s.trim()).filter(Boolean);
@@ -96,6 +101,8 @@ function Editor({ programme }: { programme: Programme | null }) {
     code: isNew ? (v.code ? (codeError(v.code, 40) ? t.content.errors.codeFormat : null) : t.content.errors.required) : null,
     slug: slugError(v.slug.trim()) ? t.content.errors.slugFormat : null,
     number: v.number && !/^\d{1,6}$/.test(v.number) ? t.content.errors.amountFormat : null,
+    targetAmount: v.targetAmount.trim() && !/^\d{1,12}(\.\d{1,2})?$/.test(v.targetAmount.trim()) ? x.goal.amountError : !v.targetAmount.trim() !== !v.targetCurrency.trim() ? x.goal.pairError : null,
+    targetCurrency: v.targetCurrency.trim() && !/^[A-Za-z]{3}$/.test(v.targetCurrency.trim()) ? x.goal.currencyError : null,
   };
   const invalid = Object.values(errors).some(Boolean);
 
@@ -110,6 +117,11 @@ function Editor({ programme }: { programme: Programme | null }) {
     }
     const body: Record<string, unknown> = {};
     for (const k of form.dirty) body[apiKey(k)] = toApi(k, v);
+    // The goal is always sent as a pair so the API can validate amount + currency together.
+    if (form.dirty.includes("targetAmount") || form.dirty.includes("targetCurrency")) {
+      body.targetAmount = toApi("targetAmount", v);
+      body.targetCurrency = toApi("targetCurrency", v);
+    }
     return svc.updateProgramme(programme.id, body);
   });
 
@@ -193,6 +205,20 @@ function Editor({ programme }: { programme: Programme | null }) {
               {programme && <p className="text-xs text-muted">{c.updated}: <DateText value={programme.updatedAt} /></p>}
             </div>
           </Card>
+          {programme && programme.kind === "PROGRAMME" && (
+            <Card labelledBy="pg-t">
+              <CardHeader id="pg-t" title={x.goal.title} />
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="col-span-2">
+                    <TextInput label={x.goal.amount} value={v.targetAmount} onChange={(s) => form.set("targetAmount", s.replace(/[^\d.]/g, ""))} error={errors.targetAmount} disabled={readOnly} dir="ltr" inputMode="decimal" maxLength={15} />
+                  </div>
+                  <TextInput label={x.goal.currency} value={v.targetCurrency} onChange={(s) => form.set("targetCurrency", s.toUpperCase().slice(0, 3))} error={errors.targetCurrency} disabled={readOnly} dir="ltr" maxLength={3} placeholder="USD" />
+                </div>
+                <p className="text-xs text-muted">{x.goal.hint}</p>
+              </div>
+            </Card>
+          )}
           {programme && <Causes programme={programme} />}
           {programme && <Audit id={programme.id} />}
         </div>

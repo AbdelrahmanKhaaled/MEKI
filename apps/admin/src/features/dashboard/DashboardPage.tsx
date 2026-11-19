@@ -19,6 +19,7 @@ import {
   programmePerformance, rangeFor, recurringShare, refundRate, relativeTime, statusCounts, topCampaigns, type RangePreset,
 } from "@/lib/metrics";
 import type { DonationRow } from "@/lib/schemas";
+import { SdiDashboardCard } from "@/features/finance/sdi/SdiDashboardCard";
 
 const PRESETS: RangePreset[] = ["last7", "last30", "thisMonth", "lastMonth", "ytd", "all"];
 
@@ -175,7 +176,7 @@ export function DashboardPage() {
         <Card className="xl:col-span-8" labelledBy="tr-t">
           <CardHeader id="tr-t" title={d.trend.title} subtitle={d.trend.note} right={<Legend items={[{ label: d.trend.gross, color: CHART.teal }, { label: d.trend.net, color: CHART.gold }]} />} />
           <WidgetState q={byDate} unavailable={unavailable} isEmpty={trend.length === 0} emptyText={t.empty.noData} minH="min-h-64">
-            {currency && <TrendChart data={trend} currency={currency} labels={{ gross: d.trend.gross, net: d.trend.net }} />}
+            {currency && <TrendChart data={trend} currency={currency} labels={{ gross: d.trend.gross, net: d.trend.net }} caption={d.trend.title} periodLabel={d.chartTable.period} />}
           </WidgetState>
         </Card>
 
@@ -183,7 +184,7 @@ export function DashboardPage() {
           <Card labelledBy="di-t">
             <CardHeader id="di-t" title={d.distribution.title} subtitle={d.distribution.subtitle} />
             <WidgetState q={byCampaign} unavailable={unavailable} isEmpty={slices.length === 0} emptyText={t.empty.noData} minH="min-h-56">
-              {currency && <DonutChart data={slices} currency={currency} centerLabel={d.distribution.subtitle} />}
+              {currency && <DonutChart data={slices} currency={currency} centerLabel={d.distribution.subtitle} table={{ caption: `${d.distribution.title} — ${d.distribution.subtitle}`, category: d.chartTable.category, amount: d.chartTable.amount, share: d.chartTable.share }} />}
             </WidgetState>
           </Card>
           <Card labelledBy="fl-t">
@@ -226,7 +227,7 @@ export function DashboardPage() {
           <WidgetState q={byCampaign} unavailable={unavailable} isEmpty={programmeBars.length === 0} emptyText={d.programs.note} minH="min-h-56">
             {currency && (
               <>
-                <VerticalBars data={programmeBars} currency={currency} />
+                <VerticalBars data={programmeBars} currency={currency} table={{ caption: `${d.programs.title} — ${d.programs.subtitle}`, category: d.chartTable.category, amount: d.chartTable.amount }} />
                 <p className="mt-2 text-xs text-muted">{d.programs.note}</p>
               </>
             )}
@@ -249,7 +250,7 @@ export function DashboardPage() {
         <Card labelledBy="st-t">
           <CardHeader id="st-t" title={d.stacked.title} subtitle={d.stacked.subtitle} right={<Legend items={[{ label: d.stacked.net, color: CHART.teal }, { label: d.stacked.refunded, color: CHART.gold }]} />} />
           <WidgetState q={summary} unavailable={unavailable} isEmpty={freq.length === 0} emptyText={t.empty.noData} minH="min-h-56">
-            {currency && <StackedBars data={freq} currency={currency} labels={{ net: d.stacked.net, refunded: d.stacked.refunded }} />}
+            {currency && <StackedBars data={freq} currency={currency} labels={{ net: d.stacked.net, refunded: d.stacked.refunded }} table={{ caption: `${d.stacked.title} — ${d.stacked.subtitle}`, category: d.chartTable.category, amount: d.chartTable.amount }} />}
           </WidgetState>
         </Card>
       </div>
@@ -282,6 +283,9 @@ export function DashboardPage() {
           )}
         </WidgetState>
       </Card>
+
+      {/* Phase 12 — SDI report reconciliation health (only for report importers/approvers) */}
+      {can("sdi.reports.upload") && <SdiDashboardCard />}
 
       {/* top campaigns + activity + quick actions */}
       <div className="grid gap-4 xl:grid-cols-3">
@@ -358,7 +362,7 @@ function QuickActions({ can }: { can: Record<"donations" | "gala" | "programmes"
             <span className="grid size-9 place-items-center rounded-lg bg-white/15" aria-hidden="true"><i.icon className="size-4" /></span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-bold">{i.label}</span>
-              <span className="block truncate text-xs opacity-80">{i.sub}</span>
+              <span className="block truncate text-xs">{i.sub}</span>{/* full opacity: white/80 on brand teal was 3.7:1 (WCAG 1.4.3) */}
             </span>
             {"href" in i && <ArrowRight className={`size-4 ${rtl ? "rotate-180" : ""}`} aria-hidden="true" />}
           </>

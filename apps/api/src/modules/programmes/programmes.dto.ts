@@ -12,6 +12,7 @@ import {
   MaxLength,
   Min,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 import { ListQueryDto } from '../../common/dto/list-query.dto';
 import { ProgrammeKind, Provenance, PublicationStatus } from '../../generated/prisma/enums';
@@ -36,6 +37,9 @@ export class CreateProgrammeDto {
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @ArrayMaxSize(12) @IsString({ each: true }) @MaxLength(200, { each: true }) focusAreasAr?: string[];
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(40) @Matches(/^[a-z0-9-]+$/) icon?: string;
   @ApiPropertyOptional({ nullable: true }) @IsOptional() @IsString() coverMediaId?: string | null;
+  /** Phase 11A: MEKI-approved programme fundraising goal (decimal string, e.g. "250000.00"). Set together with targetCurrency, or both null. Never derived. */
+  @ApiPropertyOptional({ nullable: true, example: '250000.00', description: 'Approved programme goal; null clears it' }) @IsOptional() @ValidateIf((_o, v) => v !== null) @IsString() @Matches(/^\d{1,12}(\.\d{1,2})?$/, { message: 'targetAmount must be a positive decimal with at most 2 decimals' }) targetAmount?: string | null;
+  @ApiPropertyOptional({ nullable: true, example: 'USD' }) @IsOptional() @ValidateIf((_o, v) => v !== null) @IsString() @Matches(/^[A-Z]{3}$/) targetCurrency?: string | null;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) sortOrder?: number;
   @ApiPropertyOptional() @IsOptional() @IsBoolean() isFeatured?: boolean;
   @ApiPropertyOptional({ enum: Provenance }) @IsOptional() @IsEnum(Provenance) provenance?: Provenance;
@@ -72,6 +76,13 @@ export class CreateProjectDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(255) locationEn?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(255) locationAr?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(255) sourceFolder?: string;
+  /** Phase 11A (additive): public presentation of the cause on its programme page. */
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) summaryEn?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) summaryAr?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20000) descriptionEn?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20000) descriptionAr?: string;
+  @ApiPropertyOptional({ nullable: true }) @IsOptional() @IsString() coverMediaId?: string | null;
+  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) sortOrder?: number;
   @ApiPropertyOptional({ enum: Provenance }) @IsOptional() @IsEnum(Provenance) provenance?: Provenance;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(255) sourceRef?: string;
 }
