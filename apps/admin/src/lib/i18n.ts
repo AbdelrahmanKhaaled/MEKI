@@ -8,6 +8,7 @@ import { finAr, finEn } from "./i18n-finance.ts";
 import { galaAr, galaEn } from "./i18n-gala.ts";
 import { zeffyAr, zeffyEn } from "./i18n-zeffy.ts";
 import { sdiAr, sdiEn } from "./i18n-sdi.ts";
+import { givingAr, givingEn } from "./i18n-giving.ts";
 
 export const locales = ["en", "ar"] as const;
 export type Locale = (typeof locales)[number];
@@ -21,7 +22,7 @@ export const en = {
     groups: { overview: "Overview", programs: "Program management", donors: "Donor management", events: "Event management", website: "Website management", admin: "Reports & administration" },
     items: {
       dashboard: "Dashboard", analytics: "Analytics", programs: "Programs", causes: "Causes", campaigns: "Campaigns", donorList: "Donors", donations: "Donations",
-      payments: "Payments & Refunds", sdiZeffy: "SDI / Zeffy", sdiReconciliation: "SDI Reconciliation", sdiAttendees: "SDI Attendee List", recurring: "Recurring Donations", receipts: "Receipts", events: "Events", bookings: "Bookings", guests: "Guest Management",
+      payments: "Payments & Refunds", sdiZeffy: "SDI / Zeffy", sdiReconciliation: "SDI Reconciliation", sdiEvidence: "SDI payment evidence", sdiAttendees: "SDI Attendee List", givingIntents: "Giving Intents", zakat: "Zakat Eligibility", recurring: "Recurring Donations", receipts: "Receipts", events: "Events", bookings: "Bookings", guests: "Guest Management",
       checkin: "QR Check-in", galaOverview: "Gala Night", tickets: "Tickets", galaExports: "Guest Export", galaComms: "Communications", galaSettings: "Gala Settings", pages: "Pages", homepage: "Homepage", statistics: "Statistics", menus: "Menus", media: "Media Library", faqs: "FAQs", siteSettings: "Site Settings", reports: "Reports", users: "Users & Roles",
       audit: "Audit Logs", settings: "Settings",
     } as Record<string, string>,
@@ -83,6 +84,7 @@ export const en = {
   gala: galaEn,
   zeffy: zeffyEn,
   sdi: sdiEn,
+  giving: givingEn,
 };
 
 export type Dict = typeof en;
@@ -95,7 +97,7 @@ export const ar: Dict = {
     groups: { overview: "نظرة عامة", programs: "إدارة البرامج", donors: "إدارة المتبرعين", events: "إدارة الفعاليات", website: "إدارة الموقع", admin: "التقارير والإدارة" },
     items: {
       dashboard: "لوحة التحكم", analytics: "التحليلات", programs: "البرامج", causes: "القضايا", campaigns: "الحملات", donorList: "المتبرعون", donations: "التبرعات",
-      payments: "المدفوعات والمستردات", sdiZeffy: "SDI / Zeffy", sdiReconciliation: "مطابقة تقارير SDI", sdiAttendees: "قائمة حضور SDI", recurring: "التبرعات المتكررة", receipts: "الإيصالات", events: "الفعاليات", bookings: "الحجوزات", guests: "إدارة الضيوف",
+      payments: "المدفوعات والمستردات", sdiZeffy: "SDI / Zeffy", sdiReconciliation: "مطابقة تقارير SDI", sdiEvidence: "أدلة مدفوعات SDI", sdiAttendees: "قائمة حضور SDI", givingIntents: "نوايا التبرع", zakat: "أهلية الزكاة", recurring: "التبرعات المتكررة", receipts: "الإيصالات", events: "الفعاليات", bookings: "الحجوزات", guests: "إدارة الضيوف",
       checkin: "تسجيل الدخول بـ QR", galaOverview: "ليلة الحفل", tickets: "التذاكر", galaExports: "تصدير الضيوف", galaComms: "المراسلات", galaSettings: "إعدادات الحفل", pages: "الصفحات", homepage: "الصفحة الرئيسية", statistics: "الإحصاءات", menus: "القوائم", media: "مكتبة الوسائط", faqs: "الأسئلة الشائعة", siteSettings: "إعدادات الموقع", reports: "التقارير", users: "المستخدمون والأدوار",
       audit: "سجل التدقيق", settings: "الإعدادات",
     },
@@ -157,6 +159,7 @@ export const ar: Dict = {
   gala: galaAr,
   zeffy: zeffyAr,
   sdi: sdiAr,
+  giving: givingAr,
 };
 
 export const getDict = (l: Locale): Dict => (l === "ar" ? ar : en);

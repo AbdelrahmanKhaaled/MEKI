@@ -7,17 +7,39 @@ import { ORDER_STATUSES } from "./sdi-schemas.ts";
 
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
+export const REPORT_TYPES = ["GALA_TICKETS", "GALA_DONATIONS", "GENERAL_DONATIONS", "PROGRAMME_DONATIONS"] as const;
+export type ReportType = (typeof REPORT_TYPES)[number];
+
 export type ReconForm = {
+  /** Phase 12B: Gala ticket form (booking references) or Gala standalone donation form */
+  reportType: ReportType;
   orderId: string; bookingReference: string; ticketType: string; quantity: string; amount: string; refundedAmount: string; currency: string; status: string; date: string;
+  /** Phase 12B (SDI sample layout): separate time column, report time zone, fund + recurring columns */
+  time: string; fund: string; recurring: string;
+  timeZone: string;
+  /** comma-separated fund name(s) of the approved Gala project */
+  galaFunds: string;
   dateFormat: "ISO" | "MDY" | "DMY";
   /** one "raw value = STATUS" per line */
   statusMap: string;
   /** comma-separated ticket types that are Gala donation lines */
   donationTicketTypes: string;
+  /** Phase 14: SDI custom questions on donation forms */
+  donationReference: string; donationType: string; designation: string;
+  /** one "answer = ZAKAT|SADAQAH" per line (empty = the server's reviewed defaults) */
+  donationTypeMap: string;
+  /** one "report value = GENERAL | GALA_PROJECT | programme:<slug>" per line */
+  designationMap: string;
 };
 export type AttendeeForm = { guestName: string; ticketType: string; tableLabel: string; orderId: string; bookingReference: string; answers: string[] };
 
-export const RECON_FIELDS = ["orderId", "bookingReference", "ticketType", "quantity", "amount", "refundedAmount", "currency", "status", "date"] as const;
+export const RECON_FIELDS = ["orderId", "bookingReference", "ticketType", "quantity", "amount", "refundedAmount", "currency", "status", "date", "time", "fund", "recurring", "donationReference", "donationType", "designation"] as const;
+/** Columns that only make sense for the Gala TICKET form (hidden for a donation report). */
+export const TICKET_ONLY_FIELDS: readonly string[] = ["bookingReference", "ticketType", "quantity"];
+/** Phase 14: columns that only exist on donation forms (MEKI Donation Reference, Donation Type, Program/Fund). */
+export const DONATION_ONLY_FIELDS: readonly string[] = ["donationReference", "donationType", "designation"];
+export const reconFieldsFor = (t: ReportType) => RECON_FIELDS.filter((k) => (t === "GALA_TICKETS" ? !DONATION_ONLY_FIELDS.includes(k) : !TICKET_ONLY_FIELDS.includes(k)));
+export const isDonationReport = (t: ReportType) => t !== "GALA_TICKETS";
 export const RECON_REQUIRED: readonly string[] = ["orderId", "amount", "status", "date"];
 export const ATTENDEE_FIELDS = ["guestName", "ticketType", "tableLabel", "orderId", "bookingReference"] as const;
 
@@ -26,10 +48,14 @@ export const DEFAULT_STATUS_LINES = [
   "completed = COMPLETED", "succeeded = COMPLETED", "paid = COMPLETED", "approved = COMPLETED", "pending = PENDING", "processing = PENDING",
   "failed = FAILED", "declined = FAILED", "cancelled = CANCELLED", "canceled = CANCELLED", "voided = CANCELLED",
   "refunded = REFUNDED", "fully refunded = REFUNDED", "partially refunded = PARTIALLY_REFUNDED", "partial refund = PARTIALLY_REFUNDED",
+  "abandoned = FAILED",
 ].join("\n");
 
 const key = (h: string) => h.toLowerCase().replace(/[^a-z]/g, "");
-const finder = (headers: string[]) => (...names: string[]) => headers.find((h) => names.includes(key(h))) ?? "";
+// exact header match first; then a header that STARTS with the name (e.g. "Payment Date (America/New_York)")
+const finder = (headers: string[]) => (...names: string[]) => headers.find((h) => names.includes(key(h))) ?? headers.find((h) => names.some((n) => n.length >= 4 && key(h).startsWith(n))) ?? "";
+/** IANA zone stated in a header, e.g. "Payment Date (America/New_York)" → "America/New_York". */
+export const zoneFromHeaders = (headers: string[]) => headers.map((h) => /\(([A-Za-z_]+\/[A-Za-z_]+(?:\/[A-Za-z_]+)?)\)/.exec(h)?.[1]).find(Boolean) ?? "UTC";
 
 export function suggestRecon(headers: string[]): ReconForm {
   const f = finder(headers);
@@ -38,6 +64,9 @@ export function suggestRecon(headers: string[]): ReconForm {
     ticketType: f("tickettype", "ticket", "rate", "item"), quantity: f("quantity", "qty", "tickets"), amount: f("amount", "total", "totalamount"),
     refundedAmount: f("refundedamount", "refunded", "refundamount"), currency: f("currency"), status: f("status", "paymentstatus", "orderstatus"),
     date: f("date", "orderdate", "createdat", "paymentdate"), dateFormat: "ISO", statusMap: DEFAULT_STATUS_LINES, donationTicketTypes: "",
+    reportType: "GALA_TICKETS", time: f("paymenttime", "time", "ordertime"), fund: f("fund", "designation"), recurring: f("recurringstatus", "recurring", "frequency"), timeZone: zoneFromHeaders(headers), galaFunds: "",
+    donationReference: f("mekidonationreference", "donationreference"), donationType: f("donationtype", "typeofdonation"), designation: f("program", "programme", "programfund", "approvedprogram"),
+    donationTypeMap: "", designationMap: "",
   };
 }
 
@@ -61,10 +90,37 @@ export function parseStatusMap(text: string): { map: Record<string, OrderStatus>
 
 export const statusMapToText = (m: Record<string, string>) => Object.entries(m).map(([k, v]) => `${k} = ${v}`).join("\n");
 
+/** Phase 14: "answer = ZAKAT|SADAQAH" lines. Same rules as the status map (unknown answers always go to review). */
+export function parseTypeMap(text: string): { map: Record<string, string>; badLines: number[] } {
+  return parseLines(text, (v) => v === "ZAKAT" || v === "SADAQAH");
+}
+/** Phase 14: "report value = GENERAL | GALA_PROJECT | programme:<slug>" lines. */
+export function parseDesignationMap(text: string): { map: Record<string, string>; badLines: number[] } {
+  return parseLines(text, (v) => /^(?:GENERAL|GALA_PROJECT|programme:[a-z0-9-]{2,100})$/.test(v));
+}
+function parseLines(text: string, ok: (v: string) => boolean) {
+  const map: Record<string, string> = {};
+  const badLines: number[] = [];
+  text.split(/\r?\n/).forEach((line, i) => {
+    if (!line.trim()) return;
+    const m = /^(.{1,120}?)\s*=\s*(\S+)\s*$/.exec(line.trim());
+    if (!m || !ok(m[2])) return void badLines.push(i + 1);
+    map[m[1].trim().toLowerCase()] = m[2];
+  });
+  return { map, badLines };
+}
+
 /** Form → API mapping body. Empty optional columns are omitted (never guessed). */
 export function reconBody(f: ReconForm) {
-  const out: Record<string, unknown> = { dateFormat: f.dateFormat, statusMap: parseStatusMap(f.statusMap).map, donationTicketTypes: f.donationTicketTypes.split(",").map((s) => s.trim()).filter(Boolean) };
-  for (const k of RECON_FIELDS) if (f[k]) out[k] = f[k];
+  const out: Record<string, unknown> = {
+    reportType: f.reportType, dateFormat: f.dateFormat, timeZone: f.timeZone.trim() || "UTC", statusMap: parseStatusMap(f.statusMap).map,
+    donationTicketTypes: f.donationTicketTypes.split(",").map((s) => s.trim()).filter(Boolean), galaFunds: f.galaFunds.split(",").map((s) => s.trim()).filter(Boolean),
+  };
+  for (const k of reconFieldsFor(f.reportType)) if (f[k]) out[k] = f[k];
+  if (isDonationReport(f.reportType)) {
+    if (f.donationTypeMap.trim()) out.donationTypeMap = parseTypeMap(f.donationTypeMap).map;
+    if (f.designationMap.trim()) out.designationMap = parseDesignationMap(f.designationMap).map;
+  }
   return out;
 }
 export function attendeeBody(f: AttendeeForm) {
@@ -80,6 +136,11 @@ export function reconFromSaved(m: Record<string, unknown> | null | undefined, he
   const s = (k: string) => (typeof m[k] === "string" && headers.includes(m[k] as string) ? (m[k] as string) : "");
   return {
     orderId: s("orderId"), bookingReference: s("bookingReference"), ticketType: s("ticketType"), quantity: s("quantity"), amount: s("amount"), refundedAmount: s("refundedAmount"), currency: s("currency"), status: s("status"), date: s("date"),
+    time: s("time"), fund: s("fund"), recurring: s("recurring"), reportType: (REPORT_TYPES as readonly string[]).includes(m.reportType as string) ? (m.reportType as ReportType) : "GALA_TICKETS",
+    donationReference: s("donationReference"), donationType: s("donationType"), designation: s("designation"),
+    donationTypeMap: m.donationTypeMap && typeof m.donationTypeMap === "object" ? statusMapToText(m.donationTypeMap as Record<string, string>) : "",
+    designationMap: m.designationMap && typeof m.designationMap === "object" ? statusMapToText(m.designationMap as Record<string, string>) : "",
+    timeZone: typeof m.timeZone === "string" && m.timeZone ? m.timeZone : "UTC", galaFunds: Array.isArray(m.galaFunds) ? (m.galaFunds as string[]).join(", ") : "",
     dateFormat: m.dateFormat === "MDY" || m.dateFormat === "DMY" ? m.dateFormat : "ISO",
     statusMap: m.statusMap && typeof m.statusMap === "object" ? statusMapToText(m.statusMap as Record<string, string>) : base.statusMap,
     donationTicketTypes: Array.isArray(m.donationTicketTypes) ? (m.donationTicketTypes as string[]).join(", ") : "",
@@ -95,9 +156,16 @@ export function attendeeFromSaved(m: Record<string, unknown> | null | undefined,
 export function reconProblems(f: ReconForm): string[] {
   const p: string[] = [];
   for (const k of RECON_REQUIRED) if (!f[k as keyof ReconForm]) p.push(`missing:${k}`);
-  const used = RECON_FIELDS.map((k) => f[k]).filter(Boolean);
+  const used = reconFieldsFor(f.reportType).map((k) => f[k]).filter(Boolean);
+  if (f.fund && !f.galaFunds.trim()) p.push("galaFunds");
+  if (f.timeZone.trim() && !/^(?:UTC|[A-Za-z_]+(?:\/[A-Za-z0-9_+-]+){1,2})$/.test(f.timeZone.trim())) p.push("timeZone");
   if (new Set(used).size !== used.length) p.push("duplicateColumn");
   if (parseStatusMap(f.statusMap).badLines.length) p.push("statusMap");
+  // Phase 14: general / programme reports can only be reconciled against MEKI donation references
+  if ((f.reportType === "GENERAL_DONATIONS" || f.reportType === "PROGRAMME_DONATIONS") && !f.donationReference) p.push("missing:donationReference");
+  if (f.reportType === "PROGRAMME_DONATIONS" && !f.designation) p.push("missing:designation");
+  if (isDonationReport(f.reportType) && parseTypeMap(f.donationTypeMap).badLines.length) p.push("donationTypeMap");
+  if (isDonationReport(f.reportType) && parseDesignationMap(f.designationMap).badLines.length) p.push("designationMap");
   return p;
 }
 

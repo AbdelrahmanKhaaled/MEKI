@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDict, isLocale } from "@/lib/i18n";
 import { getBookingCopy } from "@/content/booking";
+import type { PublicEventFundraising } from "@meki/api-client";
+import { fetchPublicContent } from "@/lib/api";
 import { DonateProvider } from "@/components/DonateProvider";
 import { Header } from "@/components/Header";
 import { PreviewNote } from "@/components/PreviewNote";
@@ -23,6 +25,8 @@ export default async function GalaBookPage({ params }: { params: Promise<{ local
   if (!isLocale(locale)) notFound();
   const t = getDict(locale);
   const c = getBookingCopy(locale);
+  // Nov 19 2026: the SDI-approved ticket purchase disclosure (exact wording), shown before the buyer opens SDI's form.
+  const fr = await fetchPublicContent<PublicEventFundraising>(`/public/events/gala-night/fundraising?locale=${locale}`);
   return (
     <DonateProvider t={t} locale={locale}>
       <Header t={t} locale={locale} current="gala" />
@@ -37,7 +41,7 @@ export default async function GalaBookPage({ params }: { params: Promise<{ local
           </p>
         </FlowBand>
         <div className="container-x pt-12">
-          <BookingFlow locale={locale} />
+          <BookingFlow locale={locale} disclosure={fr?.disclosures?.ticketPurchase ?? null} />
         </div>
       </main>
       <PreviewNote text={t.previewBar} extra={t.draftTranslation || undefined} closeLabel={t.dialog.close} />

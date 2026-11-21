@@ -6,3 +6,6 @@
 *.avif binary
 *.pdf binary
 *.svg text eol=lf
+
+# Phase 13A — shell scripts run inside Linux containers
+*.sh text eol=lf

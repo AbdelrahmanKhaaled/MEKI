@@ -31,7 +31,7 @@ const card = "rounded-2xl border border-stone-line bg-white p-5 sm:p-7";
  * receipt on SDI's Zeffy form. The reference is never pre-filled into the form (not confirmed by SDI): the buyer copies it into
  * SDI's "MEKI Booking Reference" question. Returning from the form confirms nothing — only an approved SDI report does.
  */
-export function HostedBookingFlow({ locale, ticketing }: { locale: Locale; ticketing: PublicTicketing }) {
+export function HostedBookingFlow({ locale, ticketing, disclosure = null }: { locale: Locale; ticketing: PublicTicketing; disclosure?: string | null }) {
   const c = getBookingCopy(locale);
   const h = c.hosted;
   const gate = ticketing.hosted!;
@@ -146,6 +146,8 @@ export function HostedBookingFlow({ locale, ticketing }: { locale: Locale; ticke
                 </label>
                 {consentError && <p id="h-consent-err" role="alert" className="mt-2 text-sm text-red-700">{c.errors.consent}</p>}
               </div>
+              {/* Nov 19 2026: SDI-approved ticket purchase disclosure (exact wording; absent until approved and published). */}
+              {disclosure && <p data-testid="ticket-purchase-disclosure" className="mb-6 whitespace-pre-line rounded-xl border border-stone-line bg-limestone px-4 py-3 text-sm text-ink">{disclosure}</p>}
               {submitError && <p role="alert" className="mb-4 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">{c.submitErrors[submitError]}</p>}
               <div className="flex flex-wrap gap-3">
                 <button type="button" disabled={busy} onClick={() => setStep(0)} className="btn btn-outline min-h-12 disabled:opacity-50">{c.guests.back}</button>

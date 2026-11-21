@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import Image from "next/image";
 import { ArrowRight, BadgeCheck, ClipboardCheck, Layers, Landmark, Mail, X } from "lucide-react";
 import { media } from "@/content/media";
@@ -10,6 +11,10 @@ import { pageMetadata } from "@/lib/page-meta";
 import { PageShell, PageHero } from "@/components/pages/PageShell";
 import { PageCta } from "@/components/pages/PageCta";
 import { PointsOfLight } from "@/components/Decor";
+import type { PublicGivingOptions } from "@meki/api-client";
+import { fetchPublicContent } from "@/lib/api";
+import { getGivingCopy } from "@/content/giving";
+import { GivingForm } from "@/components/giving/GivingForm";
 
 /** Icons for the four approved trust commitments (order matches the dictionary). */
 const TRUST_ICONS = [ClipboardCheck, BadgeCheck, Layers, Landmark];
@@ -29,6 +34,9 @@ export default async function GivePage({ params }: { params: Promise<{ locale: s
   const { t, site } = await getPageContent(locale);
   const p = getPages(locale).give;
   const email = site?.contactEmail && EMAIL.test(site.contactEmail) ? site.contactEmail : null;
+  // Phase 14: the giving form. Programmes are listed for information; what is payable comes ONLY from the API (all closed today).
+  const giving = await fetchPublicContent<PublicGivingOptions>(`/public/giving/options?locale=${locale}`);
+  const g = getGivingCopy(locale).form;
 
   return (
     <PageShell locale={locale} current="give">
@@ -107,6 +115,22 @@ export default async function GivePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
+      {/* Phase 14 — reusable giving form (general or a programme intention, Sadaqah / Zakat). A PREVIEW while SDI has not
+          authorized the channel: no reference, no contact details, no payment path. */}
+      {giving && (
+        <section id="prepare" aria-labelledby="prepare-title" className="section-y bg-paper">
+          <div className="container-x">
+            <p data-reveal className="eyebrow mb-6">{g.eyebrow}</p>
+            <h2 id="prepare-title" data-reveal className="headline mb-4 max-w-2xl">{g.title}</h2>
+            <p data-reveal className="mb-10 max-w-2xl text-lg text-body-grey">{g.intro}</p>
+            {/* Suspense: the form reads ?programme= (useSearchParams) while the page itself stays statically rendered */}
+            <Suspense fallback={null}>
+              <GivingForm locale={locale} mode="general" options={giving} />
+            </Suspense>
+          </div>
+        </section>
+      )}
+
       {/* Availability: no checkout, no fake form. The interest route is the official contact channel. */}
       <section aria-labelledby="availability-title" className="section-y relative isolate overflow-hidden bg-deep-green text-white">
         <PointsOfLight count={14} className="-z-10" />
@@ -129,6 +153,10 @@ export default async function GivePage({ params }: { params: Promise<{ locale: s
                 {p.notifyContact} <ArrowRight className="btn-arrow size-4" aria-hidden="true" />
               </a>
             )}
+            {/* Phase 12B: the only fiscal-sponsor channel today is the Gala campaign (one approved project) — an information link, not a payment button. */}
+            <a href={`/${locale}/events/gala-night#booking`} className="btn btn-outline-light min-h-14 px-8">
+              {p.galaLink}
+            </a>
           </div>
         </div>
       </section>

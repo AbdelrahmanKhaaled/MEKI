@@ -62,6 +62,10 @@ export const PERMISSIONS = {
   // Phase 12 — SDI hosted forms: payments, tickets and check-in happen on SDI's Zeffy forms; MEKI reconciles SDI's daily reports
   'sdi.reports.upload': { group: 'finance', description: 'Upload, map and preview SDI reconciliation/attendee reports (no financial effect)' },
   'sdi.reports.approve': { group: 'finance', description: 'Apply a previewed SDI report and verify mappings (not your own upload)' },
+  // Phase 14 — hosted donation intents and Zakat eligibility
+  'donations.allocate': { group: 'finance', description: 'Authorize or reject the fund allocation of an SDI-verified donation (not the report approver)' },
+  'zakat.manage': { group: 'finance', description: 'Request Zakat-eligibility changes for programmes, projects and campaigns' },
+  'zakat.approve': { group: 'finance', description: 'Approve, reject or revoke Zakat eligibility (not your own request)' },
 } as const;
 
 export type PermissionKey = keyof typeof PERMISSIONS;
@@ -163,6 +167,13 @@ export const PERMISSION_GRANTS: { version: string; grants: Partial<Record<string
     grants: {
       ADMINISTRATOR: ['sdi.reports.upload', 'sdi.reports.approve'],
       FINANCE_MANAGER: ['sdi.reports.upload'],
+    },
+  },
+  {
+    version: '2026-11-21-phase14-giving',
+    grants: {
+      ADMINISTRATOR: ['donations.read', 'donations.allocate', 'zakat.manage', 'zakat.approve'],
+      FINANCE_MANAGER: ['zakat.manage'],
     },
   },
 ];

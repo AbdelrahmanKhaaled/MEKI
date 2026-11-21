@@ -20,7 +20,6 @@ import {
 import { ListQueryDto } from '../../common/dto/list-query.dto';
 import { SLUG_PATTERN } from '../../common/utils';
 import {
-  DonationDesignation,
   DonationFrequency,
   DonationPaymentStatus,
   DonationStatus,
@@ -31,6 +30,9 @@ import {
   WebhookEventStatus,
 } from '../../generated/prisma/enums';
 import { AMOUNT_PATTERN } from './money';
+
+/** Designations accepted by the legacy MEKI-native checkout (disabled in staging/production). */
+export const LEGACY_DESIGNATIONS = ['GENERAL_FUND', 'CAMPAIGN', 'PROGRAMME'] as const;
 
 const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
 const lower = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim().toLowerCase() : value);
@@ -66,7 +68,8 @@ export class CreateDonationDto {
   @ApiProperty(AMOUNT_DOC) @IsString() @Matches(AMOUNT_PATTERN, { message: 'amount must be a positive decimal string' }) amount!: string;
   @ApiProperty({ example: 'USD' }) @IsString() @Matches(/^[A-Z]{3}$/) currency!: string;
   @ApiPropertyOptional({ enum: DonationFrequency, default: 'ONE_TIME' }) @IsOptional() @IsEnum(DonationFrequency) frequency?: DonationFrequency;
-  @ApiProperty({ enum: DonationDesignation }) @IsEnum(DonationDesignation) designation!: DonationDesignation;
+  /** Legacy MEKI-checkout designations only (Phase 14's PROJECT designation is used by hosted Gala donation intents, never here). */
+  @ApiProperty({ enum: LEGACY_DESIGNATIONS }) @IsIn(LEGACY_DESIGNATIONS) designation!: (typeof LEGACY_DESIGNATIONS)[number];
   @ApiPropertyOptional({ description: 'Required when designation=CAMPAIGN' }) @IsOptional() @Matches(SLUG_PATTERN) @MaxLength(120) campaignSlug?: string;
   @ApiPropertyOptional({ description: 'Required when designation=PROGRAMME' }) @IsOptional() @Matches(SLUG_PATTERN) @MaxLength(100) programmeSlug?: string;
   @ApiProperty({ type: DonorInputDto }) @ValidateNested() @Type(() => DonorInputDto) donor!: DonorInputDto;

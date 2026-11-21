@@ -36,3 +36,6 @@ tmp/
 *.7z
 *.rar
 *.tsbuildinfo
+# Phase 13A — staging rehearsal data and backups (may contain personal data) are never committed
+deploy/**/backups/
+deploy/**/data/

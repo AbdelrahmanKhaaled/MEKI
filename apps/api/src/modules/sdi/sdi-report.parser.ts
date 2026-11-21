@@ -162,6 +162,84 @@ export function parseDate(v: string, fmt: DateFormat): Date | null {
   return dt.getUTCFullYear() === y && dt.getUTCMonth() === mo - 1 && dt.getUTCDate() === d && h < 24 && mi < 60 ? dt : null;
 }
 
+/**
+ * Phase 12B — SDI's sample export has the date and time in SEPARATE columns, in America/New_York local time
+ * ("Payment Date (America/New_York)" = 11/18/2026, "Payment Time (America/New_York)" = 7:05 PM).
+ */
+export function parseTime(v: string): { h: number; m: number; s: number } | null {
+  const t = v.trim();
+  const ampm = /^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([AaPp])\.?\s*[Mm]\.?$/.exec(t);
+  if (ampm) {
+    const h12 = Number(ampm[1]);
+    const m = Number(ampm[2]);
+    const s = ampm[3] ? Number(ampm[3]) : 0;
+    if (h12 < 1 || h12 > 12 || m > 59 || s > 59) return null;
+    const pm = ampm[4].toLowerCase() === 'p';
+    return { h: (h12 % 12) + (pm ? 12 : 0), m, s };
+  }
+  const h24 = /^(\d{1,2}):(\d{2})(?::(\d{2}))?$/.exec(t);
+  if (!h24) return null;
+  const [h, m, s] = [Number(h24[1]), Number(h24[2]), h24[3] ? Number(h24[3]) : 0];
+  return h < 24 && m < 60 && s < 60 ? { h, m, s } : null;
+}
+
+export function isValidTimeZone(tz: string): boolean {
+  if (!/^[A-Za-z_]+(?:\/[A-Za-z0-9_+-]+){0,2}$/.test(tz)) return false;
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Offset (ms) of `tz` at the UTC instant `utcMs` (positive east of UTC). */
+function tzOffset(utcMs: number, tz: string): number {
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).formatToParts(new Date(utcMs));
+  const n = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+  return Date.UTC(n('year'), n('month') - 1, n('day'), n('hour'), n('minute'), n('second')) - Math.floor(utcMs / 1000) * 1000;
+}
+
+/** Wall-clock time in `tz` → UTC instant (DST-aware; a non-existent spring-forward time resolves forward, never guessed silently backwards). */
+export function zonedTimeToUtc(y: number, mo: number, d: number, h: number, mi: number, s: number, tz: string): Date {
+  const guess = Date.UTC(y, mo - 1, d, h, mi, s);
+  if (tz === 'UTC') return new Date(guess);
+  let utc = guess - tzOffset(guess, tz);
+  utc = guess - tzOffset(utc, tz); // second pass across a DST boundary
+  return new Date(utc);
+}
+
+/**
+ * Date (+ optional separate time column) in the importer-chosen format and time zone. An explicit ISO offset/Z always wins.
+ * Without a time the instant is local midnight in `tz`. Invalid calendar dates and times are refused (null).
+ */
+export function parseDateTime(dateValue: string, timeValue: string | undefined, fmt: DateFormat, tz = 'UTC'): Date | null {
+  const dv = dateValue.trim();
+  const tv = timeValue?.trim() ?? '';
+  const isoOffset = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(Z|[+-]\d{2}:\d{2})$/.test(dv);
+  if (isoOffset) return tv ? null : parseDate(dv, 'ISO');
+  let y: number, mo: number, d: number;
+  let time: { h: number; m: number; s: number } | null = { h: 0, m: 0, s: 0 };
+  const iso = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{1,2}:\d{2}(?::\d{2})?))?$/.exec(dv);
+  const slash = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}:\d{2}(?::\d{2})?(?:\s*[AaPp]\.?[Mm]\.?)?))?$/.exec(dv);
+  if (iso) {
+    [y, mo, d] = [Number(iso[1]), Number(iso[2]), Number(iso[3])];
+    if (iso[4]) time = parseTime(iso[4]);
+  } else if (slash && fmt !== 'ISO') {
+    [mo, d] = fmt === 'MDY' ? [Number(slash[1]), Number(slash[2])] : [Number(slash[2]), Number(slash[1])];
+    y = Number(slash[3]);
+    if (slash[4]) time = parseTime(slash[4]);
+  } else return null;
+  if (tv) {
+    if ((iso && iso[4]) || (slash && slash[4])) return null; // time given twice
+    time = parseTime(tv);
+  }
+  if (!time) return null;
+  const check = new Date(Date.UTC(y, mo - 1, d));
+  if (check.getUTCFullYear() !== y || check.getUTCMonth() !== mo - 1 || check.getUTCDate() !== d) return null;
+  return zonedTimeToUtc(y, mo, d, time.h, time.m, time.s, tz);
+}
+
 /** MEKI booking reference: EB- + 12 Crockford characters. Whitespace/case/typographic dashes are normalised; nothing is "corrected". */
 export const BOOKING_REF = /^EB-[0-9A-HJKMNP-TV-Z]{12}$/;
 export function normaliseReference(v: string): string | null {

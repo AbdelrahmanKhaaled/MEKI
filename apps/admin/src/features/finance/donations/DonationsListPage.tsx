@@ -6,7 +6,7 @@ import { CircleAlert, Clock, Eye, HandCoins, RotateCcw } from "lucide-react";
 import { Card, CardHeader, KpiCard } from "@/components/cards/Card";
 import { useLocale } from "@/components/common/Providers";
 import { WidgetState } from "@/components/common/States";
-import { DataTable, DateRangeFilter, DateText, FilterBar, Money, PageHeader, Pagination, Ref, SearchFilter, SelectFilter, StatusBadge, TestBadge, type Column } from "@/components/finance/ui";
+import { DataTable, DateRangeFilter, DateText, FilterBar, Money, Notice, PageHeader, Pagination, Ref, SearchFilter, SelectFilter, StatusBadge, TestBadge, type Column } from "@/components/finance/ui";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useCampaignOptions, useConfirmedSummary, useDonationCount, useDonationList } from "@/hooks/useFinanceData";
 import { useUrlState } from "@/hooks/useUrlState";
@@ -107,6 +107,8 @@ function DonationsList() {
   return (
     <>
       <PageHeader title={d.title} subtitle={d.subtitle} />
+      {/* Phase 12B: SDI-hosted Gala gifts are reconciled from SDI reports (separate category), never copied into this list. */}
+      <Notice><p>{t.sdi.donationsListNote}</p></Notice>
 
       <section aria-label={d.title} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard

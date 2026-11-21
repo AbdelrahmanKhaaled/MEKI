@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, CalendarDays, Check, Flame, Gavel, GlassWater, MapPin, Palette, Plus, Sparkles, UtensilsCrossed, type LucideIcon } from "lucide-react";
+import { ArrowDown, CalendarDays, Check, Clock, Flame, Gavel, GlassWater, MapPin, Palette, Plus, Sparkles, UtensilsCrossed, type LucideIcon } from "lucide-react";
 import { media } from "@/content/media";
+import { photoCaption, type VenuePhoto } from "@/lib/venue-photos";
 import { PROPOSED_SPONSORSHIP, type GalaDict, type SponsorTier } from "@/content/gala";
 import { Pattern, PointsOfLight, GoldArc } from "../Decor";
 
@@ -60,6 +61,9 @@ export function GalaHero({ g }: { g: GalaDict }) {
         <p data-hero-item className="mb-10 flex flex-col gap-3 text-base font-bold text-glow sm:flex-row sm:gap-8">
           <span className="inline-flex items-center gap-2">
             <CalendarDays className="size-5" aria-hidden="true" /> {h.date}
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <Clock className="size-5" aria-hidden="true" /> {h.time}
           </span>
           <span className="inline-flex items-center gap-2">
             <MapPin className="size-5" aria-hidden="true" /> {h.venue}
@@ -173,31 +177,45 @@ export function GalaTimeline({ g }: { g: GalaDict }) {
           </div>
         </div>
         <div className="lg:col-span-7 lg:col-start-6">
-          <ol className="relative">
-            {/* The vertical line of light */}
-            <span aria-hidden="true" className="absolute inset-y-2 start-[7px] w-px bg-gradient-to-b from-harvest-gold/70 via-white/25 to-white/5" />
-            <span aria-hidden="true" className="p10-travel absolute inset-y-2 start-[6px] w-[3px] rounded-full" />
-            {t.items.map((item, i) => (
-              <li key={item.title} data-reveal className="p10-row relative pb-10 ps-12 last:pb-0">
-                <span
-                  aria-hidden="true"
-                  className={`absolute start-0 top-1.5 grid size-4 place-items-center rounded-full ${
-                    item.highlight ? "bg-harvest-gold shadow-[0_0_0_6px_rgb(214_161_70/0.18),0_0_24px_4px_rgb(230_195_111/0.55)]" : "bg-deep-green ring-1 ring-glow/70"
-                  }`}
-                >
-                  <span className={`size-1.5 rounded-full ${item.highlight ? "bg-deep-green-3" : "bg-glow"}`} />
-                </span>
-                <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-mint-line/70" aria-hidden="true">
-                  {String(i + 1).padStart(2, "0")}
+          {/* Nov 19 2026 agenda: four acts, times in America/New_York. Roles only — speaker names are published once confirmed. */}
+          <p data-reveal className="mb-10 text-sm font-bold text-glow">{t.hours}</p>
+          <div className="space-y-14">
+            {t.acts.map((act, a) => (
+              <section key={act.label} aria-labelledby={`act-${a}`}>
+                <p data-reveal className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-harvest-gold">
+                  {act.label} · <span dir="ltr" className="inline-block">{act.time}</span>
                 </p>
-                <h3 className={`font-serif text-2xl leading-snug sm:text-3xl ${item.highlight ? "text-glow" : "text-white"}`}>
-                  {item.highlight && <Flame className="me-2 inline size-6 -translate-y-0.5 text-harvest-gold" aria-hidden="true" />}
-                  {item.title}
+                <h3 id={`act-${a}`} data-reveal className="mb-8 font-serif text-3xl text-white sm:text-4xl">
+                  {act.title}
                 </h3>
-                {item.note && <p className="mt-1 text-mint-line">{item.note}</p>}
-              </li>
+                <ol className="relative">
+                  {/* The vertical line of light */}
+                  <span aria-hidden="true" className="absolute inset-y-2 start-[7px] w-px bg-gradient-to-b from-harvest-gold/70 via-white/25 to-white/5" />
+                  <span aria-hidden="true" className="p10-travel absolute inset-y-2 start-[6px] w-[3px] rounded-full" />
+                  {act.items.map((item) => (
+                    <li key={item.time + item.title} data-reveal className="p10-row relative pb-10 ps-12 last:pb-0">
+                      <span
+                        aria-hidden="true"
+                        className={`absolute start-0 top-1.5 grid size-4 place-items-center rounded-full ${
+                          item.highlight ? "bg-harvest-gold shadow-[0_0_0_6px_rgb(214_161_70/0.18),0_0_24px_4px_rgb(230_195_111/0.55)]" : "bg-deep-green ring-1 ring-glow/70"
+                        }`}
+                      >
+                        <span className={`size-1.5 rounded-full ${item.highlight ? "bg-deep-green-3" : "bg-glow"}`} />
+                      </span>
+                      <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-mint-line/70">
+                        <time dir="ltr" className="inline-block">{item.time}</time>
+                      </p>
+                      <h4 className={`font-serif text-2xl leading-snug sm:text-3xl ${item.highlight ? "text-glow" : "text-white"}`}>
+                        {item.highlight && <Flame className="me-2 inline size-6 -translate-y-0.5 text-harvest-gold" aria-hidden="true" />}
+                        {item.title}
+                      </h4>
+                      {item.note && <p className="mt-1 text-mint-line">{item.note}</p>}
+                    </li>
+                  ))}
+                </ol>
+              </section>
             ))}
-          </ol>
+          </div>
           <p data-reveal className="mt-12 border-t border-white/15 pt-6 text-sm italic text-mint-line">
             {t.note}
           </p>
@@ -207,7 +225,40 @@ export function GalaTimeline({ g }: { g: GalaDict }) {
   );
 }
 
-export function GalaVenue({ g, mapUrl }: { g: GalaDict; mapUrl: string }) {
+/**
+ * Phase 13B — "pictures of the gala venue to be added". Renders ONLY photos MEKI published for the event (API, published event +
+ * published EVENT_VENUE section). With none, nothing is rendered: no placeholder, stock or unrelated location is shown as the venue.
+ * Layout: 1 photo → one wide image; 2 → two columns; 3–5 → one large lead image + smaller ones (lg: editorial mosaic).
+ * Mobile is always a single column.
+ */
+function VenuePhotos({ photos, label }: { photos: VenuePhoto[]; label: string }) {
+  const shown = photos.slice(0, 5);
+  if (shown.length === 0) return null;
+  const mosaic = shown.length >= 3;
+  return (
+    <div className="container-x mt-16" data-testid="gala-venue-photos">
+      <h3 className="sr-only">{label}</h3>
+      <ul data-stagger className={`grid gap-5 sm:grid-cols-2 ${mosaic ? "lg:grid-cols-4" : ""}`}>
+        {shown.map((p, i) => {
+          const lead = mosaic && i === 0;
+          const caption = photoCaption(p.title, p.place);
+          return (
+            <li key={p.src + i} data-stagger-item className={lead ? "sm:col-span-2 lg:row-span-2" : shown.length === 1 ? "sm:col-span-2" : ""}>
+              <figure className="group h-full">
+                <div className={`relative overflow-hidden rounded-[1.75rem] bg-limestone ${lead ? "aspect-[4/3] lg:aspect-auto lg:h-[calc(100%-2.25rem)] lg:min-h-[420px]" : "aspect-[4/3]"}`}>
+                  <Image src={p.src} alt={p.alt || caption} fill sizes={lead ? "(min-width:1024px) 50vw, 100vw" : "(min-width:1024px) 25vw, (min-width:640px) 50vw, 100vw"} className="object-cover transition-transform duration-[1200ms] group-hover:scale-105" />
+                </div>
+                <figcaption className="mt-3 text-sm font-bold text-body-grey">{caption}</figcaption>
+              </figure>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+export function GalaVenue({ g, mapUrl, photos = [] }: { g: GalaDict; mapUrl: string; photos?: VenuePhoto[] }) {
   const v = g.venue;
   return (
     <section id="venue" aria-labelledby="venue-title" className="section-y bg-paper">
@@ -224,7 +275,7 @@ export function GalaVenue({ g, mapUrl }: { g: GalaDict; mapUrl: string }) {
           </a>
         </div>
         <div className="space-y-6 lg:col-span-5 lg:col-start-8">
-          {/* Stylised location card (no venue photography is approved yet): a city grid with a pulsing pin. */}
+          {/* Stylised location card (a map cue, not a venue photo): a city grid with a pulsing pin. */}
           <a data-reveal href={mapUrl} target="_blank" rel="noopener noreferrer" aria-label={`${v.mapLabel}: ${v.address}`} className="group p10-lift relative isolate block aspect-[16/10] overflow-hidden rounded-[2rem] bg-deep-green text-white">
             <span aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(rgb(255_255_255/0.06)_1px,transparent_1px),linear-gradient(90deg,rgb(255_255_255/0.06)_1px,transparent_1px)] bg-[size:36px_36px] transition-transform duration-[1400ms] group-hover:scale-110" />
             <span aria-hidden="true" className="absolute inset-y-0 start-[58%] -z-10 w-6 -skew-x-12 bg-white/10" />
@@ -236,12 +287,10 @@ export function GalaVenue({ g, mapUrl }: { g: GalaDict; mapUrl: string }) {
               <span className="block font-serif text-2xl">{v.address}</span>
             </span>
           </a>
-          <div data-reveal className="border-s-2 border-harvest-gold ps-8">
-            <h3 className="mb-3 font-sans text-xs font-bold uppercase tracking-[0.22em] text-gold-text">{v.arrival}</h3>
-            <p className="text-lg text-body-grey">{v.arrivalPending}</p>
-          </div>
+          {/* Phase 13B: the Arrival / transportation block was removed at MEKI's request (address and map link kept). */}
         </div>
       </div>
+      <VenuePhotos photos={photos} label={v.photos} />
     </section>
   );
 }
@@ -390,12 +439,18 @@ export function GalaFaq({ g }: { g: GalaDict }) {
   );
 }
 
-function BookingPanel({ title, text, cta, status, gold, href }: { title: string; text: string; cta: string; status: string; gold?: boolean; href?: string }) {
+function BookingPanel({ title, text, cta, status, gold, href, external, newTab, note }: { title: string; text: string; cta: string; status: string; gold?: boolean; href?: string; external?: boolean; newTab?: string; note?: string }) {
   return (
   <div data-reveal className="flex flex-col border-t border-white/20 pt-6">
     <h3 className="mb-3 font-serif text-3xl text-white">{title}</h3>
     <p className="mb-6 text-mint-line">{text}</p>
-    {href ? (
+    {note && <p className="-mt-3 mb-6 text-sm text-mint-line/90" data-testid="gala-project-note">{note}</p>}
+    {href && external ? (
+      // Phase 12B: SDI's hosted Gala donation form (Zeffy). Only a URL returned by the API and checked by the page is linked.
+      <a href={href} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" aria-describedby={`status-${title.replace(/\s/g, "")}`} className={`btn mb-4 min-h-14 w-full justify-center sm:w-auto ${gold ? "btn-gold" : "btn-outline-light"}`}>
+        {cta} {newTab && <span className="sr-only">{newTab}</span>}
+      </a>
+    ) : href ? (
       <Link href={href} aria-describedby={`status-${title.replace(/\s/g, "")}`} className={`btn mb-4 min-h-14 w-full justify-center sm:w-auto ${gold ? "btn-gold" : "btn-outline-light"}`}>
         {cta}
       </Link>
@@ -413,7 +468,8 @@ function BookingPanel({ title, text, cta, status, gold, href }: { title: string;
 
 /** Booking & giving. Both actions are disabled until the fiscal sponsor flow and payment arrangements are approved. */
 /** `bookHref` is set only when the API reports ticket sales open AND checkout available; otherwise the action stays disabled. */
-export function GalaBooking({ g, bookHref, bookStatus }: { g: GalaDict; bookHref?: string; bookStatus?: string }) {
+/** Phase 12B: `give` is set only when the API reports SDI's Gala donation form available (approved project + open campaign). */
+export function GalaBooking({ g, bookHref, bookStatus, give, disclosure }: { g: GalaDict; bookHref?: string; bookStatus?: string; give?: { href?: string; internal?: boolean; status: string; note?: string }; disclosure?: string | null }) {
   const b = g.booking;
   return (
     <section id="booking" aria-labelledby="booking-title" className="section-y relative isolate overflow-hidden bg-deep-green-3 text-white">
@@ -428,8 +484,15 @@ export function GalaBooking({ g, bookHref, bookStatus }: { g: GalaDict; bookHref
         </h2>
         <div className="grid gap-12 md:grid-cols-2 md:gap-16">
           <BookingPanel {...b.book} {...(bookHref ? { href: bookHref, status: bookStatus ?? b.book.status } : {})} gold />
-          <BookingPanel {...b.give} />
+          {/* Phase 14: `internal` = MEKI's Gala donation page (reference first); otherwise SDI's form directly (Phase 12B) */}
+          <BookingPanel {...b.give} {...(give ? { status: give.status, note: give.note } : {})} {...(give?.href ? (give.internal ? { href: give.href } : { href: give.href, external: true, newTab: b.give.newTab }) : {})} />
         </div>
+        {/* Nov 19 2026: SDI-approved website disclosure (exact wording, published by MEKI only after SDI approval). */}
+        {disclosure && (
+          <p data-reveal data-testid="gala-website-disclosure" className="mt-12 max-w-3xl whitespace-pre-line border-t border-white/15 pt-6 text-sm text-mint-line">
+            {disclosure}
+          </p>
+        )}
       </div>
     </section>
   );

@@ -11,6 +11,39 @@ Date: 2026-11-19.
 
 **Current state:** everything is built and tested, and **every live switch is off**. No sales, payment link, report application or hosted giving is active in any environment.
 
+## 0. Update — SDI's written clarification (Phase 12B, 2026-11-19)
+
+The dependency register is superseded by [doc 50](50-phase12b-sdi-agreement-alignment.md) §8–§10 (S-1…S-10, M-1…M-7). The table below is kept for history, with this status:
+
+| Item | Status |
+|---|---|
+| Hosted-form payment architecture; no API key or webhooks | **Confirmed** by SDI |
+| Gala ticket form URL | **Confirmed** (SDI's e-mail) |
+| Gala standalone donation form | **Confirmed** by SDI (Gala campaign only). The URL must be entered by MEKI in the secret store (M-6). |
+| Booking reference collected as a custom question, stored as entered | **Confirmed**. Its appearance in the real report is still open (S-2). |
+| Scope: one Project in Egypt; no programme-directed or general giving under this agreement | **Confirmed**, and implemented (doc 50 §3–§4) |
+| Donations not refundable | **Confirmed** by SDI for donations only. Published only after M-4. The ticket policy is still open (M-3). |
+| D-1 real sample | **Open.** The sample received is from another campaign: structure only, no order ID column (S-1, S-3). |
+| D-2 live purchase/refund test (now also a standalone donation) | **Open** (S-1) |
+| D-3 question label / required / once per order | Label **confirmed**; required/once per order still open (S-2) |
+| D-4 URL pre-fill | Not assumed; copy-and-paste flow kept |
+| D-5 donation reporting | Partly resolved: SDI records ticket money and additional donations separately. The structure is still open (S-4). |
+| D-6 programme forms / designation | **Not authorized** under the current agreement. Needs a separate agreement (M-5). |
+| D-7 general donation form | **Not authorized**. The existing standalone form is for the Gala only. |
+| D-8 – D-13 | Unchanged. See doc 50 S-7, S-8, M-3, M-7. |
+
+## 0b. Update — Phase 13B (2026-11-21, "Website Comments.docx")
+
+The current go-live blocker list is [doc 58](58-phase13b-final-qa-and-launch-blockers.md) §5. Changes since §0:
+
+| Item | Status |
+|---|---|
+| D-8 price | MEKI confirmed **USD 500** again (21 Nov). Repo + local staging at 500. **The live Zeffy form is still unverified** |
+| D-9 capacity | 350 confirmed by MEKI. Zeffy enforcement **unverified** |
+| D-13 wording | **Exact** ticket-disclosure, receipt and website texts received (doc 57 §3). They are loadable verbatim into the approval-gated drafts. SDI's written approval is **not yet recorded**; the receipt stays SDI's to configure |
+| New: dietary question | Zeffy ticket form needs a dietary question if answers are to be collected (doc 57 §5) |
+| Release step added | After deployment, run `deploy/staging/apply-nov21-captions.mjs` (dry run first) on each existing database (doc 56 §3) |
+
 ## 1. Remaining dependencies (blockers before go-live)
 
 | # | Owner | Needed | Why it blocks |

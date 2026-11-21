@@ -19,6 +19,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:dev": "tsx prisma/seed-dev-accounts.ts",
     "admin:bootstrap": "tsx scripts/bootstrap-admin.ts",
+    "admin:reset-password": "tsx scripts/reset-admin-password.ts",
     "seed:superadmin": "tsx scripts/seed-superadmin.ts",
     "openapi:export": "nest build && node dist/openapi-export.js",
     "verify:assets": "node scripts/verify-assets.mjs"

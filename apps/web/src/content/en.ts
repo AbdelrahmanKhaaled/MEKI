@@ -122,8 +122,8 @@ export const en = {
     vmEyebrow: "Vision & mission", // [P]
     vmTitle: "Where we are going, and how we get there.", // [P]
     vmTagline: "Lasting Change, Built Together.", // [V] tagline
-    captionA: "Alexandria · Economic Empowerment",
-    captionB: "Luxor",
+    captionA: "Hand-weaving workshop – Alexandria", // Phase 13B: "Title – Place" (source folder: Abis carpets, Alexandria)
+    captionB: "Water-connection project – Luxor", // source folder: water trenching and connections, Luxor
   },
   how: {
     eyebrow: "How we work",
@@ -231,15 +231,15 @@ export const en = {
     title: "Real people, real places.",
     intro: "Program photography from the field. Photos show the work of Misr El-Kheir in Egypt.",
     items: [
-      { image: "weavers-loom" as MediaRef, caption: "Hand-weaving workshop · Alexandria" },
-      { image: "water-station" as MediaRef, caption: "Water desalination station · Luxor" },
-      { image: "greenhouse-harvest" as MediaRef, caption: "Greenhouses · Beni Suef" },
-      { image: "housing-site" as MediaRef, caption: "Housing works · Shelter & warmth" },
-      { image: "mobile-clinic" as MediaRef, caption: "Mobile medical unit" },
-      { image: "farmer-portrait" as MediaRef, caption: "Luxor" },
-      { image: "operating-room" as MediaRef, caption: "Hospital support" },
+      { image: "weavers-loom" as MediaRef, caption: "Hand-weaving workshop – Alexandria" },
+      { image: "water-station" as MediaRef, caption: "Water desalination station – Luxor" },
+      { image: "greenhouse-harvest" as MediaRef, caption: "Greenhouses – Beni Suef" },
+      { image: "housing-site" as MediaRef, caption: "Shelter & Warmth housing works – Egypt" },
+      { image: "mobile-clinic" as MediaRef, caption: "Mobile medical unit – Egypt" },
+      { image: "farmer-portrait" as MediaRef, caption: "Water-connection project – Luxor" },
+      { image: "operating-room" as MediaRef, caption: "Hospital support – Egypt" },
     ],
-    note: "Captions are working labels from the source folders; final captions and photographer credits to be confirmed.",
+    note: "Captions follow “Title – Place”, taken from the source folders; final captions and photographer credits to be confirmed.",
   },
   faq: {
     eyebrow: "Questions",
@@ -288,6 +288,7 @@ export const en = {
     noCharge: "No payment has been taken.",
     close: "Close",
     explore: "Explore our programs",
+    preview: "See how a gift will be prepared",
   },
   checkout: {
     title: "Your details",

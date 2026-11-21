@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { plainToInstance, Transform } from 'class-transformer';
-import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Max, Min, validateSync } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsIP, IsOptional, IsString, Max, Min, validateSync } from 'class-validator';
 
 const toBool = ({ value }: { value: unknown }) =>
   typeof value === 'boolean' ? value : String(value ?? '').toLowerCase() === 'true';
@@ -12,6 +12,10 @@ export class EnvironmentVariables {
   @Transform(({ value }) => parseInt(value ?? '4000', 10))
   @IsInt()
   PORT = 4000;
+
+  /** Containers use all interfaces; the native VPS template explicitly selects loopback. */
+  @IsIP()
+  API_BIND_HOST = '0.0.0.0';
 
   @IsString()
   DATABASE_URL!: string;
@@ -256,7 +260,30 @@ export class EnvironmentVariables {
   @IsOptional() @IsString()
   SDI_BOOKING_REFERENCE_QUESTION = 'MEKI Booking Reference';
 
-  /** General giving through SDI's hosted donation form (needs ZEFFY_DONATION_FORM_URL). */
+  /**
+   * Phase 12B — Gala standalone donations on SDI's Gala donation form (ZEFFY_GALA_GIVING_FORM_URL). The form is for the Gala
+   * campaign only (SDI, 2026-11). The public link additionally needs the approved Gala project to be authorized for public
+   * fundraising and an approved closing date (admin → Gala settings → Fundraising project).
+   */
+  @Transform(toBool) @IsBoolean()
+  SDI_GALA_GIVING_ENABLED = false;
+
+  /**
+   * Phase 12B — general (unrestricted, non-Gala) giving is NOT covered by the current SDI Gala agreement. Set only when a separate
+   * written agreement exists. Gates MEKI-native GENERAL_FUND / CAMPAIGN donations and SDI_GENERAL_GIVING_ENABLED.
+   */
+  @Transform(toBool) @IsBoolean()
+  GENERAL_GIVING_AUTHORIZED = false;
+
+  /**
+   * Phase 12B — donor-directed giving to an individual programme is NOT authorized under the current SDI Gala agreement (it needs
+   * separate legal, financial, reporting and due-diligence arrangements). Gates MEKI-native PROGRAMME donations and
+   * SDI_PROGRAMME_GIVING_ENABLED.
+   */
+  @Transform(toBool) @IsBoolean()
+  PROGRAMME_GIVING_AUTHORIZED = false;
+
+  /** General giving through SDI's hosted donation form (needs ZEFFY_DONATION_FORM_URL and GENERAL_GIVING_AUTHORIZED). */
   @Transform(toBool) @IsBoolean()
   SDI_GENERAL_GIVING_ENABLED = false;
 
@@ -273,11 +300,66 @@ export class EnvironmentVariables {
   SDI_PROGRAMME_DESIGNATION_CONFIRMED = false;
 
   /**
+   * Phase 14 — label of SDI's custom question that captures the MEKI DONATION reference (DN-…) on a hosted donation form.
+   * Donation intents (a MEKI reference issued BEFORE the hand-off) need SDI_DONATION_REFERENCE_CONFIRMED.
+   */
+  @IsOptional() @IsString()
+  SDI_DONATION_REFERENCE_QUESTION = 'MEKI Donation Reference';
+
+  /**
+   * Phase 14 — set only after SDI confirms in writing that the question above exists (required, once per gift) on the relevant
+   * donation form(s) AND appears in SDI's exported report. Without it no donation intent/reference is issued (the Gala page keeps
+   * its Phase 12B direct link, reconciled as a standalone Gala donation).
+   */
+  @Transform(toBool) @IsBoolean()
+  SDI_DONATION_REFERENCE_CONFIRMED = false;
+
+  /** Phase 14 — label of SDI's "Donation Type" question (Zakat / Sadaqah). */
+  @IsOptional() @IsString()
+  SDI_DONATION_TYPE_QUESTION = 'Donation Type';
+
+  /** Phase 14 — set only after SDI confirms the Donation Type question exists on the form(s) and is exported in its report. */
+  @Transform(toBool) @IsBoolean()
+  SDI_DONATION_TYPE_CONFIRMED = false;
+
+  /**
+   * Phase 14 — Zakat-classified giving. Needs SDI_DONATION_TYPE_CONFIRMED + SDI_DONATION_REFERENCE_CONFIRMED, and is offered
+   * ONLY for a programme / project / campaign whose Zakat eligibility was approved (two administrators, MEKI authority reference
+   * + SDI acceptance reference). Default OFF: nothing is Zakat-eligible by default.
+   */
+  @Transform(toBool) @IsBoolean()
+  ZAKAT_GIVING_ENABLED = false;
+
+  /**
+   * Phase 14B — temporary Gala-only launch mode. While program / general giving is not authorized, a donor who clicks "Give" on a
+   * program (or the general Give page) may CHOOSE to support the approved Gala project instead — only after an explicit
+   * disclosure they accept. Their source interest is recorded separately from the actual (Gala) destination. Needs the Gala
+   * donation-intent gate to be open (approved project, campaign open, SDI form, reference question confirmed). Default OFF.
+   */
+  @Transform(toBool) @IsBoolean()
+  GIVING_GALA_ONLY_MODE = false;
+
+  /** Phase 14B — the Gala event whose approved project receives Gala-only gifts. */
+  @IsOptional() @IsString()
+  GIVING_GALA_EVENT_SLUG = 'gala-night';
+
+  /**
    * Applying an approved SDI reconciliation report (booking confirmations, refunds, ledger entries). Upload, mapping and preview
    * work without it. Turn on only after a mapping has been verified against a REAL SDI sample report.
    */
   @Transform(toBool) @IsBoolean()
   SDI_REPORT_APPLY_ENABLED = false;
+
+  /** Enable only after MEKI/SDI validate the original email template and protected evidence archive. */
+  @Transform(toBool) @IsBoolean()
+  SDI_MANUAL_CONFIRMATION_ENABLED = false;
+
+  /**
+   * Phase 13A — ONLY for a local, on-machine staging rehearsal (NODE_ENV=staging on localhost, plain http). Relaxes the
+   * "no localhost / https only" rule for public URLs. Refused in production. Never set it on a hosted staging server.
+   */
+  @Transform(toBool) @IsBoolean()
+  STAGING_LOCAL_REHEARSAL = false;
 }
 
 /** Hosts a configured Zeffy hosted-form URL may use (extended only after SDI confirms other hosts). */
@@ -377,7 +459,36 @@ export function validateEnv(config: Record<string, unknown>): EnvironmentVariabl
   parseTrustProxy(validated.TRUST_PROXY); // fail fast on unsafe values
   validateZeffyConfig(validated);
   validateSdiHostedConfig(validated);
+  validateDeploymentUrls(validated);
   return validated;
+}
+
+/** Settings whose development defaults point at localhost. */
+export const DEPLOYMENT_URL_KEYS = ['WEB_URL', 'API_PUBLIC_URL', 'PUBLIC_MEDIA_BASE_URL', 'DONATION_RETURN_URL', 'EVENT_BOOKING_RETURN_URL'] as const;
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '[::1]', '::1']);
+
+/**
+ * Phase 13A — staging/production must never run on the localhost defaults (silent fallbacks produced broken links, CORS
+ * failures and e-mails pointing at a developer machine). Each public URL and every CORS origin must be https and not local.
+ * The single exception is an explicit local rehearsal (STAGING_LOCAL_REHEARSAL=true, staging only).
+ */
+export function validateDeploymentUrls(v: Pick<EnvironmentVariables, 'NODE_ENV' | 'CORS_ORIGINS' | 'STAGING_LOCAL_REHEARSAL' | (typeof DEPLOYMENT_URL_KEYS)[number]>) {
+  const strict = v.NODE_ENV === 'production' || v.NODE_ENV === 'staging';
+  if (v.STAGING_LOCAL_REHEARSAL && v.NODE_ENV !== 'staging') throw new Error('STAGING_LOCAL_REHEARSAL is only allowed with NODE_ENV=staging');
+  if (!strict || v.STAGING_LOCAL_REHEARSAL) return;
+  const check = (name: string, raw: string) => {
+    let url: URL;
+    try {
+      url = new URL(raw.replace('{locale}', 'en').replace('{slug}', 'x'));
+    } catch {
+      throw new Error(`${name} must be an absolute URL`);
+    }
+    if (url.protocol !== 'https:' || LOCAL_HOSTS.has(url.hostname)) throw new Error(`${name} must be an https URL that is not localhost in ${v.NODE_ENV} (set it explicitly)`);
+  };
+  for (const k of DEPLOYMENT_URL_KEYS) check(k, v[k]);
+  const origins = v.CORS_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean);
+  if (origins.length === 0) throw new Error(`CORS_ORIGINS must list the website and admin origins in ${v.NODE_ENV}`);
+  for (const o of origins) check('CORS_ORIGINS', o);
 }
 
 const zeffyHostedUrl = (u: string, name: string) => {
@@ -404,10 +515,26 @@ export function validateSdiHostedConfig(v: EnvironmentVariables) {
     if (v.GALA_TICKETING_MODE !== 'zeffy_hosted') throw new Error('GALA_HOSTED_SALES_ENABLED requires GALA_TICKETING_MODE=zeffy_hosted');
     if (!v.ZEFFY_GALA_TICKET_FORM_URL) throw new Error('GALA_HOSTED_SALES_ENABLED requires ZEFFY_GALA_TICKET_FORM_URL (the SDI-approved Gala form)');
   }
-  if (v.SDI_GENERAL_GIVING_ENABLED && !v.ZEFFY_DONATION_FORM_URL) throw new Error('SDI_GENERAL_GIVING_ENABLED requires ZEFFY_DONATION_FORM_URL');
+  if (v.SDI_GENERAL_GIVING_ENABLED) {
+    if (!v.GENERAL_GIVING_AUTHORIZED) throw new Error('SDI_GENERAL_GIVING_ENABLED requires GENERAL_GIVING_AUTHORIZED (general giving is outside the current SDI Gala agreement)');
+    if (!v.ZEFFY_DONATION_FORM_URL) throw new Error('SDI_GENERAL_GIVING_ENABLED requires ZEFFY_DONATION_FORM_URL');
+  }
+  if (v.SDI_GALA_GIVING_ENABLED) {
+    if (v.GALA_TICKETING_MODE !== 'zeffy_hosted') throw new Error('SDI_GALA_GIVING_ENABLED requires GALA_TICKETING_MODE=zeffy_hosted');
+    if (!v.ZEFFY_GALA_GIVING_FORM_URL) throw new Error('SDI_GALA_GIVING_ENABLED requires ZEFFY_GALA_GIVING_FORM_URL (the SDI Gala donation form)');
+  }
+  // SDI (2026-11): every payment happens on SDI's hosted Zeffy forms. MEKI's own checkout would be a second payment channel.
+  if (strict && v.PAYMENTS_ENABLED) throw new Error('PAYMENTS_ENABLED (MEKI-native checkout) is refused in staging/production: payments happen only on SDI hosted forms');
   if (!/^[\p{L}\p{N} ._-]{3,80}$/u.test(v.SDI_BOOKING_REFERENCE_QUESTION)) throw new Error('SDI_BOOKING_REFERENCE_QUESTION must be 3-80 letters, digits, spaces or ._-');
+  // Phase 14 — donation intents, donation type and Zakat
+  for (const k of ['SDI_DONATION_REFERENCE_QUESTION', 'SDI_DONATION_TYPE_QUESTION'] as const) {
+    if (v[k] !== undefined && !/^[\p{L}\p{N} ._/-]{3,80}$/u.test(v[k])) throw new Error(`${k} must be 3-80 letters, digits, spaces or ._/-`);
+  }
+  if (v.SDI_DONATION_TYPE_CONFIRMED && !v.SDI_DONATION_REFERENCE_CONFIRMED) throw new Error('SDI_DONATION_TYPE_CONFIRMED requires SDI_DONATION_REFERENCE_CONFIRMED (a donation type is only reconcilable against a MEKI donation reference)');
+  if (v.ZAKAT_GIVING_ENABLED && !v.SDI_DONATION_TYPE_CONFIRMED) throw new Error('ZAKAT_GIVING_ENABLED requires SDI_DONATION_TYPE_CONFIRMED (SDI must capture and export the Zakat/Sadaqah choice)');
   const map = parseProgrammeFormUrls(v.SDI_PROGRAMME_FORM_URLS);
   if (v.SDI_PROGRAMME_GIVING_ENABLED) {
+    if (!v.PROGRAMME_GIVING_AUTHORIZED) throw new Error('SDI_PROGRAMME_GIVING_ENABLED requires PROGRAMME_GIVING_AUTHORIZED (programme-restricted giving needs a separate agreement)');
     if (!v.SDI_PROGRAMME_DESIGNATION_CONFIRMED) throw new Error('SDI_PROGRAMME_GIVING_ENABLED requires SDI_PROGRAMME_DESIGNATION_CONFIRMED (SDI must confirm how the designation is captured)');
     if (Object.keys(map).length === 0) throw new Error('SDI_PROGRAMME_GIVING_ENABLED requires SDI_PROGRAMME_FORM_URLS');
   }

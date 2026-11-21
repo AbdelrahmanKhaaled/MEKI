@@ -113,7 +113,7 @@ export function Campaigns({ t }: { t: Dict }) {
                       {t.programmes.eyebrow}
                     </span>
                   </a>
-                  <GiveButton selection={{ destination: item.title }} className="btn btn-green min-h-11 px-5 text-sm">
+                  <GiveButton selection={{ destination: item.title, programmeSlug: t.programmes.items.find((p) => p.name === item.programme)?.slug }} className="btn btn-green min-h-11 px-5 text-sm">
                     <Heart className="size-4" aria-hidden="true" /> {c.donate}
                   </GiveButton>
                 </div>

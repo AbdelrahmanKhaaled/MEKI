@@ -47,7 +47,7 @@ const TRUST = {
   })(),
 };
 
-export function BookingFlow({ locale }: { locale: Locale }) {
+export function BookingFlow({ locale, disclosure = null }: { locale: Locale; disclosure?: string | null }) {
   const c = getBookingCopy(locale);
   const router = useRouter();
   const [avail, setAvail] = useState<Availability>({ kind: "loading" });
@@ -96,7 +96,7 @@ export function BookingFlow({ locale }: { locale: Locale }) {
     );
   }
 
-  if (avail.kind === "hosted") return <HostedBookingFlow locale={locale} ticketing={avail.ticketing} />;
+  if (avail.kind === "hosted") return <HostedBookingFlow locale={locale} ticketing={avail.ticketing} disclosure={disclosure} />;
 
   const t = avail.ticketing;
   const max = t.maxTicketsPerBooking;

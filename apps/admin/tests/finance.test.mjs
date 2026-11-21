@@ -262,7 +262,7 @@ describe("authorization in navigation (UI only; the API stays authoritative)", (
   const user = (...permissions) => ({ permissions, isSuperAdmin: false });
   const items = (u) => visibleNav(u).flatMap((g) => g.items);
   test("each finance page appears only with the permission its endpoints require", () => {
-    assert.deepEqual(items(user("donations.read")).map((i) => i.key), ["dashboard", "donations", "payments"]);
+    assert.deepEqual(items(user("donations.read")).map((i) => i.key), ["dashboard", "donations", "payments", "givingIntents", "zakat"]); // Phase 14: giving intents + Zakat eligibility (donations.read)
     assert.deepEqual(items(user("donors.read")).map((i) => i.key), ["dashboard", "donorList"]);
     assert.deepEqual(items(user("recurring.read")).map((i) => i.key), ["dashboard", "recurring"]);
     assert.deepEqual(items(user("receipts.read")).map((i) => i.key), ["dashboard", "receipts"]);

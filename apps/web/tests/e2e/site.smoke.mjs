@@ -111,7 +111,8 @@ try {
     const bookLinks = await page.locator("a[href*='/events/gala-night/book']").count();
     const open_ = info?.data?.salesOpen && info?.data?.checkoutAvailable;
     check(`${loc} gala: booking CTA is a link only if the API says sales open AND checkout available (now: ${open_ ? "open" : "closed"})`, open_ ? bookLinks > 0 : bookLinks === 0);
-    if (loc === "en") check("en gala: approved facts shown (Every Light Counts · December 12, 2026 · 583 Park Avenue · 750), no time beyond the client-briefed doors time (3:30 PM, to be confirmed — docs/12)", /Every Light Counts/i.test(text) && /December 12, 2026/.test(text) && /583 Park Avenue/.test(text) && /750/.test(text) && (text.match(/\b\d{1,2}:\d{2}\s?(AM|PM)\b/gi) ?? []).every((x) => x === "3:30 PM"));
+    // Nov 19 2026 MEKI update: USD 500 (supersedes 750), hours 3:30–8:30 PM New York time, four-act agenda, no speaker names.
+    if (loc === "en") check("en gala: approved facts shown (Every Light Counts · December 12, 2026 · 3:30 – 8:30 PM · 583 Park Avenue · USD 500 · four acts), no USD 750, no unconfirmed speaker names", /Every Light Counts/i.test(text) && /December 12, 2026/.test(text) && /3:30 – 8:30 PM/.test(text) && /583 Park Avenue/.test(text) && /USD 500/.test(text) && !/750/.test(text) && ["Act I","Act II","Act III","Act IV"].every((a) => text.includes(a)) && !/Raya|Shousha|Ahmed Amin/i.test(text));
     await page.goto(`${WEB}/${loc}/events/gala-night/book`, { waitUntil: "networkidle" });
     await until(async () => (await page.locator("main").innerText()).length > 50);
     check(`${loc} book page: not available while closed — no form, no payment button`, (await page.locator("main input").count()) === 0 && (await page.getByRole("button", { name: /payment|الدفع/i }).count()) === 0);

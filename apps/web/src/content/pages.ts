@@ -81,6 +81,8 @@ export type PagesDict = {
     notifyEmail: string;
     notifyContact: string;
     explore: string;
+    /** Phase 12B: the only open channel today is the Gala campaign (one approved project) */
+    galaLink: string;
   };
   faq: { eyebrow: string; title: string; intro: string; general: string; programs: string; giving: string; gala: string; pending: string; ctaTitle: string; ctaText: string; cta: string };
   contact: {
@@ -127,7 +129,7 @@ export type PagesDict = {
     impact: { eyebrow: string; title: string; areas: string; statsTitle: string; statsSource: string };
     gallery: { eyebrow: string; title: string; open: string; close: string; next: string; previous: string; counter: string };
     helps: { eyebrow: string; title: string; designation: string };
-    donate: { eyebrow: string; title: string; designatedTo: string; summary: string; cta: string; monthlyUnavailable: string; code: string; hostedCta: string; hostedNote: string; newTab: string };
+    donate: { eyebrow: string; title: string; designatedTo: string; summary: string; cta: string; monthlyUnavailable: string; code: string; hostedCta: string; hostedNote: string; newTab: string; scopeTitle: string; scopeText: string; galaLink: string; intentPreview: string };
     closing: { title: string; text: string };
   };
 };
@@ -137,7 +139,7 @@ export const pagesEn: PagesDict = {
   meta: {
     about: { title: "About MEKI — Lasting Change, Built Together.", description: "MEKI partners with people, communities and institutions worldwide to deliver evidence-based development that lasts, inspired by the legacy of Misr El-Kheir." },
     programs: { title: "Nine Programs, One Strategy — MEKI", description: "Explore MEKI's nine evidence-based programs, from social solidarity and health to education, housing, water and scientific research." },
-    give: { title: "Give — How Giving to MEKI Will Work", description: "How giving to MEKI is designed to work. Online giving opens soon." },
+    give: { title: "Give — How Giving to MEKI Will Work", description: "How giving to MEKI is designed to work, and where online giving stands today." },
     faq: { title: "Frequently Asked Questions — MEKI", description: "Answers about MEKI, its programs, giving and the Gala Night." },
     contact: { title: "Contact MEKI", description: "Get in touch with MEKI through our official channels." },
     privacy: { title: "Privacy Policy — MEKI", description: "MEKI's privacy policy." },
@@ -167,11 +169,12 @@ export const pagesEn: PagesDict = {
     transparencyEyebrow: "Transparency & accountability",
     transparencyTitle: "Every contribution accounted for.",
     transparencyNote: "Payment methods, receipts and tax treatment are being confirmed with our fiscal sponsor and will be published once approved.",
-    availabilityTitle: "Online giving opens soon.",
-    availabilityText: "We are not accepting online gifts yet, and no payment is taken on this site. To hear when giving opens, get in touch with us.",
+    availabilityTitle: "General online giving is not open.",
+    availabilityText: "Under MEKI's current arrangement with its fiscal sponsor, gifts are accepted only through the MEKI Gala Night campaign, which supports one approved project. No payment is taken on this site. To hear about other ways to give, get in touch with us.",
     notifyEmail: "Email us to be notified",
     notifyContact: "Contact us",
     explore: "Explore Our Programs",
+    galaLink: "About the Gala campaign",
   },
   faq: {
     eyebrow: "Questions",
@@ -258,7 +261,7 @@ export const pagesEn: PagesDict = {
     impact: { eyebrow: "Activities & impact", title: "How the program works", areas: "Focus areas", statsTitle: "Verified results", statsSource: "Source" },
     gallery: { eyebrow: "Gallery", title: "From the field", open: "Open image {n} of {total}", close: "Close", next: "Next image", previous: "Previous image", counter: "{n} / {total}" },
     helps: { eyebrow: "How your donation helps", title: "Your gift stays with this program", designation: "When you choose this program, your donation is designated to it — recorded against this program, not a general pool — and reported back with its results." },
-    donate: { eyebrow: "Support", title: "Give to {program}", designatedTo: "Designated to", summary: "Your gift", cta: "Continue", monthlyUnavailable: "Monthly giving will be offered once it is approved.", code: "Programme code", hostedCta: "Give on SDI's secure form", hostedNote: "Gifts are received by our fiscal sponsor, Spring of Dignity International (SDI), on its Zeffy form, which issues your receipt.", newTab: "(opens in a new tab)" },
+    donate: { eyebrow: "Support", title: "Give to {program}", designatedTo: "Designated to", summary: "Your gift", cta: "Continue", monthlyUnavailable: "Monthly giving will be offered once it is approved.", code: "Programme code", hostedCta: "Give on SDI's secure form", hostedNote: "Gifts are received by our fiscal sponsor, Spring of Dignity International (SDI), on its Zeffy form, which issues your receipt.", newTab: "(opens in a new tab)", scopeTitle: "Giving to this program is not open", scopeText: "Donations restricted to an individual program are not available under MEKI's current arrangement with its fiscal sponsor, Spring of Dignity International (SDI). Today, gifts are accepted only through the MEKI Gala Night campaign, which supports one approved project — not this program specifically.", galaLink: "About the Gala campaign", intentPreview: "Preview a gift intention for this program (not open for payment)" },
     closing: { title: "Help {program} reach further", text: "Choose this program and your gift goes where you intended." },
   },
 };
@@ -268,7 +271,7 @@ export const pagesAr: PagesDict = {
   meta: {
     about: { title: "عن MEKI — تغيير دائم، نبنيه معًا.", description: "تعمل MEKI مع الأفراد والمجتمعات والمؤسسات حول العالم لتحقيق تنمية قائمة على الأدلة تدوم، مستلهمة من إرث مصر الخير." },
     programs: { title: "تسعة برامج، استراتيجية واحدة — MEKI", description: "تعرّف على برامج MEKI التسعة القائمة على الأدلة." },
-    give: { title: "تبرّع — كيف سيتم التبرع إلى MEKI", description: "كيف صُمّم التبرع إلى MEKI. التبرع الإلكتروني يُفتح قريبًا." },
+    give: { title: "تبرّع — كيف سيتم التبرع إلى MEKI", description: "كيف صُمّم التبرع إلى MEKI، وما وضع التبرع الإلكتروني اليوم." },
     faq: { title: "الأسئلة الشائعة — MEKI", description: "إجابات عن MEKI وبرامجها والتبرع وأمسية الغالا." },
     contact: { title: "تواصل مع MEKI", description: "تواصل مع MEKI عبر قنواتنا الرسمية." },
     privacy: { title: "سياسة الخصوصية — MEKI", description: "سياسة الخصوصية الخاصة بـ MEKI." },
@@ -293,11 +296,12 @@ export const pagesAr: PagesDict = {
     transparencyEyebrow: "الشفافية والمساءلة",
     transparencyTitle: "كل مساهمة محسوبة.",
     transparencyNote: "طرق الدفع والإيصالات والمعاملة الضريبية قيد التأكيد مع الجهة الراعية مالياً، وستُنشر بعد اعتمادها.",
-    availabilityTitle: "التبرع الإلكتروني يُفتح قريبًا.",
-    availabilityText: "لا نستقبل تبرعات إلكترونية بعد، ولا تُحصَّل أي مدفوعات عبر هذا الموقع. لمعرفة موعد الإطلاق، تواصل معنا.",
+    availabilityTitle: "التبرع الإلكتروني العام غير متاح.",
+    availabilityText: "بموجب الترتيب الحالي بين MEKI والجهة الراعية مالياً، تُقبل التبرعات فقط عبر حملة أمسية MEKI الخيرية، وهي تدعم مشروعاً واحداً معتمداً. لا تُحصَّل أي مدفوعات عبر هذا الموقع. لمعرفة طرق العطاء الأخرى، تواصل معنا.",
     notifyEmail: "راسلنا لنخطرك",
     notifyContact: "تواصل معنا",
     explore: "استكشف برامجنا",
+    galaLink: "عن حملة الأمسية",
   },
   faq: {
     eyebrow: "أسئلة",
@@ -384,7 +388,7 @@ export const pagesAr: PagesDict = {
     impact: { eyebrow: "الأنشطة والأثر", title: "كيف يعمل البرنامج", areas: "مجالات التركيز", statsTitle: "نتائج موثّقة", statsSource: "المصدر" },
     gallery: { eyebrow: "الصور", title: "من الميدان", open: "افتح الصورة {n} من {total}", close: "إغلاق", next: "الصورة التالية", previous: "الصورة السابقة", counter: "{n} / {total}" },
     helps: { eyebrow: "كيف يساعد تبرعك", title: "تبرعك يبقى مع هذا البرنامج", designation: "عندما تختار هذا البرنامج، يُخصَّص تبرعك له — ويُسجَّل لصالح هذا البرنامج لا في صندوق عام — ويُبلَّغ عنه مع نتائجه." },
-    donate: { eyebrow: "ادعم", title: "تبرّع لبرنامج {program}", designatedTo: "مخصّص لـ", summary: "تبرعك", cta: "متابعة", monthlyUnavailable: "سيُتاح التبرع الشهري بعد اعتماده.", code: "رمز البرنامج", hostedCta: "تبرّع عبر نموذج SDI الآمن", hostedNote: "تتلقى التبرعاتِ الجهةُ الراعية مالياً Spring of Dignity International (SDI) عبر نموذجها على Zeffy، والذي يُصدر إيصالك.", newTab: "(يفتح في علامة تبويب جديدة)" },
+    donate: { eyebrow: "ادعم", title: "تبرّع لبرنامج {program}", designatedTo: "مخصّص لـ", summary: "تبرعك", cta: "متابعة", monthlyUnavailable: "سيُتاح التبرع الشهري بعد اعتماده.", code: "رمز البرنامج", hostedCta: "تبرّع عبر نموذج SDI الآمن", hostedNote: "تتلقى التبرعاتِ الجهةُ الراعية مالياً Spring of Dignity International (SDI) عبر نموذجها على Zeffy، والذي يُصدر إيصالك.", newTab: "(يفتح في علامة تبويب جديدة)", scopeTitle: "التبرع لهذا البرنامج غير متاح", scopeText: "التبرعات المخصّصة لبرنامج بعينه غير متاحة بموجب الترتيب الحالي بين MEKI والجهة الراعية مالياً Spring of Dignity International (SDI). حالياً تُقبل التبرعات فقط عبر حملة أمسية MEKI الخيرية، وهي تدعم مشروعاً واحداً معتمداً — وليس هذا البرنامج تحديداً.", galaLink: "عن حملة الأمسية", intentPreview: "معاينة نيّة تبرع لهذا البرنامج (غير متاح للدفع)" },
     closing: { title: "ساعد {program} على الوصول أبعد", text: "اختر هذا البرنامج ليذهب تبرعك حيث أردت." },
   },
 };

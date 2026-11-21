@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   CalendarDays, ChartNoAxesCombined, ChevronsLeft, CircleHelp, CreditCard, FileBarChart, HandCoins, HeartHandshake, Images, Layers, LayoutDashboard, Megaphone, PanelsTopLeft,
-  Receipt, Repeat, ScanQrCode, ScrollText, Settings, ShieldCheck, SlidersHorizontal, Ticket, Users, UsersRound, X, House, Menu, ChartColumn, Sparkles, ClipboardList, FileDown, Mail, Settings2, PlugZap, FileSpreadsheet, ListChecks,
+  Receipt, Repeat, ScanQrCode, ScrollText, Settings, ShieldCheck, SlidersHorizontal, Ticket, Users, UsersRound, X, House, Menu, ChartColumn, Sparkles, ClipboardList, FileDown, Mail, Settings2, PlugZap, FileSpreadsheet, ListChecks, HandHeart, Scale,
 } from "lucide-react";
 import { useRef, type ComponentType } from "react";
 import { useDialogFocus } from "@/components/common/useDialogFocus";
@@ -15,7 +15,7 @@ import { visibleNav } from "@/lib/navigation";
 const ICONS: Record<string, ComponentType<{ className?: string; "aria-hidden"?: boolean }>> = {
   LayoutDashboard, ChartNoAxesCombined, Layers, HeartHandshake, Megaphone, Users, HandCoins, CreditCard, Repeat, Receipt, CalendarDays, Ticket, UsersRound, ScanQrCode,
   PanelsTopLeft, Images, CircleHelp, SlidersHorizontal, FileBarChart, ShieldCheck, ScrollText, Settings, House, Menu, ChartColumn,
-  Sparkles, ClipboardList, FileDown, Mail, Settings2, PlugZap, FileSpreadsheet, ListChecks,
+  Sparkles, ClipboardList, FileDown, Mail, Settings2, PlugZap, FileSpreadsheet, ListChecks, HandHeart, Scale,
 };
 
 /**

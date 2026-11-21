@@ -1,7 +1,8 @@
 "use client";
 
 import { useId, useState } from "react";
-import { ExternalLink, Heart, Lock } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, Heart, Info, Lock } from "lucide-react";
 import type { Dict } from "@/content/en";
 import type { PagesDict } from "@/content/pages";
 import { formatMoney, formatUSD, type Locale } from "@/lib/i18n";
@@ -17,11 +18,61 @@ const PREVIEW_AMOUNTS = [25, 50, 100, 250];
  *  - Payments not live (today): the existing informational preview dialog opens. Nothing is created or charged; no fake success.
  *  - Payments live: the existing checkout step (donor details → donation → provider-hosted checkout) with designation PROGRAMME.
  *    Monthly appears only when the live configuration lists it (approved setting + provider support).
+ *
+ * Phase 12B (SDI agreement): donor-directed giving to an individual programme is NOT authorized under the current Gala
+ * arrangement. Unless the API reports programme-restricted giving as authorized (an approved SDI programme form, or a live
+ * configuration listing the PROGRAMME designation), the panel is INFORMATIONAL only: no amounts, no payment button, and no
+ * programme-specific payment call to action. The amount picker below is kept for a separately approved future arrangement.
  */
 /** Phase 12: SDI-hosted programme form. Present only when the API says the programme switch is on AND designation is confirmed. */
 export type ProgrammeHostedForm = { code: string; available: boolean; url: string | null };
 
 export function ProgrammeDonate({ t, p, locale, slug, name, hosted }: { t: Dict; p: PagesDict["programDetail"]; locale: Locale; slug: string; name: string; hosted?: ProgrammeHostedForm | null }) {
+  const { config } = useDonationContext();
+  const hostedUrl = hosted?.available && isTrustedHostedFormUrl(hosted.url) ? hosted.url : null;
+  const programmeAuthorized = !!hostedUrl || (!!config?.paymentsEnabled && config.designations.includes("PROGRAMME"));
+  if (!programmeAuthorized) return <ProgrammeGivingClosed p={p} locale={locale} name={name} code={hosted?.code} slug={slug} />;
+  return <ProgrammeDonateForm t={t} p={p} locale={locale} slug={slug} name={name} hosted={hosted} hostedUrl={hostedUrl} />;
+}
+
+/** Phase 12B — informational state: programme-restricted giving is outside the current fiscal-sponsor agreement. */
+function ProgrammeGivingClosed({ p, locale, name, code, slug }: { p: PagesDict["programDetail"]; locale: Locale; name: string; code?: string; slug?: string }) {
+  const id = useId();
+  return (
+    <section id="give" aria-labelledby={`${id}-title`} className="relative rounded-[2rem] border border-stone-line bg-paper p-6 sm:p-9" data-testid="programme-giving-closed">
+      <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-gold-text">{p.donate.eyebrow}</p>
+      <h3 id={`${id}-title`} className="mb-5 flex items-start gap-3 text-[clamp(1.4rem,2.6vw,1.9rem)] leading-tight">
+        <Info className="mt-1 size-6 shrink-0 text-meki-green" aria-hidden="true" />
+        {p.donate.scopeTitle}
+      </h3>
+      <div className="mb-5 flex items-center gap-3 rounded-2xl bg-limestone px-4 py-3 text-sm">
+        <Heart className="size-4 shrink-0 text-meki-green" aria-hidden="true" />
+        <span>
+          <span className="font-bold text-ink">{name}</span>
+          {code && (
+            <span className="block text-xs text-body-grey">
+              {p.donate.code}: <span className="font-mono" dir="ltr">{code}</span>
+            </span>
+          )}
+        </span>
+      </div>
+      <p className="mb-6 text-body-grey">{p.donate.scopeText}</p>
+      <Link href={`/${locale}/events/gala-night`} className="inline-flex items-center gap-2 text-sm font-bold text-meki-green underline underline-offset-4">
+        {p.donate.galaLink} <ArrowRight className="btn-arrow size-4" aria-hidden="true" />
+      </Link>
+      {/* Phase 14: this programme preselected as an INTENTION in the (preview-only) giving form — no reference, no payment. */}
+      {slug && (
+        <p className="mt-3">
+          <Link href={`/${locale}/give?programme=${encodeURIComponent(slug)}#prepare`} className="inline-flex items-center gap-2 text-sm font-bold text-body-grey underline underline-offset-4 hover:text-meki-green" data-testid="programme-intent-preview">
+            {p.donate.intentPreview} <ArrowRight className="btn-arrow size-4" aria-hidden="true" />
+          </Link>
+        </p>
+      )}
+    </section>
+  );
+}
+
+function ProgrammeDonateForm({ t, p, locale, slug, name, hosted, hostedUrl }: { t: Dict; p: PagesDict["programDetail"]; locale: Locale; slug: string; name: string; hosted?: ProgrammeHostedForm | null; hostedUrl: string | null }) {
   const q = t.quick;
   const id = useId();
   const { open, config } = useDonationContext();
@@ -64,7 +115,6 @@ export function ProgrammeDonate({ t, p, locale, slug, name, hosted }: { t: Dict;
 
   // Phase 12: when SDI's hosted programme form is approved and switched on, giving happens THERE (amount, frequency, donor details,
   // receipt). MEKI only links to the URL the API returned; nothing is charged or recorded here.
-  const hostedUrl = hosted?.available && isTrustedHostedFormUrl(hosted.url) ? hosted.url : null;
 
   const pill = (on: boolean) =>
     `min-h-11 rounded-full border px-4 text-sm font-bold transition-[background-color,border-color,color,transform] duration-300 ${on ? "border-deep-green bg-deep-green text-white" : "border-stone-line bg-paper text-ink hover:-translate-y-0.5 hover:border-meki-green"}`;
@@ -92,9 +142,11 @@ export function ProgrammeDonate({ t, p, locale, slug, name, hosted }: { t: Dict;
 
       {hostedUrl ? (
         <div>
-          <a href={hostedUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" className="btn btn-gold min-h-14 w-full">
-            <Lock className="size-4" aria-hidden="true" /> {p.donate.hostedCta} <ExternalLink className="size-4" aria-hidden="true" /> <span className="sr-only">{p.donate.newTab}</span>
-          </a>
+          {/* Phase 14: a MEKI donation reference (and the donor's Sadaqah/Zakat choice) is recorded BEFORE SDI's form, so the gift can be
+              reconciled to this programme — the giving flow then opens SDI's programme form. Never a direct, reference-less link. */}
+          <Link href={`/${locale}/give?programme=${encodeURIComponent(slug)}#prepare`} className="btn btn-gold min-h-14 w-full" data-testid="programme-give-intent">
+            <Lock className="size-4" aria-hidden="true" /> {p.donate.hostedCta} <ArrowRight className="btn-arrow size-4" aria-hidden="true" />
+          </Link>
           <p className="mt-3 text-center text-xs text-body-grey">{p.donate.hostedNote}</p>
         </div>
       ) : (

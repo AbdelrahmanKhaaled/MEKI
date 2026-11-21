@@ -8783,6 +8783,1038 @@
         ]
       }
     },
+    "/api/v1/admin/sdi/payment-evidence": {
+      "get": {
+        "operationId": "ManualEvidenceController_list_v1",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "reference",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · Private SDI payment evidence"
+        ]
+      },
+      "post": {
+        "operationId": "ManualEvidenceController_submit_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitManualEvidenceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · Private SDI payment evidence"
+        ]
+      }
+    },
+    "/api/v1/admin/sdi/payment-evidence/{id}": {
+      "get": {
+        "operationId": "ManualEvidenceController_detail_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · Private SDI payment evidence"
+        ]
+      }
+    },
+    "/api/v1/admin/sdi/payment-evidence/{id}/decision": {
+      "post": {
+        "operationId": "ManualEvidenceController_decide_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvidenceDecisionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · Private SDI payment evidence"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/fundraising": {
+      "get": {
+        "operationId": "AdminFundraisingController_get_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Gala fundraising scope: the single approved project, approvals and effective public state",
+        "tags": [
+          "Admin · Gala fundraising project"
+        ]
+      },
+      "put": {
+        "operationId": "AdminFundraisingController_update_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFundraisingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Set project / Project Plan reference / closing date / ticket refund policy text (clears dependent approvals)",
+        "tags": [
+          "Admin · Gala fundraising project"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/fundraising/approve": {
+      "post": {
+        "operationId": "AdminFundraisingController_approve_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveFundraisingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Record one approval step (different administrator from the last editor)",
+        "tags": [
+          "Admin · Gala fundraising project"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/fundraising/revoke": {
+      "post": {
+        "operationId": "AdminFundraisingController_revoke_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevokeFundraisingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Withdraw an approval (always allowed; public state is reduced immediately)",
+        "tags": [
+          "Admin · Gala fundraising project"
+        ]
+      }
+    },
+    "/api/v1/public/events/{slug}/fundraising": {
+      "get": {
+        "operationId": "PublicFundraisingController_get_v1",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "ar"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Gala fundraising scope: approved project (only once authorized), SDI donation form availability, approved refund notices",
+        "tags": [
+          "Public · Events"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/legal-copy": {
+      "get": {
+        "operationId": "AdminLegalCopyController_list_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Gala legal copy drafts (ticket purchase disclosure, SDI receipt wording, website disclosure) and their approval state",
+        "tags": [
+          "Admin · Gala legal copy"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/legal-copy/{kind}": {
+      "put": {
+        "operationId": "AdminLegalCopyController_update_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateLegalCopyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Save exact wording / amounts (clears SDI approval and publication)",
+        "tags": [
+          "Admin · Gala legal copy"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/legal-copy/{kind}/sdi-approval": {
+      "post": {
+        "operationId": "AdminLegalCopyController_approve_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LegalApprovalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Record SDI's written approval of this wording (different administrator from the last editor)",
+        "tags": [
+          "Admin · Gala legal copy"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/legal-copy/{kind}/publish": {
+      "post": {
+        "operationId": "AdminLegalCopyController_publish_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Publish an SDI-approved disclosure (never the ticket receipt wording)",
+        "tags": [
+          "Admin · Gala legal copy"
+        ]
+      }
+    },
+    "/api/v1/admin/events/{eventId}/legal-copy/{kind}/withdraw": {
+      "post": {
+        "operationId": "AdminLegalCopyController_withdraw_v1",
+        "parameters": [
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LegalWithdrawDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Withdraw publication or the recorded SDI approval (always allowed)",
+        "tags": [
+          "Admin · Gala legal copy"
+        ]
+      }
+    },
+    "/api/v1/public/giving/options": {
+      "get": {
+        "operationId": "PublicGivingController_options_v1",
+        "parameters": [
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "ar"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "General / programme giving: channels, payable programmes, Zakat availability per programme, USD limits. Information only.",
+        "tags": [
+          "Public · Giving (SDI hosted)"
+        ]
+      }
+    },
+    "/api/v1/public/events/{slug}/giving-options": {
+      "get": {
+        "operationId": "PublicGivingController_galaOptions_v1",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "ar"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Gala donation options (the single approved Gala project, Zakat only if that project is approved for Zakat)",
+        "tags": [
+          "Public · Giving (SDI hosted)"
+        ]
+      }
+    },
+    "/api/v1/public/donation-intents": {
+      "post": {
+        "operationId": "PublicGivingController_create_v1",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Client-generated unique key (16-80 chars). Replays return the same reference.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDonationIntentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Record a donation INTENT and issue a MEKI donation reference (DN-…) before the hand-off to SDI's form. No payment; 409 GIVING_CHANNEL_DISABLED unless that channel is authorized.",
+        "tags": [
+          "Public · Giving (SDI hosted)"
+        ]
+      }
+    },
+    "/api/v1/public/donation-intents/{reference}/status": {
+      "get": {
+        "operationId": "PublicGivingController_status_v1",
+        "parameters": [
+          {
+            "name": "reference",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "ar"
+              ]
+            }
+          },
+          {
+            "name": "token",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Donation-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Donor-facing status (no personal data). A return from Zeffy never verifies a payment: only an approved SDI report does.",
+        "tags": [
+          "Public · Giving (SDI hosted)"
+        ]
+      }
+    },
+    "/api/v1/admin/donation-intents": {
+      "get": {
+        "operationId": "AdminGivingController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Free-text search",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "field:asc|desc, comma separated",
+            "schema": {
+              "example": "sortOrder:asc",
+              "type": "string"
+            }
+          },
+          {
+            "name": "intentType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "GALA_DONATION",
+                "PROGRAM_DONATION",
+                "GENERAL_DONATION"
+              ]
+            }
+          },
+          {
+            "name": "classification",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ZAKAT",
+                "SADAQAH"
+              ]
+            }
+          },
+          {
+            "name": "reconciliationStatus",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "AWAITING_REPORT",
+                "VERIFIED",
+                "NEEDS_REVIEW",
+                "REPORTED_UNPAID"
+              ]
+            }
+          },
+          {
+            "name": "allocationStatus",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING_AUTHORIZATION",
+                "AUTHORIZED",
+                "REJECTED"
+              ]
+            }
+          },
+          {
+            "name": "includeTest",
+            "required": false,
+            "in": "query",
+            "description": "Include test/synthetic intents (development data)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Hosted donation intents (references, Zakat/Sadaqah, intended designation, verification, allocation). Donor data needs donors.read.",
+        "tags": [
+          "Admin · Giving intents"
+        ]
+      }
+    },
+    "/api/v1/admin/donation-intents/summary": {
+      "get": {
+        "operationId": "AdminGivingController_summary_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Totals by intent type × Zakat/Sadaqah × verification × allocation (USD, test excluded). Ticket revenue excluded.",
+        "tags": [
+          "Admin · Giving intents"
+        ]
+      }
+    },
+    "/api/v1/admin/donation-intents/{id}": {
+      "get": {
+        "operationId": "AdminGivingController_get_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Intent detail with reconciliation evidence (SDI report rows, provider record) and audit history",
+        "tags": [
+          "Admin · Giving intents"
+        ]
+      }
+    },
+    "/api/v1/admin/donation-intents/{id}/allocation": {
+      "post": {
+        "operationId": "AdminGivingController_allocate_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AllocationDecisionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Authorize or reject the fund allocation of a VERIFIED gift (not by the SDI report approver)",
+        "tags": [
+          "Admin · Giving intents"
+        ]
+      }
+    },
+    "/api/v1/admin/zakat-eligibility": {
+      "get": {
+        "operationId": "AdminZakatController_overview_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Programmes, projects and campaigns with their effective Zakat eligibility (default: NOT eligible), pending requests and history",
+        "tags": [
+          "Admin · Zakat eligibility"
+        ]
+      },
+      "post": {
+        "operationId": "AdminZakatController_request_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZakatRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Request an eligibility change (eligible=true needs the MEKI authority AND SDI acceptance references)",
+        "tags": [
+          "Admin · Zakat eligibility"
+        ]
+      }
+    },
+    "/api/v1/admin/zakat-eligibility/{id}/approve": {
+      "post": {
+        "operationId": "AdminZakatController_approve_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZakatDecisionNoteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Approve a pending request (a different administrator than the requester)",
+        "tags": [
+          "Admin · Zakat eligibility"
+        ]
+      }
+    },
+    "/api/v1/admin/zakat-eligibility/{id}/reject": {
+      "post": {
+        "operationId": "AdminZakatController_reject_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZakatRejectDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · Zakat eligibility"
+        ]
+      }
+    },
+    "/api/v1/admin/zakat-eligibility/revoke": {
+      "post": {
+        "operationId": "AdminZakatController_revoke_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZakatRevokeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Withdraw the current approval immediately (reduces what is offered)",
+        "tags": [
+          "Admin · Zakat eligibility"
+        ]
+      }
+    },
     "/api/v1/public/hosted-forms": {
       "get": {
         "operationId": "PublicController_hostedForms_v1",
@@ -9419,7 +10451,10 @@
                 "gala.checkin.validate",
                 "gala.checkin.manage",
                 "sdi.reports.upload",
-                "sdi.reports.approve"
+                "sdi.reports.approve",
+                "donations.allocate",
+                "zakat.manage",
+                "zakat.approve"
               ]
             }
           }
@@ -11766,7 +12801,7 @@
         "properties": {
           "ticketPrice": {
             "type": "string",
-            "example": "750.00",
+            "example": "500.00",
             "description": "Price per guest, decimal string"
           },
           "currency": {
@@ -11807,7 +12842,7 @@
         "properties": {
           "ticketPrice": {
             "type": "string",
-            "example": "750.00"
+            "example": "500.00"
           },
           "salesEnabled": {
             "type": "boolean",
@@ -11980,6 +13015,401 @@
         },
         "required": [
           "note"
+        ]
+      },
+      "SubmitManualEvidenceDto": {
+        "type": "object",
+        "properties": {
+          "reference": {
+            "type": "string"
+          },
+          "evidenceReference": {
+            "type": "string"
+          },
+          "externalPaymentId": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string"
+          },
+          "formUrl": {
+            "type": "string"
+          },
+          "classification": {
+            "type": "string"
+          },
+          "emailMessageId": {
+            "type": "string"
+          },
+          "emailFrom": {
+            "type": "string"
+          },
+          "emailTo": {
+            "type": "string"
+          },
+          "emailReceivedAt": {
+            "type": "string"
+          },
+          "protectedReference": {
+            "type": "string",
+            "description": "Opaque reference in the finance-only SDI original-email archive; no public URLs or card data"
+          },
+          "originalSdiEmail": {
+            "type": "boolean"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference",
+          "note"
+        ]
+      },
+      "EvidenceDecisionDto": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision",
+          "note"
+        ]
+      },
+      "UpdateFundraisingDto": {
+        "type": "object",
+        "properties": {
+          "projectId": {
+            "type": "object",
+            "nullable": true,
+            "description": "Existing project (cause) id — never auto-selected; null clears it"
+          },
+          "projectPlanReference": {
+            "type": "object",
+            "nullable": true,
+            "description": "Identifies SDI's signed Project Plan (title / version / date)"
+          },
+          "donationsCloseAt": {
+            "type": "object",
+            "nullable": true,
+            "example": "2027-01-31T23:59:59-05:00",
+            "description": "Approved end of the Gala donation campaign"
+          },
+          "ticketRefundPolicyEn": {
+            "type": "object",
+            "nullable": true
+          },
+          "ticketRefundPolicyAr": {
+            "type": "object",
+            "nullable": true
+          }
+        }
+      },
+      "ApproveFundraisingDto": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "string",
+            "enum": [
+              "PROJECT_PLAN",
+              "PUBLIC_FUNDRAISING",
+              "DONATION_REFUND_NOTICE",
+              "TICKET_REFUND_POLICY"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "description": "What the approval is based on (e.g. signed Project Plan v1, 2026-12-01)"
+          }
+        },
+        "required": [
+          "step"
+        ]
+      },
+      "RevokeFundraisingDto": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "string",
+            "enum": [
+              "PROJECT_PLAN",
+              "PUBLIC_FUNDRAISING",
+              "DONATION_REFUND_NOTICE",
+              "TICKET_REFUND_POLICY"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "step",
+          "reason"
+        ]
+      },
+      "UpdateLegalCopyDto": {
+        "type": "object",
+        "properties": {
+          "textEn": {
+            "type": "object",
+            "nullable": true,
+            "description": "Exact English wording (verbatim)"
+          },
+          "textAr": {
+            "type": "object",
+            "nullable": true,
+            "description": "Exact Arabic wording (verbatim, if supplied)"
+          },
+          "ticketPrice": {
+            "type": "object",
+            "nullable": true,
+            "example": "500.00"
+          },
+          "fairMarketValue": {
+            "type": "object",
+            "nullable": true,
+            "example": "200.00"
+          },
+          "deductibleAmount": {
+            "type": "object",
+            "nullable": true,
+            "example": "300.00"
+          },
+          "sourceNote": {
+            "type": "object",
+            "nullable": true,
+            "description": "Where the wording came from (e.g. \"MEKI draft, e-mail 2026-11-19\")"
+          }
+        }
+      },
+      "LegalApprovalDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "description": "Reference to SDI's WRITTEN approval (who, date, channel)"
+          }
+        },
+        "required": [
+          "note"
+        ]
+      },
+      "LegalWithdrawDto": {
+        "type": "object",
+        "properties": {
+          "what": {
+            "type": "string",
+            "enum": [
+              "SDI_APPROVAL",
+              "PUBLICATION"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "what",
+          "reason"
+        ]
+      },
+      "IntentDonorDto": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "example": "Amina Hassan"
+          },
+          "email": {
+            "type": "string",
+            "example": "donor@example.org"
+          }
+        },
+        "required": [
+          "fullName",
+          "email"
+        ]
+      },
+      "CreateDonationIntentDto": {
+        "type": "object",
+        "properties": {
+          "intentType": {
+            "type": "string",
+            "enum": [
+              "GALA_DONATION",
+              "PROGRAM_DONATION",
+              "GENERAL_DONATION"
+            ]
+          },
+          "programmeSlug": {
+            "type": "string",
+            "description": "PROGRAM_DONATION only"
+          },
+          "eventSlug": {
+            "type": "string",
+            "description": "GALA_DONATION only (e.g. gala-night)"
+          },
+          "amount": {
+            "type": "string",
+            "example": "100.00",
+            "description": "Decimal string (the INTENDED amount; SDI's form charges)"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD"
+            ]
+          },
+          "classification": {
+            "type": "string",
+            "enum": [
+              "ZAKAT",
+              "SADAQAH"
+            ]
+          },
+          "donor": {
+            "$ref": "#/components/schemas/IntentDonorDto"
+          },
+          "acceptTerms": {
+            "type": "boolean",
+            "description": "The donor confirmed the review screen and terms"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar"
+            ]
+          },
+          "sourceInterest": {
+            "type": "string",
+            "description": "Phase 14B Gala-only mode (GALA_DONATION only): the option the donor started from — \"general\" or a programme slug"
+          },
+          "acknowledgeGalaDestination": {
+            "type": "boolean",
+            "description": "Phase 14B: the donor accepted that the gift goes to the approved Gala project instead (required with sourceInterest)"
+          }
+        },
+        "required": [
+          "intentType",
+          "amount",
+          "currency",
+          "classification",
+          "donor",
+          "acceptTerms"
+        ]
+      },
+      "AllocationDecisionDto": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "AUTHORIZE",
+              "REJECT"
+            ]
+          },
+          "fund": {
+            "type": "string",
+            "description": "Authorized fund / destination (required to authorize)"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision",
+          "note"
+        ]
+      },
+      "ZakatRequestDto": {
+        "type": "object",
+        "properties": {
+          "targetType": {
+            "type": "string",
+            "enum": [
+              "PROGRAMME",
+              "PROJECT",
+              "CAMPAIGN"
+            ]
+          },
+          "targetId": {
+            "type": "string"
+          },
+          "eligible": {
+            "type": "boolean",
+            "description": "true = Zakat-eligible; false = not eligible"
+          },
+          "authorityReference": {
+            "type": "string",
+            "description": "MEKI religious/finance authority decision (document / date / signatory) — required when eligible"
+          },
+          "sdiAcceptanceReference": {
+            "type": "string",
+            "description": "SDI's written acceptance of the Zakat accounting restriction — required when eligible"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "targetType",
+          "targetId",
+          "eligible"
+        ]
+      },
+      "ZakatDecisionNoteDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "ZakatRejectDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "note"
+        ]
+      },
+      "ZakatRevokeDto": {
+        "type": "object",
+        "properties": {
+          "targetType": {
+            "type": "string",
+            "enum": [
+              "PROGRAMME",
+              "PROJECT",
+              "CAMPAIGN"
+            ]
+          },
+          "targetId": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "targetType",
+          "targetId",
+          "reason"
         ]
       }
     }

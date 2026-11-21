@@ -1,13 +1,15 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { X, ShieldCheck, ArrowRight, Lock } from "lucide-react";
-import type { CreatedDonation, CreateDonationRequest, DonationDesignation, DonationFrequency, PaymentSessionResponse, PublicDonationConfig } from "@meki/api-client";
+import type { CreatedDonation, CreateDonationRequest, DonationDesignation, DonationFrequency, PaymentSessionResponse, PublicDonationConfig, PublicGivingOptions } from "@meki/api-client";
 import type { Dict } from "@/content/en";
 import type { Locale } from "@/lib/i18n";
 import type { LiveCampaign } from "@/lib/content";
 import { ApiRequestError, clientApi } from "@/lib/api";
 import { rememberDonation } from "@/lib/donation-session";
+import { giveHref, isRoutable } from "@/lib/giving";
 
 /** A fully validated choice from the donation form; the backend re-validates everything. */
 export type CheckoutChoice = {
@@ -22,7 +24,8 @@ export type CheckoutChoice = {
   source?: string;
 };
 
-export type Selection = { amount?: string; frequency?: string; destination?: string; checkout?: CheckoutChoice } | null;
+/** Phase 14B: `programmeSlug` / `amountValue` let every Give button carry the donor's choice into the hosted giving journey. */
+export type Selection = { amount?: string; frequency?: string; destination?: string; programmeSlug?: string; amountValue?: string; checkout?: CheckoutChoice } | null;
 
 type DonationCtx = {
   open: (s?: Selection) => void;
@@ -54,16 +57,22 @@ export function DonateProvider({ t, locale, liveCampaigns = [], children }: { t:
   const [sel, setSel] = useState<Selection>(null);
   const [config, setConfig] = useState<PublicDonationConfig | null>(null);
   const [preselect, setPreselect] = useState<{ value: string } | null>(null);
+  // Phase 14B: SDI-hosted giving availability (programme / general / Gala-only). null = unknown or API unreachable → dialog.
+  const [giving, setGiving] = useState<PublicGivingOptions | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     let cancelled = false;
     clientApi<PublicDonationConfig>("/public/donations/config", { timeoutMs: 6000 })
       .then((c) => !cancelled && setConfig(c))
       .catch(() => !cancelled && setConfig(null)); // API unreachable → preview mode
+    clientApi<PublicGivingOptions>(`/public/giving/options?locale=${locale ?? "en"}`, { timeoutMs: 6000 })
+      .then((g) => !cancelled && setGiving(g))
+      .catch(() => !cancelled && setGiving(null));
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [locale]);
 
   const live = !!config?.paymentsEnabled;
 
@@ -78,10 +87,18 @@ export function DonateProvider({ t, locale, liveCampaigns = [], children }: { t:
         document.getElementById("give")?.scrollIntoView({ behavior: "smooth", block: "center" });
         return;
       }
-      setSel(s ?? null);
+      // Phase 14B: SDI-hosted giving. Whenever this option (or, in Gala-only mode, the Gala alternative with the donor's explicit
+      // acceptance) can really be paid, every Give button opens the real journey on /give — programme and amount carried along.
+      const slug = s?.programmeSlug ?? (s?.destination ? t.programmes.items.find((p) => p.name === s.destination)?.slug : undefined);
+      if (isRoutable(giving, slug)) {
+        router.push(giveHref(locale ?? "en", { programmeSlug: slug, amount: s?.amountValue }));
+        return;
+      }
+      // Otherwise: a clear, truthful explanation (nothing is collected), with a link to the preview of the giving form.
+      setSel(s ? { ...s, programmeSlug: slug } : null);
       ref.current?.showModal();
     },
-    [live, liveCampaigns, t.programmes.items],
+    [live, liveCampaigns, t.programmes.items, giving, router, locale],
   );
   const close = () => ref.current?.close();
 
@@ -133,8 +150,8 @@ export function DonateProvider({ t, locale, liveCampaigns = [], children }: { t:
                 </div>
               )}
               <div className="mt-7 flex flex-wrap gap-3">
-                <a href="#programmes" onClick={close} className="btn btn-green">
-                  {t.dialog.explore} <ArrowRight className="btn-arrow size-4" />
+                <a href={giveHref(locale ?? "en", { programmeSlug: sel?.programmeSlug, amount: sel?.amountValue })} onClick={close} className="btn btn-green" data-testid="donate-dialog-preview">
+                  {t.dialog.preview} <ArrowRight className="btn-arrow size-4" />
                 </a>
                 <button onClick={close} className="btn btn-outline">
                   {t.dialog.close}

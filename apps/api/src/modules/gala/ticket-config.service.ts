@@ -13,7 +13,7 @@ const LABEL = new RegExp(`^[ -~${String.fromCharCode(0xa0)}-${String.fromCharCod
 const PRICE = /^(?:[1-9]\d{0,8})(?:\.\d{1,2})?$/;
 
 export class CreateTicketConfigDto {
-  @ApiProperty({ example: '750.00', description: 'Price per guest, decimal string' }) @Matches(PRICE) ticketPrice!: string;
+  @ApiProperty({ example: '500.00', description: 'Price per guest, decimal string' }) @Matches(PRICE) ticketPrice!: string;
   @ApiPropertyOptional({ example: 'USD' }) @IsOptional() @Matches(/^[A-Z]{3}$/) currency?: string;
   @ApiProperty({ example: 'Every Light Counts' }) @Transform(trim) @IsString() @MinLength(2) @MaxLength(255) @Matches(LABEL) displayNameEn!: string;
   @ApiProperty({ example: 'Saturday, December 12, 2026' }) @Transform(trim) @IsString() @MinLength(2) @MaxLength(120) @Matches(LABEL) eventDateLabelEn!: string;
@@ -24,7 +24,7 @@ export class CreateTicketConfigDto {
 }
 
 export class UpdateTicketConfigDto {
-  @ApiPropertyOptional({ example: '750.00' }) @IsOptional() @Matches(PRICE) ticketPrice?: string;
+  @ApiPropertyOptional({ example: '500.00' }) @IsOptional() @Matches(PRICE) ticketPrice?: string;
   @ApiPropertyOptional({ description: 'Opens/closes ticket sales (requires events.approve). Independent of payment availability.' }) @IsOptional() @IsBoolean() salesEnabled?: boolean;
   @ApiPropertyOptional() @IsOptional() @Transform(trim) @IsString() @MinLength(2) @MaxLength(255) @Matches(LABEL) displayNameEn?: string;
   @ApiPropertyOptional() @IsOptional() @Transform(trim) @IsString() @MinLength(2) @MaxLength(120) @Matches(LABEL) eventDateLabelEn?: string;

@@ -82,13 +82,17 @@ export class AuthService {
       throw new UnauthorizedException('Current password is incorrect');
     }
     this.passwords.assertPolicy(next, record.email);
-    await this.prisma.adminUser.update({
-      where: { id: user.id },
-      data: { passwordHash: await this.passwords.hash(next), passwordChangedAt: new Date(), mustChangePassword: false },
+    // Phase 13A: ONE transaction. Staging showed the change could commit and the request still fail (pool timeout on a later
+    // statement), so the client threw away a password that was already active. Now either everything is applied — new hash,
+    // other sessions revoked, audit row — or nothing is, and an error always means the old password still works.
+    // The (slow, memory-hard) hash is computed BEFORE the transaction so no connection is held while hashing.
+    const passwordHash = await this.passwords.hash(next);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.adminUser.update({ where: { id: user.id }, data: { passwordHash, passwordChangedAt: new Date(), mustChangePassword: false } });
+      // Keep the current session, end all others.
+      await this.sessions.revokeAllForUser(user.id, sessionId, tx);
+      await this.audit.record(actor, 'auth.password_changed', 'AdminUser', user.id, undefined, tx);
     });
-    // Keep the current session, end all others.
-    await this.sessions.revokeAllForUser(user.id, sessionId);
-    await this.audit.record(actor, 'auth.password_changed', 'AdminUser', user.id);
   }
 
   /** Always resolves the same way regardless of whether the account exists. */

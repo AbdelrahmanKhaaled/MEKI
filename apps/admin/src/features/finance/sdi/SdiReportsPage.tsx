@@ -16,6 +16,7 @@ import { cleanQuery } from "@/lib/finance";
 import { REPORT_KINDS, REPORT_STATUSES, type ReportImport } from "@/lib/sdi-schemas";
 import { uploadProblem } from "@/lib/sdi";
 import * as svc from "@/services/sdi";
+import { GalaSdiTotals } from "@/features/gala/GalaSdiTotals";
 import { ReportBadge, SyntheticBadge, useSdiError } from "./shared";
 
 const KEYS = ["kind", "status"] as const;
@@ -77,6 +78,7 @@ function Reports() {
                   [x.missingDays, s.missingBusinessDays.length ? <span key="m" className="text-warn" dir="ltr">{s.missingBusinessDays.slice(0, 10).join(", ")}{s.missingBusinessDays.length > 10 ? " …" : ""}</span> : "—"],
                 ]}
               />
+              {s.galaTotals && <GalaSdiTotals totals={s.galaTotals} />}
               <Notice><p>{x.noApi}</p></Notice>
               {!s.applyEnabled && <Notice tone="gold"><p>{x.applyOff}</p></Notice>}
               <p className="text-xs text-muted">{x.separation}</p>

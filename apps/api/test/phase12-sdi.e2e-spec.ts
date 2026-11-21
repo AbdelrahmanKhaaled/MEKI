@@ -277,7 +277,8 @@ describe('Phase 12 — SDI hosted Gala booking, ticket ownership and report reco
     expect(() => validateSdiHostedConfig({ ...base, GALA_TICKETING_MODE: 'meki' } as EnvironmentVariables)).toThrow(/zeffy_hosted/);
     expect(() => validateSdiHostedConfig({ ...base, NODE_ENV: 'development', GALA_TICKETING_MODE: 'zeffy_hosted', ZEFFY_GALA_AUTO_CONFIRM: true } as EnvironmentVariables)).toThrow(/conflicts/);
     expect(() => validateSdiHostedConfig({ ...base, GALA_HOSTED_SALES_ENABLED: true } as EnvironmentVariables)).toThrow(/ZEFFY_GALA_TICKET_FORM_URL/);
-    expect(() => validateSdiHostedConfig({ ...base, SDI_PROGRAMME_GIVING_ENABLED: true } as EnvironmentVariables)).toThrow(/DESIGNATION_CONFIRMED/);
+    expect(() => validateSdiHostedConfig({ ...base, SDI_PROGRAMME_GIVING_ENABLED: true } as EnvironmentVariables)).toThrow(/PROGRAMME_GIVING_AUTHORIZED/); // Phase 12B: separate agreement first
+    expect(() => validateSdiHostedConfig({ ...base, SDI_PROGRAMME_GIVING_ENABLED: true, PROGRAMME_GIVING_AUTHORIZED: true } as EnvironmentVariables)).toThrow(/DESIGNATION_CONFIRMED/);
     expect(() => validateSdiHostedConfig({ ...base, SDI_PROGRAMME_FORM_URLS: '{"health":"https://evil.example/x"}' } as EnvironmentVariables)).toThrow(/zeffy/);
     expect(parseAmount('1,500.00')).toBe('1500.00');
     expect(parseAmount('$750')).toBe('750.00');

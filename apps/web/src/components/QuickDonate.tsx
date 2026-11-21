@@ -37,7 +37,6 @@ export function QuickDonate({ t, locale }: { t: Dict; locale: Locale }) {
   // Selections stay valid when the backend configuration differs from the preview defaults (derived, not effects).
   const amount: number | "other" =
     typeof amountChoice === "number" && !amounts.includes(amountChoice) ? (amounts.includes(100) ? 100 : (amounts[0] ?? "other")) : amountChoice;
-  const freq = "once" as const; // monthly giving is not approved
   // "Give" buttons on programme/campaign cards preselect their destination (adjust-state-on-prop-change pattern).
   const [seenPreselect, setSeenPreselect] = useState(preselect);
   if (preselect !== seenPreselect) {
@@ -67,7 +66,9 @@ export function QuickDonate({ t, locale }: { t: Dict; locale: Locale }) {
     if (value <= 0 || limitError) return;
     const frequencyLabel = q.oneOff;
     if (!live || !currency) {
-      open({ amount: formatUSD(value, locale), frequency: frequencyLabel, destination: destLabel });
+      const [k0, s0] = dest.split(":");
+      // Phase 14B: carry the programme and amount into the hosted giving journey (or the truthful dialog when nothing is open)
+      open({ amount: formatUSD(value, locale), frequency: frequencyLabel, destination: destLabel, programmeSlug: k0 === "programme" ? s0 : undefined, amountValue: String(value) });
       return;
     }
     const [kind, slug] = dest.split(":");

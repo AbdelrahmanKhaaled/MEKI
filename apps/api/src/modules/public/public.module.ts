@@ -55,12 +55,20 @@ export class PublicController {
   @ApiOperation({ summary: 'SDI hosted-form availability: general giving, programme giving (per slug) — URLs only when enabled and SDI-approved' })
   async hostedForms() {
     const c = this.appConfig;
-    const general = c.get('SDI_GENERAL_GIVING_ENABLED') && !!c.get('ZEFFY_DONATION_FORM_URL');
-    const programmeOn = c.get('SDI_PROGRAMME_GIVING_ENABLED') && c.get('SDI_PROGRAMME_DESIGNATION_CONFIRMED');
+    // Phase 12B: the SDI agreement covers the Gala campaign for ONE approved project only. General and programme-restricted
+    // giving need a separate written agreement (*_GIVING_AUTHORIZED) in addition to SDI's form and switch.
+    const generalAuthorized = c.get('GENERAL_GIVING_AUTHORIZED');
+    const programmeAuthorized = c.get('PROGRAMME_GIVING_AUTHORIZED');
+    const general = generalAuthorized && c.get('SDI_GENERAL_GIVING_ENABLED') && !!c.get('ZEFFY_DONATION_FORM_URL');
+    const programmeOn = programmeAuthorized && c.get('SDI_PROGRAMME_GIVING_ENABLED') && c.get('SDI_PROGRAMME_DESIGNATION_CONFIRMED');
     const urls = parseProgrammeFormUrls(c.get('SDI_PROGRAMME_FORM_URLS'));
     const programmes = (await this.programmes.listPublished()).filter((p) => p.kind === 'PROGRAMME');
     return {
       mode: 'sdi_hosted_forms',
+      /** Current fiscal-sponsor scope: Gala campaign → one approved project (see GET /public/events/:slug/fundraising). */
+      scope: 'GALA_SINGLE_PROJECT',
+      generalAuthorized,
+      programmeAuthorized,
       general: { available: general, url: general ? c.get('ZEFFY_DONATION_FORM_URL') : null },
       programmeDesignationConfirmed: c.get('SDI_PROGRAMME_DESIGNATION_CONFIRMED'),
       programmes: programmes.map((p) => ({ slug: p.slug, code: p.code, available: programmeOn && !!urls[p.slug], url: programmeOn && urls[p.slug] ? urls[p.slug] : null })),

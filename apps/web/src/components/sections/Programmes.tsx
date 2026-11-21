@@ -44,7 +44,11 @@ export function Programmes({ t }: { t: Dict }) {
                 <li key={item.slug} data-stagger-item className="border-b border-stone-line first:border-t">
                   <button
                     type="button"
-                    onMouseEnter={() => setActive(i)}
+                    onMouseEnter={() => {
+                      // The mobile accordion changes on an explicit tap/focus. Scrolling a row
+                      // under a desktop pointer must not collapse the panel the visitor is using.
+                      if (window.matchMedia("(min-width: 1024px) and (hover: hover) and (pointer: fine)").matches) setActive(i);
+                    }}
                     onFocus={() => setActive(i)}
                     onClick={() => setActive(i)}
                     aria-expanded={on}
@@ -75,7 +79,9 @@ export function Programmes({ t }: { t: Dict }) {
                   {/* Mobile inline panel */}
                   <div
                     id={`prog-panel-${item.slug}`}
-                    className={`grid transition-[grid-template-rows] duration-500 ease-[var(--ease-premium)] lg:hidden ${on ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+                    aria-hidden={!on}
+                    inert={!on}
+                    className={`grid transition-[grid-template-rows] duration-500 ease-[var(--ease-premium)] lg:hidden ${on ? "visible grid-rows-[1fr]" : "invisible pointer-events-none grid-rows-[0fr]"}`}
                   >
                     <div className="overflow-hidden">
                       <div className="pb-8">
@@ -91,6 +97,10 @@ export function Programmes({ t }: { t: Dict }) {
                             </li>
                           ))}
                         </ul>
+                        {/* Phase 14B: the same Give entry point as the desktop panel (mobile had none), carrying the programme interest */}
+                        <GiveButton selection={{ destination: item.name, programmeSlug: item.slug }} className="btn btn-green mt-5 w-full justify-center sm:w-auto">
+                          <Heart className="size-4" aria-hidden="true" /> {p.give}
+                        </GiveButton>
                       </div>
                     </div>
                   </div>
@@ -131,7 +141,7 @@ export function Programmes({ t }: { t: Dict }) {
                       ))}
                     </ul>
                   </div>
-                  <GiveButton selection={{ destination: cur.name }} className="btn btn-green mt-6">
+                  <GiveButton selection={{ destination: cur.name, programmeSlug: cur.slug }} className="btn btn-green mt-6">
                     <Heart className="size-4" aria-hidden="true" /> {p.give}
                   </GiveButton>
                 </div>

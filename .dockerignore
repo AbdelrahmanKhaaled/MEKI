@@ -1,0 +1,27 @@
+# Phase 13A — keep the Docker build context small and free of secrets / client material.
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/coverage
+**/*.log
+**/tsconfig.tsbuildinfo
+.git
+.vscode
+.idea
+# never ship secrets or local overrides
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+**/*.pem
+**/*.key
+# local data
+apps/api/storage
+deploy/**/data
+# proprietary client material and docs are not needed by any image
+client-resources
+docs
+apps/web/verification
+# API generated client is regenerated in the image
+apps/api/src/generated

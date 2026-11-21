@@ -15,7 +15,7 @@ import { useUrlState } from "@/hooks/useUrlState";
 import { cleanQuery } from "@/lib/finance";
 import { fill } from "@/lib/i18n";
 import {
-  ATTENDEE_FIELDS, RECON_FIELDS, RECON_REQUIRED, attendeeBody, attendeeFromSaved, canApprove, reconBody, reconFromSaved, reconProblems,
+  ATTENDEE_FIELDS, REPORT_TYPES, RECON_REQUIRED, attendeeBody, reconFieldsFor, attendeeFromSaved, canApprove, reconBody, reconFromSaved, reconProblems,
   type AttendeeForm, type ReconForm,
 } from "@/lib/sdi";
 import { DATE_FORMATS, ROW_STATUSES, type MappingProfile, type ReportImport, type ReportRow } from "@/lib/sdi-schemas";
@@ -144,16 +144,35 @@ function Detail({ imp }: { imp: ReportImport }) {
 
             {!profileId && recon && (
               <div className="grid gap-4 md:grid-cols-3">
-                {RECON_FIELDS.map((k) => (
+                {/* Phase 12B: Gala ticket form vs Gala standalone donation form (ticket-only columns hidden for donations) */}
+                <div className="md:col-span-3">
+                  <Select label={x.mappingFields.reportType} value={rf.reportType} onChange={(v) => setRf({ ...rf, reportType: v as ReconForm["reportType"] })} options={REPORT_TYPES.map((r) => ({ value: r, label: x.mappingFields.reportTypes[r] }))} required />
+                </div>
+                {reconFieldsFor(rf.reportType).map((k) => (
                   <Select key={k} label={`${x.fields[k]}${RECON_REQUIRED.includes(k) ? ` (${x.required})` : ""}`} value={rf[k]} onChange={(v) => setRf({ ...rf, [k]: v })} emptyLabel={x.notMapped} options={headerOptions} required={RECON_REQUIRED.includes(k)} />
                 ))}
                 <Select label={x.dateFormat} value={rf.dateFormat} onChange={(v) => setRf({ ...rf, dateFormat: v as ReconForm["dateFormat"] })} options={DATE_FORMATS.map((d) => ({ value: d, label: x.dateFormats[d] }))} required />
+                <TextInput label={x.mappingFields.timeZone} hint={x.mappingFields.timeZoneHint} value={rf.timeZone} onChange={(v) => setRf({ ...rf, timeZone: v })} dir="ltr" maxLength={64} />
                 <div className="md:col-span-2">
+                  <TextInput label={x.mappingFields.galaFunds} hint={x.mappingFields.galaFundsHint} value={rf.galaFunds} onChange={(v) => setRf({ ...rf, galaFunds: v })} maxLength={600} />
+                </div>
+                {rf.recurring && <p className="text-xs text-muted md:col-span-3">{x.mappingFields.recurringHint}</p>}
+                <div className="md:col-span-2" hidden={rf.reportType !== "GALA_TICKETS"}>
                   <TextInput label={x.donationTypes} hint={x.donationTypesHelp} value={rf.donationTicketTypes} onChange={(v) => setRf({ ...rf, donationTicketTypes: v })} maxLength={600} />
                 </div>
                 <div className="md:col-span-3">
                   <TextArea label={x.statusMap} hint={x.statusMapHelp} value={rf.statusMap} onChange={(v) => setRf({ ...rf, statusMap: v })} rows={6} dir="ltr" maxLength={4000} />
                 </div>
+                {/* Phase 14: donation forms — Donation Type (Zakat/Sadaqah) and Program/Fund answer maps; never guessed */}
+                {rf.reportType !== "GALA_TICKETS" && (
+                  <>
+                    <div className="md:col-span-3 md:grid md:grid-cols-2 md:gap-4">
+                      <TextArea label={x.mappingFields.donationTypeMap} hint={x.mappingFields.donationTypeMapHint} value={rf.donationTypeMap} onChange={(v) => setRf({ ...rf, donationTypeMap: v })} rows={4} dir="ltr" maxLength={2000} />
+                      <TextArea label={x.mappingFields.designationMap} hint={x.mappingFields.designationMapHint} value={rf.designationMap} onChange={(v) => setRf({ ...rf, designationMap: v })} rows={4} dir="ltr" maxLength={4000} />
+                    </div>
+                    <p className="text-xs text-muted md:col-span-3">{x.mappingFields.intentHint}</p>
+                  </>
+                )}
               </div>
             )}
             {!profileId && !recon && (

@@ -24,6 +24,17 @@ export const SdiStatusSchema = z.object({
   importsAwaitingAction: z.number(),
   rowsRequiringReview: z.number(),
   missingBusinessDays: z.array(z.string()),
+  /** Phase 12B: reconciled Gala money by category, as reported by SDI (never summed across categories) */
+  galaTotals: z
+    .object({
+      currency: z.literal("USD"),
+      ticketRevenue: z.object({ orders: z.number(), gross: money, refunded: money, net: money }),
+      galaStandaloneDonations: z.object({ gifts: z.number(), amount: money }),
+      /** Phase 14: Gala gifts verified against a MEKI donation intent (separate category; absent on older APIs) */
+      galaDonationIntentsVerified: z.object({ gifts: z.number(), amount: money }).optional(),
+      donationRowsAwaitingReview: z.object({ rows: z.number(), amount: money }),
+    })
+    .optional(),
 });
 export type SdiStatus = z.infer<typeof SdiStatusSchema>;
 

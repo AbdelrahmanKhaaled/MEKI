@@ -12,7 +12,8 @@ import { Paginated } from '../../common/utils';
 import { D } from '../donations/money';
 import { BookingPaymentsService } from '../gala/booking-payments.service';
 import { csvCell, generateBookingAttemptReference } from '../gala/gala.rules';
-import { isFormulaLike, normaliseReference, parseAmount, parseCsv, parseDate, parseQuantity, parseXlsx, REPORT_LIMITS, ReportFileError, type DateFormat, type Table } from './sdi-report.parser';
+import { isFormulaLike, isValidTimeZone, normaliseReference, parseAmount, parseCsv, parseDate, parseDateTime, parseQuantity, parseXlsx, REPORT_LIMITS, ReportFileError, type DateFormat, type Table } from './sdi-report.parser';
+import { CLASSIFICATIONS, DEFAULT_DONATION_TYPE_MAP, intendedDesignationKey, normaliseDonationReference, REPORT_TYPE_FOR_INTENT, type Classification, type DonationIntentType } from '../giving/giving.rules';
 
 /** Provider key for everything learned from SDI's reports (distinct from the Phase 8A 'zeffy' API/webhook provider). */
 export const SDI_REPORT = 'sdi_report';
@@ -28,9 +29,30 @@ export const DEFAULT_STATUS_MAP: Record<string, OrderStatus> = {
   cancelled: 'CANCELLED', canceled: 'CANCELLED', voided: 'CANCELLED',
   refunded: 'REFUNDED', 'fully refunded': 'REFUNDED',
   'partially refunded': 'PARTIALLY_REFUNDED', 'partial refund': 'PARTIALLY_REFUNDED',
+  // Phase 12B: Zeffy's export (SDI sample) uses "Abandoned" for a checkout that was never paid.
+  abandoned: 'FAILED',
 };
 
+/**
+ * Phase 12B — what an SDI report describes. GALA_TICKETS = SDI's Gala ticket form (matched to MEKI booking references);
+ * GALA_DONATIONS = SDI's Gala standalone donation form (no booking; recorded as a separate reconciled category).
+ */
+export const REPORT_TYPES = ['GALA_TICKETS', 'GALA_DONATIONS', 'GENERAL_DONATIONS', 'PROGRAMME_DONATIONS'] as const;
+/** Phase 14: report types that describe a donation form (one line = one gift). */
+const DONATION_REPORT_TYPES: readonly ReportType[] = ['GALA_DONATIONS', 'GENERAL_DONATIONS', 'PROGRAMME_DONATIONS'];
+/** Phase 14: designation keys a report value may map to (compared with the donor's intention). */
+const DESIGNATION_KEY = /^(?:GENERAL|GALA_PROJECT|programme:[a-z0-9-]{2,100})$/;
+export type ReportType = (typeof REPORT_TYPES)[number];
+
+/** Recurring-status values that mean "one-time" (anything else = recurring → review; ongoing giving is outside the Gala agreement). */
+const ONE_TIME = new RegExp('^(?:one[- ]?time|single|none|no|n/a|-)$', 'i');
+
+/** Classification of SDI-reported Gala standalone donations in ProviderPayment.campaignCategory. */
+export const GALA_STANDALONE_DONATION = 'GALA_STANDALONE_DONATION';
+
 export type ReconciliationMapping = {
+  /** Phase 12B: defaults to GALA_TICKETS (the Phase 12 behaviour) */
+  reportType: ReportType;
   orderId: string;
   bookingReference?: string;
   ticketType?: string;
@@ -41,9 +63,26 @@ export type ReconciliationMapping = {
   status: string;
   date: string;
   dateFormat: DateFormat;
+  /** Phase 12B: separate time column (e.g. "Payment Time (America/New_York)") */
+  time?: string;
+  /** Phase 12B: IANA zone the report's local date/time is expressed in (default UTC) */
+  timeZone: string;
+  /** Phase 12B: SDI fund column and the fund name(s) that identify the approved Gala project */
+  fund?: string;
+  galaFunds?: string[];
+  /** Phase 12B: recurring-status column (recurring gifts always go to review) */
+  recurring?: string;
   statusMap: Record<string, OrderStatus>;
   /** ticket-type values that identify a GALA DONATION line (never ledgered automatically) */
   donationTicketTypes?: string[];
+  /** Phase 14: "MEKI Donation Reference" column (DN-…). Required for GENERAL/PROGRAMME reports; on the Gala form it switches on intent matching. */
+  donationReference?: string;
+  /** Phase 14: "Donation Type" column and its answer → ZAKAT / SADAQAH map (unknown answers → review) */
+  donationType?: string;
+  donationTypeMap?: Record<string, Classification>;
+  /** Phase 14: approved Program/Fund designation column and its value → GENERAL | GALA_PROJECT | programme:<slug> map */
+  designation?: string;
+  designationMap?: Record<string, string>;
 };
 export type AttendeeMapping = { guestName: string; ticketType?: string; tableLabel?: string; orderId?: string; bookingReference?: string; answers?: string[] };
 
@@ -61,10 +100,18 @@ type Evaluated = {
   statusRaw: string | null;
   status: OrderStatus | 'UNKNOWN' | null;
   occurredAt: Date | null;
+  fund: string | null;
   matchStatus: ProviderReportRowStatus;
   matchNote: string | null;
   bookingId: string | null;
   errors: string[];
+  // Phase 14 — donation intents
+  donationReferenceRaw: string | null;
+  donationReference: string | null;
+  donationId: string | null;
+  donationTypeRaw: string | null;
+  donationType: Classification | 'UNKNOWN' | null;
+  designationRaw: string | null;
 };
 
 const MAX_NOTE = 300;
@@ -149,7 +196,9 @@ export class SdiReportsService {
 
   /** Header-name suggestions ONLY (case-insensitive). Never applied automatically; the importer confirms every column. */
   private suggest(kind: string, headers: string[]) {
-    const find = (...names: string[]) => headers.find((h) => names.includes(h.toLowerCase().replace(/[^a-z]/g, ''))) ?? undefined;
+    const key = (h: string) => h.toLowerCase().replace(/[^a-z]/g, '');
+    // exact header match first; then a header that STARTS with the name (e.g. "Payment Date (America/New_York)")
+    const find = (...names: string[]) => headers.find((h) => names.includes(key(h))) ?? headers.find((h) => names.some((n) => n.length >= 4 && key(h).startsWith(n))) ?? undefined;
     if (kind === 'ATTENDEES') {
       return { guestName: find('guestname', 'attendeename', 'name', 'fullname'), ticketType: find('tickettype', 'ticket', 'rate'), tableLabel: find('table', 'tablenumber'), orderId: find('orderid', 'order', 'paymentid'), bookingReference: find('mekibookingreference', 'bookingreference') };
     }
@@ -158,6 +207,13 @@ export class SdiReportsService {
       ticketType: find('tickettype', 'ticket', 'rate', 'item'), quantity: find('quantity', 'qty', 'tickets'), amount: find('amount', 'total', 'totalamount'),
       refundedAmount: find('refundedamount', 'refunded', 'refundamount'), currency: find('currency'), status: find('status', 'paymentstatus', 'orderstatus'), date: find('date', 'orderdate', 'createdat', 'paymentdate'),
       dateFormat: 'ISO', statusMap: DEFAULT_STATUS_MAP,
+      // Phase 12B (SDI sample layout): separate time column, zone stated in the header, fund and recurring columns
+      time: find('paymenttime', 'time', 'ordertime'), fund: find('fund', 'designation'), recurring: find('recurringstatus', 'recurring', 'frequency'),
+      timeZone: headers.map((h) => /\(([A-Za-z_]+\/[A-Za-z_]+(?:\/[A-Za-z_]+)?)\)/.exec(h)?.[1]).find((z) => z && isValidTimeZone(z)) ?? 'UTC',
+      reportType: 'GALA_TICKETS', galaFunds: [],
+      // Phase 14: SDI custom questions on donation forms (suggestions only)
+      donationReference: find('mekidonationreference', 'donationreference'), donationType: find('donationtype', 'typeofdonation', 'zakatsadaqah'),
+      designation: find('program', 'programme', 'programfund', 'approvedprogram', 'designation'), donationTypeMap: DEFAULT_DONATION_TYPE_MAP,
     };
   }
 
@@ -185,11 +241,34 @@ export class SdiReportsService {
       statusMap[k.trim().toLowerCase()] = v as OrderStatus;
     }
     if (!['ISO', 'MDY', 'DMY'].includes(m.dateFormat as string)) throw new BadRequestException({ message: 'dateFormat must be ISO, MDY or DMY', code: 'MAPPING_DATE_FORMAT' });
+    const reportType = (m.reportType ?? 'GALA_TICKETS') as ReportType;
+    if (!(REPORT_TYPES as readonly string[]).includes(reportType)) throw new BadRequestException({ message: `reportType must be one of ${REPORT_TYPES.join(', ')}`, code: 'MAPPING_REPORT_TYPE' });
+    // Phase 14: a general or programme donation report can only be reconciled against MEKI donation references.
+    if ((reportType === 'GENERAL_DONATIONS' || reportType === 'PROGRAMME_DONATIONS') && !m.donationReference) {
+      throw new BadRequestException({ message: 'Map the "MEKI Donation Reference" column for this report type', code: 'MAPPING_INCOMPLETE', details: { field: 'donationReference' } });
+    }
+    if (reportType === 'PROGRAMME_DONATIONS' && !m.designation) {
+      throw new BadRequestException({ message: 'Map the Program/Fund designation column for a programme donation report', code: 'MAPPING_INCOMPLETE', details: { field: 'designation' } });
+    }
+    const donationTypeMap: Record<string, Classification> = {};
+    for (const [k, v] of Object.entries(m.donationTypeMap ?? DEFAULT_DONATION_TYPE_MAP)) {
+      if (!(CLASSIFICATIONS as readonly string[]).includes(v as string) || k.length > 60) throw new BadRequestException({ message: `Invalid donation-type mapping for "${k.slice(0, 40)}"`, code: 'MAPPING_DONATION_TYPE_INVALID' });
+      donationTypeMap[k.trim().toLowerCase()] = v as Classification;
+    }
+    const designationMap: Record<string, string> = {};
+    for (const [k, v] of Object.entries(m.designationMap ?? {})) {
+      if (typeof v !== 'string' || !DESIGNATION_KEY.test(v) || k.length > 120) throw new BadRequestException({ message: `Invalid designation mapping for "${k.slice(0, 40)}" (use GENERAL, GALA_PROJECT or programme:<slug>)`, code: 'MAPPING_DESIGNATION_INVALID' });
+      designationMap[k.trim().toLowerCase()] = v;
+    }
+    const timeZone = typeof m.timeZone === 'string' && m.timeZone ? m.timeZone : 'UTC';
+    if (timeZone !== 'UTC' && !isValidTimeZone(timeZone)) throw new BadRequestException({ message: `Unknown time zone "${String(m.timeZone).slice(0, 60)}"`, code: 'MAPPING_TIME_ZONE' });
+    const galaFunds = Array.isArray(m.galaFunds) ? m.galaFunds.filter((s) => typeof s === 'string' && s.trim()).map((s) => s.trim().toLowerCase()).slice(0, 20) : [];
     const donation = Array.isArray(m.donationTicketTypes) ? m.donationTicketTypes.filter((s) => typeof s === 'string' && s.trim()).map((s) => s.trim().toLowerCase()).slice(0, 20) : [];
     return {
       orderId: col('orderId', true)!, bookingReference: col('bookingReference', false), ticketType: col('ticketType', false), quantity: col('quantity', false), amount: col('amount', true)!,
       refundedAmount: col('refundedAmount', false), currency: col('currency', false), status: col('status', true)!, date: col('date', true)!, dateFormat: m.dateFormat as DateFormat,
-      statusMap, donationTicketTypes: donation,
+      statusMap, donationTicketTypes: donation, reportType, time: col('time', false), timeZone, fund: col('fund', false), galaFunds, recurring: col('recurring', false),
+      donationReference: col('donationReference', false), donationType: col('donationType', false), donationTypeMap, designation: col('designation', false), designationMap,
     };
   }
 
@@ -273,6 +352,7 @@ export class SdiReportsService {
       importId, rowNumber: e.rowNumber, sourceOrderId: e.sourceOrderId, bookingReferenceRaw: e.bookingReferenceRaw, bookingReference: e.bookingReference, ticketType: e.ticketType, lineKind: e.lineKind,
       quantity: e.quantity, amount: e.amount, refundedAmount: e.refundedAmount, currency: e.currency, statusRaw: e.statusRaw, status: e.status, occurredAt: e.occurredAt,
       matchStatus: e.matchStatus, matchNote: e.matchNote?.slice(0, MAX_NOTE) ?? null, bookingId: e.bookingId, errors: e.errors.length ? e.errors : Prisma.JsonNull,
+      donationReferenceRaw: e.donationReferenceRaw, donationReference: e.donationReference, donationId: e.donationId, donationTypeRaw: e.donationTypeRaw, donationType: e.donationType, designationRaw: e.designationRaw,
     };
   }
 
@@ -286,10 +366,16 @@ export class SdiReportsService {
    * Row interpretation and matching. Pure with respect to money: it only READS bookings and earlier SDI state. Each rule that
    * cannot be satisfied sends the row to a review status — nothing is guessed.
    */
-  private async evaluate(table: Table, headers: string[], m: ReconciliationMapping, db: Pick<Prisma.TransactionClient, 'eventBooking' | 'providerPayment'>): Promise<Evaluated[]> {
+  private async evaluate(table: Table, headers: string[], m: ReconciliationMapping, db: Pick<Prisma.TransactionClient, 'eventBooking' | 'providerPayment' | 'donation'>): Promise<Evaluated[]> {
     const col = (h?: string) => (h ? headers.indexOf(h) : -1);
-    const ix = { order: col(m.orderId), ref: col(m.bookingReference), type: col(m.ticketType), qty: col(m.quantity), amount: col(m.amount), refunded: col(m.refundedAmount), currency: col(m.currency), status: col(m.status), date: col(m.date) };
+    const ix = { order: col(m.orderId), ref: col(m.bookingReference), type: col(m.ticketType), qty: col(m.quantity), amount: col(m.amount), refunded: col(m.refundedAmount), currency: col(m.currency), status: col(m.status), date: col(m.date), time: col(m.time), fund: col(m.fund), recurring: col(m.recurring), dref: col(m.donationReference), dtype: col(m.donationType), desig: col(m.designation) };
     const statusMap = { ...m.statusMap };
+    const donationsReport = DONATION_REPORT_TYPES.includes(m.reportType);
+    /** Phase 14: donation rows are matched to MEKI donation intents (DN-…) when the reference column is mapped. */
+    const intentMode = donationsReport && ix.dref >= 0;
+    const galaReport = m.reportType === 'GALA_TICKETS' || m.reportType === 'GALA_DONATIONS';
+    const galaFunds = new Set((m.galaFunds ?? []).map((f) => f.toLowerCase()));
+    const unpaidStates = new Set<OrderStatus | 'UNKNOWN'>(['PENDING', 'FAILED', 'CANCELLED']);
     const rows: Evaluated[] = table.rows.map((r, i) => {
       const get = (n: number) => (n >= 0 ? (r[n] ?? '').trim() : '');
       const errors: string[] = [];
@@ -297,10 +383,18 @@ export class SdiReportsService {
       const refRaw = get(ix.ref);
       const type = get(ix.type);
       const statusRaw = get(ix.status);
-      for (const [name, v] of [['ORDER_ID', order], ['REFERENCE', refRaw], ['TICKET_TYPE', type], ['STATUS', statusRaw]] as const) if (v && isFormulaLike(v)) errors.push(`${name}_FORMULA_LIKE`);
+      const fundRaw = get(ix.fund);
+      const recurringRaw = get(ix.recurring);
+      const drefRaw = get(ix.dref);
+      const dtypeRaw = get(ix.dtype);
+      const desigRaw = get(ix.desig);
+      for (const [name, v] of [['ORDER_ID', order], ['REFERENCE', refRaw], ['TICKET_TYPE', type], ['STATUS', statusRaw], ['FUND', fundRaw], ['RECURRING', recurringRaw], ['DONATION_REFERENCE', drefRaw], ['DONATION_TYPE', dtypeRaw], ['DESIGNATION', desigRaw]] as const) if (v && isFormulaLike(v)) errors.push(`${name}_FORMULA_LIKE`);
       if (!order) errors.push('ORDER_ID_MISSING');
       if (order.length > 64) errors.push('ORDER_ID_TOO_LONG');
-      const amount = parseAmount(get(ix.amount));
+      const status = statusRaw ? (statusMap[statusRaw.toLowerCase()] ?? 'UNKNOWN') : 'UNKNOWN';
+      // An unpaid checkout (e.g. Zeffy "Abandoned") may carry no amount: not an error, there is simply nothing to record.
+      const amountCell = get(ix.amount);
+      const amount = !amountCell && unpaidStates.has(status) ? '0.00' : parseAmount(amountCell);
       if (amount === null) errors.push('AMOUNT_INVALID');
       const refundedRaw = get(ix.refunded);
       const refunded = refundedRaw ? parseAmount(refundedRaw) : '0.00';
@@ -310,23 +404,39 @@ export class SdiReportsService {
       if (qtyRaw && quantity === null) errors.push('QUANTITY_INVALID');
       const currency = (ix.currency >= 0 ? get(ix.currency).toUpperCase() : 'USD') || 'USD';
       if (currency !== 'USD') errors.push('CURRENCY_NOT_USD');
-      const occurredAt = parseDate(get(ix.date), m.dateFormat);
+      const occurredAt = ix.time >= 0 || m.timeZone !== 'UTC' ? parseDateTime(get(ix.date), ix.time >= 0 ? get(ix.time) : undefined, m.dateFormat, m.timeZone) : parseDate(get(ix.date), m.dateFormat);
       if (!occurredAt) errors.push('DATE_INVALID');
-      const status = statusRaw ? (statusMap[statusRaw.toLowerCase()] ?? 'UNKNOWN') : 'UNKNOWN';
-      const lineKind = type && m.donationTicketTypes?.includes(type.toLowerCase()) ? 'DONATION' : type ? 'TICKET' : 'UNKNOWN';
+      const lineKind = donationsReport ? 'DONATION' : type && m.donationTicketTypes?.includes(type.toLowerCase()) ? 'DONATION' : type ? 'TICKET' : 'UNKNOWN';
       const reference = refRaw ? normaliseReference(refRaw) : null;
       if (amount && refunded && D(refunded).greaterThan(amount)) errors.push('REFUND_EXCEEDS_AMOUNT');
       const base: Evaluated = {
         rowNumber: i + 2, sourceOrderId: order ? order.slice(0, 64) : null, bookingReferenceRaw: refRaw ? refRaw.slice(0, 80) : null, bookingReference: reference, ticketType: type ? type.slice(0, 120) : null, lineKind,
-        quantity, amount, refundedAmount: refunded, currency: currency.slice(0, 3), statusRaw: statusRaw ? statusRaw.slice(0, 60) : null, status, occurredAt, matchStatus: 'MATCHED', matchNote: null, bookingId: null, errors,
+        quantity, amount, refundedAmount: refunded, currency: currency.slice(0, 3), statusRaw: statusRaw ? statusRaw.slice(0, 60) : null, status, occurredAt, fund: fundRaw ? fundRaw.slice(0, 120) : null, matchStatus: 'MATCHED', matchNote: null, bookingId: null, errors,
+        donationReferenceRaw: drefRaw ? drefRaw.slice(0, 80) : null, donationReference: drefRaw ? normaliseDonationReference(drefRaw) : null, donationId: null,
+        donationTypeRaw: dtypeRaw ? dtypeRaw.slice(0, 60) : null, donationType: dtypeRaw ? (m.donationTypeMap?.[dtypeRaw.toLowerCase()] ?? 'UNKNOWN') : null, designationRaw: desigRaw ? desigRaw.slice(0, 120) : null,
       };
       if (errors.length) return { ...base, matchStatus: 'INVALID', matchNote: errors.join(', ') };
       if (status === 'UNKNOWN') return { ...base, matchStatus: 'REQUIRES_REVIEW', matchNote: `Unknown status "${statusRaw}" — add it to the status mapping` };
-      if (lineKind === 'DONATION') return { ...base, matchStatus: 'REQUIRES_REVIEW', matchNote: 'Gala donation line: not ledgered until SDI documents donation lines (ticket revenue and donations stay separate)' };
+      // Phase 12B — agreement scope checks (PAID rows only): the Gala campaign is one-time giving to ONE approved project.
+      const paidRow = !unpaidStates.has(status);
+      if (paidRow && recurringRaw && !ONE_TIME.test(recurringRaw)) return { ...base, matchStatus: 'REQUIRES_REVIEW', matchNote: `Recurring gift ("${recurringRaw.slice(0, 30)}"): ongoing donations need a separate agreement` };
+      if (galaReport && paidRow && ix.fund >= 0 && !galaFunds.size) return { ...base, matchStatus: 'REQUIRES_REVIEW', matchNote: 'A fund column is mapped but no approved Gala fund name is configured in the mapping' };
+      if (galaReport && paidRow && ix.fund >= 0 && !galaFunds.has((fundRaw || '').toLowerCase())) return { ...base, matchStatus: 'REQUIRES_REVIEW', matchNote: `Fund "${(fundRaw || '—').slice(0, 60)}" is not the approved Gala project fund` };
+      if (donationsReport) {
+        // Phase 14: an unpaid order that names a MEKI intent is kept as INFO with its reference (the intent is marked REPORTED_UNPAID on apply).
+        if (unpaidStates.has(status)) return { ...base, matchStatus: 'INFO', matchNote: `No completed payment (status ${status}) — nothing to record` };
+        if (intentMode && !drefRaw) return { ...base, matchStatus: 'UNMATCHED', matchNote: 'No MEKI donation reference on this gift — contact SDI / the donor' };
+        if (intentMode && !base.donationReference) return { ...base, matchStatus: 'INVALID_REFERENCE', matchNote: `"${drefRaw.slice(0, 40)}" is not a MEKI donation reference (format DN-XXXXXXXXXXXX)` };
+        if (refunded && D(refunded).greaterThan(0)) return { ...base, matchStatus: 'REQUIRES_REVIEW', matchNote: 'Refund reported on a Gala donation: SDI states donations are not refundable — confirm with SDI (never applied automatically)' };
+        if (D(amount!).lessThanOrEqualTo(0)) return { ...base, matchStatus: 'INVALID', matchNote: 'AMOUNT_ZERO' };
+        return base; // database checks below
+      }
+      if (lineKind === 'DONATION') return { ...base, matchStatus: 'REQUIRES_REVIEW', matchNote: 'Additional Gala donation on the ticket form: recorded separately by SDI; not ledgered until the real report structure is verified (ticket revenue and donations stay separate)' };
       if (!refRaw) return { ...base, matchStatus: 'UNMATCHED', matchNote: 'No MEKI booking reference on this order' };
       if (!reference) return { ...base, matchStatus: 'INVALID_REFERENCE', matchNote: `"${refRaw.slice(0, 40)}" is not a MEKI booking reference (format EB-XXXXXXXXXXXX)` };
       return base;
     });
+
 
     // Several rows for the same order: the latest (by date) is authoritative; identical repeats are duplicates; same-date conflicts → review.
     const byOrder = new Map<string, Evaluated[]>();
@@ -348,18 +458,45 @@ export class SdiReportsService {
     // One booking reference claimed by several DIFFERENT paid orders in this file → ambiguous (never confirm two orders for one booking).
     const paid = new Set<OrderStatus | 'UNKNOWN'>(['COMPLETED', 'REFUNDED', 'PARTIALLY_REFUNDED']);
     const ordersByRef = new Map<string, Set<string>>();
-    for (const r of rows) if (r.matchStatus === 'MATCHED' && r.bookingReference && paid.has(r.status!)) ordersByRef.set(r.bookingReference, (ordersByRef.get(r.bookingReference) ?? new Set()).add(r.sourceOrderId!));
+    for (const r of rows) if (r.matchStatus === 'MATCHED' && r.lineKind !== 'DONATION' && r.bookingReference && paid.has(r.status!)) ordersByRef.set(r.bookingReference, (ordersByRef.get(r.bookingReference) ?? new Set()).add(r.sourceOrderId!));
 
-    const refs = [...new Set(rows.filter((r) => r.matchStatus === 'MATCHED').map((r) => r.bookingReference!))];
+    const refs = [...new Set(rows.filter((r) => r.matchStatus === 'MATCHED' && r.lineKind !== 'DONATION').map((r) => r.bookingReference!))];
     const bookings = refs.length ? await db.eventBooking.findMany({ where: { publicReference: { in: refs } } }) : [];
     const bookingByRef = new Map(bookings.map((b) => [b.publicReference, b]));
-    const orderIds = [...new Set(rows.filter((r) => r.matchStatus === 'MATCHED').map((r) => r.sourceOrderId!))];
+    const orderIds = [...new Set(rows.filter((r) => r.sourceOrderId && r.matchStatus !== 'INVALID').map((r) => r.sourceOrderId!))];
     const known = orderIds.length ? await db.providerPayment.findMany({ where: { provider: SDI_REPORT, providerPaymentId: { in: orderIds } } }) : [];
     const knownByOrder = new Map(known.map((k) => [k.providerPaymentId, k]));
+    // Compare all subsequent states (including unpaid/info rows) with manually verified payments.
+    for (const r of rows) {
+      const prev = knownByOrder.get(r.sourceOrderId!);
+      if (!prev || !['manual', 'manual_test'].includes(prev.type) || r.matchStatus === 'INVALID') continue;
+      const ref = r.lineKind === 'DONATION' ? r.donationReference : r.bookingReference;
+      if (prev.correlationRef !== ref || prev.currency !== r.currency || prev.status !== r.status || !D(prev.amount).equals(r.amount ?? 0)) {
+        Object.assign(r, { matchStatus: 'REQUIRES_REVIEW', matchNote: 'Report conflicts with original SDI email verification; preserve the payment and resolve with SDI' });
+      }
+    }
     const linkedToBooking = bookings.length ? await db.providerPayment.findMany({ where: { provider: SDI_REPORT, matchedEntityType: 'EventBooking', matchedEntityId: { in: bookings.map((b) => b.id) } } }) : [];
 
+    // Phase 12B — Gala standalone donations: no booking. One SDI order = one record; any later change of state goes to review.
     for (const r of rows) {
-      if (r.matchStatus !== 'MATCHED') continue;
+      if (r.matchStatus !== 'MATCHED' || r.lineKind !== 'DONATION') continue;
+      const prev = knownByOrder.get(r.sourceOrderId!);
+      if (prev && (prev.type === 'manual' || prev.type === 'manual_test') && (prev.correlationRef !== r.donationReference || prev.currency !== r.currency || prev.campaignCategory !== m.reportType.replace('GALA_DONATIONS', 'GALA_DONATION'))) {
+        Object.assign(r, { matchStatus: 'REQUIRES_REVIEW', matchNote: 'Report conflicts with original SDI email verification: reference, currency or fund scope differs' });
+        continue;
+      }
+      if (!prev) continue;
+      if (prev.classification !== 'CHARITABLE_DONATION' || (prev.matchedEntityType && prev.matchedEntityType !== 'Donation')) Object.assign(r, { matchStatus: 'AMBIGUOUS', matchNote: 'This SDI order was already reconciled as a ticket payment' });
+      else if (prev.matchedEntityType === 'Donation' && !intentMode) Object.assign(r, { matchStatus: 'AMBIGUOUS', matchNote: 'This SDI order was already reconciled with a MEKI donation intent — use a mapping with the donation-reference column' });
+      else if (r.occurredAt! < prev.lastSyncedAt) Object.assign(r, { matchStatus: 'STALE', matchNote: 'Older than the state already recorded for this order (out-of-order report)' });
+      else if (prev.status === r.status && D(prev.amount).equals(r.amount!)) Object.assign(r, { matchStatus: 'ALREADY_APPLIED', matchNote: 'Same state already recorded from an earlier report' });
+      else Object.assign(r, { matchStatus: 'REQUIRES_REVIEW', matchNote: 'Amount or status differs from the donation already recorded — confirm with SDI' });
+    }
+
+    if (intentMode) await this.matchIntents(rows, m, db, knownByOrder);
+
+    for (const r of rows) {
+      if (r.matchStatus !== 'MATCHED' || r.lineKind === 'DONATION') continue;
       const booking = bookingByRef.get(r.bookingReference!);
       if (!booking) {
         Object.assign(r, { matchStatus: 'UNMATCHED', matchNote: `No MEKI booking ${r.bookingReference} — possibly mistyped by the buyer; contact SDI/the buyer` });
@@ -380,6 +517,13 @@ export class SdiReportsService {
         continue;
       }
       const prev = knownByOrder.get(r.sourceOrderId!);
+      if (prev && (prev.type === 'manual' || prev.type === 'manual_test')) {
+        const verdict = this.moneyVerdict(r, booking, prev);
+        if (prev.correlationRef !== r.bookingReference || prev.currency !== r.currency || prev.classification !== 'EVENT_TICKET_PAYMENT' || prev.status !== r.status || !D(prev.amount).equals(r.amount!) || !D(prev.refundedAmount).equals(r.refundedAmount!) || (r.quantity !== null && r.quantity !== booking.guestCount) || verdict?.matchStatus) {
+          Object.assign(r, { matchStatus: 'REQUIRES_REVIEW', matchNote: 'Report conflicts with original SDI email verification; preserve payment history and resolve with SDI' });
+          continue;
+        }
+      }
       if (prev && prev.matchedEntityId && prev.matchedEntityId !== booking.id) {
         Object.assign(r, { matchStatus: 'AMBIGUOUS', matchNote: 'This SDI order was already reconciled with a different booking' });
         continue;
@@ -396,6 +540,62 @@ export class SdiReportsService {
       if (verdict) Object.assign(r, verdict);
     }
     return rows;
+  }
+
+  /**
+   * Phase 14 — matches donation rows to MEKI donation intents (DN-…). Every conflict with the donor's ORIGINAL intention goes to
+   * review: wrong form, amount, Zakat/Sadaqah, designation, a second order for the same intent. Nothing is converted or guessed.
+   */
+  private async matchIntents(rows: Evaluated[], m: ReconciliationMapping, db: Pick<Prisma.TransactionClient, 'donation'>, knownByOrder: Map<string, ProviderPayment>) {
+    const refs = [...new Set(rows.filter((r) => r.lineKind === 'DONATION' && r.donationReference && (r.matchStatus === 'MATCHED' || r.matchStatus === 'INFO' || r.matchStatus === 'ALREADY_APPLIED' || r.matchStatus === 'REQUIRES_REVIEW')).map((r) => r.donationReference!))];
+    const intents = refs.length ? await db.donation.findMany({ where: { reference: { in: refs }, intentType: { not: null } }, include: { allocations: { select: { programme: { select: { slug: true } } } } } }) : [];
+    const byRef = new Map(intents.map((d) => [d.reference, d]));
+    const paid = new Set<string | null>(['COMPLETED', 'REFUNDED', 'PARTIALLY_REFUNDED']);
+    const ordersByRef = new Map<string, Set<string>>();
+    for (const r of rows) if (r.matchStatus === 'MATCHED' && r.donationReference && paid.has(r.status)) ordersByRef.set(r.donationReference, (ordersByRef.get(r.donationReference) ?? new Set()).add(r.sourceOrderId!));
+
+    for (const r of rows) {
+      if (r.lineKind !== 'DONATION' || !r.donationReference) continue;
+      const d = byRef.get(r.donationReference);
+      if (r.matchStatus === 'INFO' || r.matchStatus === 'REQUIRES_REVIEW') {
+        if (d) r.donationId = d.id; // traceability only (INFO rows mark the intent REPORTED_UNPAID; review rows flag it)
+        continue;
+      }
+      const alreadyApplied = r.matchStatus === 'ALREADY_APPLIED';
+      if (r.matchStatus !== 'MATCHED' && !alreadyApplied) continue;
+      if (!d) {
+        Object.assign(r, { matchStatus: 'UNMATCHED', matchNote: `No MEKI donation intent ${r.donationReference} — possibly mistyped by the donor; contact SDI/the donor` });
+        continue;
+      }
+      r.donationId = d.id;
+      const intentType = d.intentType as DonationIntentType;
+      const verdict = ((): Partial<Evaluated> | null => {
+        if (REPORT_TYPE_FOR_INTENT[intentType] !== m.reportType) return { matchStatus: 'REQUIRES_REVIEW', matchNote: `Wrong form: a ${intentType} intent was reported on a ${m.reportType} report — never re-designated automatically` };
+        if ((ordersByRef.get(r.donationReference!)?.size ?? 0) > 1) return { matchStatus: 'AMBIGUOUS', matchNote: 'Several SDI orders carry this donation reference — one intent can match only one order' };
+        if (d.externalPaymentId && d.externalPaymentId !== r.sourceOrderId) return { matchStatus: 'AMBIGUOUS', matchNote: `Intent already verified by SDI order ${d.externalPaymentId.slice(0, 40)}` };
+        const prev = knownByOrder.get(r.sourceOrderId!);
+        if (prev?.matchedEntityType === 'Donation' && prev.matchedEntityId !== d.id) return { matchStatus: 'AMBIGUOUS', matchNote: 'This SDI order was already reconciled with a different donation intent' };
+        if (prev && prev.campaignCategory !== intentType) return { matchStatus: 'REQUIRES_REVIEW', matchNote: 'Report fund scope differs from the original verified intent' };
+        if (d.paymentStatus === 'PAID' && !prev) return { matchStatus: 'AMBIGUOUS', matchNote: 'Intent already paid through another record — review' };
+        if (d.currency !== r.currency) return { matchStatus: 'REQUIRES_REVIEW', matchNote: `Currency ${r.currency} ≠ intended ${d.currency}` };
+        if (!D(d.amount).equals(r.amount!)) return { matchStatus: 'AMOUNT_MISMATCH', matchNote: `Amount ${r.amount} ≠ intended ${D(d.amount).toFixed(2)} (the donor may have changed it on SDI's form) — review` };
+        // Zakat / Sadaqah: the donor's original choice is never converted.
+        if (r.donationType === 'UNKNOWN') return { matchStatus: 'REQUIRES_REVIEW', matchNote: `Unknown Donation Type "${(r.donationTypeRaw ?? '').slice(0, 30)}" — add it to the donation-type mapping` };
+        if (r.donationType === null && d.charitableClassification === 'ZAKAT') return { matchStatus: 'REQUIRES_REVIEW', matchNote: 'Zakat intent but the report carries no Donation Type — Zakat cannot be verified' };
+        if (r.donationType !== null && r.donationType !== d.charitableClassification) return { matchStatus: 'REQUIRES_REVIEW', matchNote: `Donation Type ${r.donationType} ≠ the donor's choice ${d.charitableClassification} — never converted` };
+        // Designation: compared with the donor's intention (Gala project fund is checked by the Gala fund rule above).
+        const intended = intendedDesignationKey(intentType, d.allocations[0]?.programme?.slug ?? null);
+        if (r.designationRaw !== null) {
+          const reported = m.designationMap?.[r.designationRaw.toLowerCase()];
+          if (!reported) return { matchStatus: 'REQUIRES_REVIEW', matchNote: `Unknown designation "${r.designationRaw.slice(0, 40)}" — add it to the designation mapping` };
+          if (reported !== intended) return { matchStatus: 'REQUIRES_REVIEW', matchNote: `Designation ${reported} ≠ the donor's intention ${intended}` };
+        } else if (intentType === 'PROGRAM_DONATION') {
+          return { matchStatus: 'REQUIRES_REVIEW', matchNote: 'Programme intent but the report carries no designation — the restriction cannot be verified' };
+        }
+        return null;
+      })();
+      if (verdict) Object.assign(r, verdict);
+    }
   }
 
   /** Amount / quantity / state rules. Returns a review verdict, or null when the row may be applied (with an optional note). */
@@ -439,7 +639,7 @@ export class SdiReportsService {
 
     const mapping = this.reconMapping(imp.mapping, imp.headers as string[]);
     const table = await this.parse(await this.readFile(imp), imp.fileType);
-    const counts = { confirmed: 0, refunds: 0, cancelled: 0, recorded: 0 };
+    const counts = { confirmed: 0, refunds: 0, cancelled: 0, recorded: 0, donations: 0, intentsVerified: 0, intentsFlagged: 0, intentsUnpaid: 0 };
     await this.prisma.$transaction(
       async (tx) => {
         // Re-evaluate against the CURRENT state inside the transaction (another report may have been applied since the preview).
@@ -447,9 +647,22 @@ export class SdiReportsService {
         await tx.providerReportRow.deleteMany({ where: { importId: id, applied: false } });
         const ordered = [...evaluated].sort((a, b) => (a.occurredAt?.getTime() ?? 0) - (b.occurredAt?.getTime() ?? 0));
         for (const e of ordered) {
+          // A matching report reconciles manual verification without creating a second payment
+          // or overwriting its original email provenance. Only a second-admin report apply may do this.
+          if (e.matchStatus === 'ALREADY_APPLIED' && e.sourceOrderId) {
+            const manual = await tx.manualPaymentEvidence.findMany({ where: { externalPaymentId: e.sourceOrderId, reference: e.donationReference ?? e.bookingReference ?? '', status: 'APPROVED', reportReconciledAt: null }, select: { id: true } });
+            for (const evidence of manual) {
+              await tx.manualPaymentEvidence.update({ where: { id: evidence.id }, data: { reportReconciledAt: new Date(), reportImportId: id } });
+              await this.audit.record(actor, 'sdi.evidence.reconciled', 'ManualPaymentEvidence', evidence.id, { importId: id, rowNumber: e.rowNumber }, tx);
+            }
+          }
           if (e.matchStatus === 'MATCHED') {
-            const did = await this.applyRow(tx, imp, e);
+            const did = e.lineKind === 'DONATION' ? (e.donationId ? await this.applyIntentRow(tx, imp, e, actor) : await this.applyDonationRow(tx, imp, e)) : await this.applyRow(tx, imp, e);
             counts[did]++;
+          } else if (e.donationId && e.matchStatus !== 'ALREADY_APPLIED') {
+            // Phase 14: SDI evidence about an intent that is NOT a verified match — the intent is flagged, never confirmed.
+            const did = await this.flagIntent(tx, imp, e, actor);
+            if (did) counts[did]++;
           }
         }
         await tx.providerReportRow.createMany({ data: evaluated.map((e) => ({ ...this.rowData(id, e), applied: e.matchStatus === 'MATCHED', appliedAt: e.matchStatus === 'MATCHED' ? new Date() : null })) });
@@ -463,6 +676,68 @@ export class SdiReportsService {
     return this.detail(id);
   }
 
+  /**
+   * Phase 12B — records ONE completed Gala standalone donation reported by SDI. It is a reconciled record of money SDI received
+   * for the approved Gala project: NO MEKI Donation row (no donor personal data is ever copied), no receipt (SDI issues the tax
+   * receipt), no ticket/booking effect. Kept in its own category so it is never mixed with ticket revenue.
+   */
+  private async applyDonationRow(tx: Prisma.TransactionClient, imp: ProviderReportImport, e: Evaluated): Promise<'donations'> {
+    const isTest = imp.isSynthetic || this.config.get('NODE_ENV') !== 'production';
+    const amount = D(e.amount!);
+    const existing = await tx.providerPayment.findUnique({ where: { provider_providerPaymentId: { provider: SDI_REPORT, providerPaymentId: e.sourceOrderId! } } });
+    if (existing) throw new UnprocessableEntityException({ message: `Row ${e.rowNumber}: donation order already recorded`, code: 'APPLY_ROLLED_BACK' });
+    await tx.providerPayment.create({
+      data: {
+        provider: SDI_REPORT, providerPaymentId: e.sourceOrderId!, status: e.status!, type: isTest ? 'imported_test' : 'imported', amount, eligibleAmount: amount, refundedAmount: 0, refundStatus: 'none',
+        currency: 'USD', classification: 'CHARITABLE_DONATION', campaignCategory: GALA_STANDALONE_DONATION, items: [{ type: 'donation', fund: e.fund }], correlationRef: null, matchStatus: 'CONFIRMED',
+        matchReason: `SDI Gala donation report ${imp.id} row ${e.rowNumber}`, providerCreatedAt: e.occurredAt!, lastEventId: `sdi-import:${imp.id}:${e.rowNumber}`, lastSyncedAt: e.occurredAt!,
+      },
+    });
+    return 'donations';
+  }
+
+  /**
+   * Phase 14 — verifies ONE MEKI donation intent from an approved SDI report row (four-eyes apply). Records the SDI order once
+   * (ProviderPayment, linked to the Donation), marks the intent PAID/VERIFIED with the report provenance, and leaves the fund
+   * allocation PENDING_AUTHORIZATION and the payout NOT_REPORTED. No receipt (SDI issues it), no donor data copied from the report.
+   */
+  private async applyIntentRow(tx: Prisma.TransactionClient, imp: ProviderReportImport, e: Evaluated, actor: ActorContext): Promise<'intentsVerified'> {
+    const d = await tx.donation.findUniqueOrThrow({ where: { id: e.donationId! } });
+    if (d.paymentStatus === 'PAID' || d.externalPaymentId) throw new UnprocessableEntityException({ message: `Row ${e.rowNumber}: intent ${d.reference} already verified`, code: 'APPLY_ROLLED_BACK' });
+    const existing = await tx.providerPayment.findUnique({ where: { provider_providerPaymentId: { provider: SDI_REPORT, providerPaymentId: e.sourceOrderId! } } });
+    if (existing) throw new UnprocessableEntityException({ message: `Row ${e.rowNumber}: order already recorded`, code: 'APPLY_ROLLED_BACK' });
+    const isTest = imp.isSynthetic || d.isTest;
+    const amount = D(e.amount!);
+    await tx.providerPayment.create({
+      data: {
+        provider: SDI_REPORT, providerPaymentId: e.sourceOrderId!, status: e.status!, type: isTest ? 'imported_test' : 'imported', amount, eligibleAmount: amount, refundedAmount: 0, refundStatus: 'none',
+        currency: 'USD', classification: 'CHARITABLE_DONATION', campaignCategory: d.intentType!, items: [{ type: 'donation', classification: d.charitableClassification, designation: e.designationRaw, fund: e.fund }],
+        correlationRef: d.reference, matchStatus: 'CONFIRMED', matchedEntityType: 'Donation', matchedEntityId: d.id,
+        matchReason: `SDI report ${imp.id} row ${e.rowNumber}`, providerCreatedAt: e.occurredAt!, lastEventId: `sdi-import:${imp.id}:${e.rowNumber}`, lastSyncedAt: e.occurredAt!,
+      },
+    });
+    const now = new Date();
+    await tx.donation.update({
+      where: { id: d.id },
+      data: { status: 'COMPLETED', paymentStatus: 'PAID', confirmedAt: now, externalPaymentId: e.sourceOrderId!, reportedAmount: amount, reconciliationStatus: 'VERIFIED', reconciledAt: now, reconciledReportId: imp.id, reconciledReportRow: e.rowNumber },
+    });
+    await this.audit.record(actor, 'giving.intent.verified', 'Donation', d.id, { reference: d.reference, importId: imp.id, rowNumber: e.rowNumber, orderId: e.sourceOrderId, amount: amount.toFixed(2), classification: d.charitableClassification, reportedType: e.donationType, synthetic: imp.isSynthetic }, tx);
+    return 'intentsVerified';
+  }
+
+  /** Phase 14 — SDI reported an unpaid order, or a conflict, for an intent: REPORTED_UNPAID / NEEDS_REVIEW (never confirmed). */
+  private async flagIntent(tx: Prisma.TransactionClient, imp: ProviderReportImport, e: Evaluated, actor: ActorContext): Promise<'intentsFlagged' | 'intentsUnpaid' | null> {
+    const d = await tx.donation.findUniqueOrThrow({ where: { id: e.donationId! } });
+    if (d.reconciliationStatus === 'VERIFIED') return null; // a verified intent is never downgraded by a later row (that row is itself a review item)
+    const unpaid = e.matchStatus === 'INFO';
+    const next = unpaid ? 'REPORTED_UNPAID' : 'NEEDS_REVIEW';
+    if (unpaid && d.reconciliationStatus === 'NEEDS_REVIEW') return null;
+    if (d.reconciliationStatus === next) return null;
+    await tx.donation.update({ where: { id: d.id }, data: { reconciliationStatus: next, reconciledReportId: imp.id, reconciledReportRow: e.rowNumber, ...(unpaid ? {} : { reportedAmount: e.amount ? D(e.amount) : null }) } });
+    await this.audit.record(actor, unpaid ? 'giving.intent.reported_unpaid' : 'giving.intent.needs_review', 'Donation', d.id, { reference: d.reference, importId: imp.id, rowNumber: e.rowNumber, matchStatus: e.matchStatus, note: e.matchNote?.slice(0, 200) ?? null }, tx);
+    return unpaid ? 'intentsUnpaid' : 'intentsFlagged';
+  }
+
   /** Applies ONE matched order state. Throws on any inconsistency, which rolls back the whole import. */
   private async applyRow(tx: Prisma.TransactionClient, imp: ProviderReportImport, e: Evaluated): Promise<'confirmed' | 'refunds' | 'cancelled' | 'recorded'> {
     const booking = await tx.eventBooking.findUniqueOrThrow({ where: { id: e.bookingId! } });
@@ -472,7 +747,7 @@ export class SdiReportsService {
     const record = await tx.providerPayment.upsert({
       where: { provider_providerPaymentId: { provider: SDI_REPORT, providerPaymentId: e.sourceOrderId! } },
       create: {
-        provider: SDI_REPORT, providerPaymentId: e.sourceOrderId!, status: e.status!, type: 'imported', amount, eligibleAmount: amount, refundedAmount: refunded,
+        provider: SDI_REPORT, providerPaymentId: e.sourceOrderId!, status: e.status!, type: isTest ? 'imported_test' : 'imported', amount, eligibleAmount: amount, refundedAmount: refunded,
         refundStatus: refunded.isZero() ? 'none' : refunded.equals(amount) ? 'full' : 'partial', currency: 'USD', classification: 'EVENT_TICKET_PAYMENT',
         items: e.ticketType ? [{ type: 'ticket', rateTitle: e.ticketType, quantity: e.quantity }] : [], correlationRef: e.bookingReference, matchStatus: 'MATCHED',
         matchReason: `SDI report ${imp.id} row ${e.rowNumber}`, providerCreatedAt: e.occurredAt!, lastEventId: `sdi-import:${imp.id}:${e.rowNumber}`, lastSyncedAt: e.occurredAt!,
@@ -584,7 +859,7 @@ export class SdiReportsService {
     const where: Prisma.ProviderReportRowWhereInput = {
       importId: id,
       ...(q.matchStatus ? { matchStatus: q.matchStatus as never } : {}),
-      ...(s ? { OR: [{ sourceOrderId: { contains: s } }, { bookingReference: { contains: s.toUpperCase() } }, { bookingReferenceRaw: { contains: s } }] } : {}),
+      ...(s ? { OR: [{ sourceOrderId: { contains: s } }, { bookingReference: { contains: s.toUpperCase() } }, { bookingReferenceRaw: { contains: s } }, { donationReference: { contains: s.toUpperCase() } }] } : {}),
     };
     const [items, total] = await this.prisma.$transaction([
       this.prisma.providerReportRow.findMany({ where, orderBy: { rowNumber: 'asc' }, skip: (q.page - 1) * q.pageSize, take: q.pageSize }),
@@ -599,8 +874,8 @@ export class SdiReportsService {
   async exportCsv(id: string, actor: ActorContext) {
     const imp = await this.get(id);
     const rows = await this.prisma.providerReportRow.findMany({ where: { importId: id }, orderBy: { rowNumber: 'asc' } });
-    const header = ['Row', 'SDI order', 'Booking reference (normalised)', 'Reference as typed', 'Ticket type', 'Line', 'Quantity', 'Amount', 'Refunded', 'Currency', 'Status (SDI)', 'Status', 'Date', 'Result', 'Note', 'Applied'];
-    const lines = [header, ...rows.map((r) => [r.rowNumber, r.sourceOrderId, r.bookingReference, r.bookingReferenceRaw, r.ticketType, r.lineKind, r.quantity, r.amount?.toFixed(2), r.refundedAmount?.toFixed(2), r.currency, r.statusRaw, r.status, r.occurredAt?.toISOString(), r.matchStatus, r.matchNote, r.applied ? 'yes' : 'no'])];
+    const header = ['Row', 'SDI order', 'Booking reference (normalised)', 'Reference as typed', 'Donation reference', 'Donation type (SDI)', 'Donation type', 'Designation (SDI)', 'Ticket type', 'Line', 'Quantity', 'Amount', 'Refunded', 'Currency', 'Status (SDI)', 'Status', 'Date', 'Result', 'Note', 'Applied'];
+    const lines = [header, ...rows.map((r) => [r.rowNumber, r.sourceOrderId, r.bookingReference, r.bookingReferenceRaw, r.donationReference ?? r.donationReferenceRaw, r.donationTypeRaw, r.donationType, r.designationRaw, r.ticketType, r.lineKind, r.quantity, r.amount?.toFixed(2), r.refundedAmount?.toFixed(2), r.currency, r.statusRaw, r.status, r.occurredAt?.toISOString(), r.matchStatus, r.matchNote, r.applied ? 'yes' : 'no'])];
     await this.audit.record(actor, 'sdi.report.export', 'ProviderReportImport', id, { rows: rows.length });
     return { fileName: `sdi-reconciliation-${imp.id}.csv`, body: '﻿' + lines.map((l) => l.map(csvCell).join(',')).join('\r\n') };
   }
@@ -670,11 +945,44 @@ export class SdiReportsService {
       programmeGivingEnabled: this.config.get('SDI_PROGRAMME_GIVING_ENABLED'),
       programmeDesignationConfirmed: this.config.get('SDI_PROGRAMME_DESIGNATION_CONFIRMED'),
       applyEnabled: this.config.get('SDI_REPORT_APPLY_ENABLED'),
+      // Phase 14 switches (values only; never URLs or secrets)
+      donationReferenceConfirmed: this.config.get('SDI_DONATION_REFERENCE_CONFIRMED'),
+      donationTypeConfirmed: this.config.get('SDI_DONATION_TYPE_CONFIRMED'),
+      zakatGivingEnabled: this.config.get('ZAKAT_GIVING_ENABLED'),
       zeffyApiConfigured: !!this.config.get('ZEFFY_API_KEY'),
       lastAppliedReport: lastApplied ? { id: lastApplied.id, appliedAt: lastApplied.appliedAt, periodTo: lastApplied.periodTo, isSynthetic: lastApplied.isSynthetic } : null,
       importsAwaitingAction: pending,
       rowsRequiringReview: review,
       missingBusinessDays: missingBusinessDays(periods.map((p) => ({ from: p.periodFrom!, to: p.periodTo! }))),
+      galaTotals: await this.galaTotals(),
+    };
+  }
+
+  /**
+   * Phase 12B — reconciled Gala money AS REPORTED BY SDI, by category (USD only; test/synthetic records excluded). Ticket revenue
+   * and donations are never added together. Donation lines that need review (e.g. additional donations on the ticket form) until SDI's real
+   * report structure is verified. These figures are SDI-side reconciliation, not MEKI Donation totals (nothing is double counted:
+   * no Donation row is ever created from an SDI report).
+   */
+  async galaTotals() {
+    const reconciledManual = await this.prisma.manualPaymentEvidence.findMany({ where: { status: 'APPROVED', reportReconciledAt: { not: null } }, select: { externalPaymentId: true } });
+    const base = { provider: SDI_REPORT, matchStatus: 'CONFIRMED' as const, currency: 'USD', OR: [{ type: 'imported' }, { type: 'manual', providerPaymentId: { in: reconciledManual.flatMap((e) => e.externalPaymentId ? [e.externalPaymentId] : []) } }] };
+    const [tickets, donations, pending, intents] = await Promise.all([
+      this.prisma.providerPayment.aggregate({ where: { ...base, classification: 'EVENT_TICKET_PAYMENT' }, _sum: { amount: true, refundedAmount: true }, _count: true }),
+      this.prisma.providerPayment.aggregate({ where: { ...base, classification: 'CHARITABLE_DONATION', campaignCategory: GALA_STANDALONE_DONATION }, _sum: { amount: true }, _count: true }),
+      this.prisma.providerReportRow.aggregate({ where: { lineKind: 'DONATION', applied: false, matchStatus: { in: ['REQUIRES_REVIEW', 'UNMATCHED', 'AMBIGUOUS', 'AMOUNT_MISMATCH'] }, import: { status: 'APPLIED', isSynthetic: false } }, _sum: { amount: true }, _count: true }),
+      // Phase 14: Gala donations verified against a MEKI intent (separate category; never mixed with tickets or standalone gifts)
+      this.prisma.providerPayment.aggregate({ where: { ...base, classification: 'CHARITABLE_DONATION', campaignCategory: 'GALA_DONATION', matchedEntityType: 'Donation' }, _sum: { amount: true }, _count: true }),
+    ]);
+    const money = (v: Prisma.Decimal | null | undefined) => D(v ?? 0).toFixed(2);
+    const gross = D(tickets._sum.amount ?? 0);
+    const refunded = D(tickets._sum.refundedAmount ?? 0);
+    return {
+      currency: 'USD',
+      ticketRevenue: { orders: tickets._count, gross: money(gross), refunded: money(refunded), net: money(gross.minus(refunded)) },
+      galaStandaloneDonations: { gifts: donations._count, amount: money(donations._sum.amount) },
+      galaDonationIntentsVerified: { gifts: intents._count, amount: money(intents._sum.amount) },
+      donationRowsAwaitingReview: { rows: pending._count, amount: money(pending._sum.amount) },
     };
   }
 }

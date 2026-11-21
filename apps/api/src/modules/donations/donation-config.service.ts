@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, ServiceUnavailableException, UnprocessableEntityException } from '@nestjs/common';
 import type { Campaign, Currency, Programme } from '../../generated/prisma/client';
+import { AppConfigService } from '../../config/app-config.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SettingsService } from '../settings/settings.module';
 import { D, decimalPlaces, formatAmount } from './money';
@@ -26,7 +27,31 @@ export class DonationConfigService {
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
     private readonly registry: PaymentProviderRegistry,
+    private readonly config: AppConfigService,
   ) {}
+
+  /**
+   * Phase 12B — giving scope under the SDI agreement. The current agreement covers the Gala campaign for ONE approved project
+   * only (SDI's hosted Gala forms). General/campaign and programme-restricted donations need a separate written agreement, so
+   * MEKI-native designations are refused unless the matching *_GIVING_AUTHORIZED switch records that agreement.
+   */
+  authorizedDesignations(): ('GENERAL_FUND' | 'CAMPAIGN' | 'PROGRAMME')[] {
+    const general = this.config.get('GENERAL_GIVING_AUTHORIZED');
+    const programme = this.config.get('PROGRAMME_GIVING_AUTHORIZED');
+    return [...(general ? (['GENERAL_FUND', 'CAMPAIGN'] as const) : []), ...(programme ? (['PROGRAMME'] as const) : [])];
+  }
+
+  private assertDesignationAuthorized(designation: 'GENERAL_FUND' | 'CAMPAIGN' | 'PROGRAMME') {
+    if (!this.authorizedDesignations().includes(designation)) {
+      throw new DonationRuleViolation(
+        designation === 'PROGRAMME'
+          ? 'Donations restricted to an individual programme are not authorized under the current fiscal-sponsor agreement'
+          : 'General donations are not authorized under the current fiscal-sponsor agreement',
+        'DESIGNATION_NOT_AUTHORIZED',
+        { designation },
+      );
+    }
+  }
 
   async currencyMap(): Promise<Map<string, Currency>> {
     return new Map((await this.prisma.currency.findMany()).map((c) => [c.code, c]));
@@ -68,7 +93,8 @@ export class DonationConfigService {
       defaultCurrency: donation.defaultCurrency,
       allowCustomAmount: donation.allowCustomAmount,
       frequencies: ['ONE_TIME', ...(recurring ? ['MONTHLY'] : [])],
-      designations: ['GENERAL_FUND', 'CAMPAIGN', 'PROGRAMME'],
+      /** Phase 12B: only designations covered by a fiscal-sponsor agreement (see authorizedDesignations). */
+      designations: this.authorizedDesignations(),
       amountFormat: 'decimal-string',
       currencies: currencies.map((c) => ({
         code: c.code,
@@ -126,6 +152,37 @@ export class DonationConfigService {
     return { amount: value.toFixed(currency.minorUnits), currency };
   }
 
+  /**
+   * Phase 14 — amount rules for a HOSTED donation intent (USD on SDI's Zeffy form). Same min/max sources as the legacy checkout
+   * (currency row, then donation settings) but no MEKI payment adapter is involved: MEKI never charges this amount.
+   */
+  async validateHostedAmount(amount: string): Promise<{ amount: string; min: string | null; max: string | null }> {
+    const currency = await this.prisma.currency.findUnique({ where: { code: 'USD' } });
+    const minor = currency?.minorUnits ?? 2;
+    if (decimalPlaces(amount) > minor) throw new DonationRuleViolation(`USD amounts allow at most ${minor} decimal places`, 'INVALID_AMOUNT_PRECISION');
+    const value = D(amount);
+    if (value.lte(0)) throw new DonationRuleViolation('Amount must be greater than zero', 'INVALID_AMOUNT');
+    const donation = await this.settings.getDonation();
+    const isDefault = donation.defaultCurrency === 'USD';
+    const min = currency?.minAmount ?? (isDefault ? donation.minAmount : null);
+    const max = currency?.maxAmount ?? (isDefault ? donation.maxAmount : null);
+    if (min !== null && value.lt(min)) throw new DonationRuleViolation(`Minimum donation is ${formatAmount(min, minor)} USD`, 'AMOUNT_BELOW_MINIMUM');
+    if (max !== null && value.gt(max)) throw new DonationRuleViolation(`Maximum donation is ${formatAmount(max, minor)} USD`, 'AMOUNT_ABOVE_MAXIMUM');
+    return { amount: value.toFixed(minor), min: min === null ? null : formatAmount(min, minor), max: max === null ? null : formatAmount(max, minor) };
+  }
+
+  /** Phase 14 — public USD limits for the giving forms (display only; the server re-validates). */
+  async hostedLimits() {
+    const currency = await this.prisma.currency.findUnique({ where: { code: 'USD' } });
+    const donation = await this.settings.getDonation();
+    const minor = currency?.minorUnits ?? 2;
+    const isDefault = donation.defaultCurrency === 'USD';
+    const min = currency?.minAmount ?? (isDefault ? donation.minAmount : null);
+    const max = currency?.maxAmount ?? (isDefault ? donation.maxAmount : null);
+    const suggested = ((currency?.suggestedAmounts as string[] | null) ?? []).map((a) => formatAmount(a, minor));
+    return { currency: 'USD' as const, min: min === null ? null : formatAmount(min, minor), max: max === null ? null : formatAmount(max, minor), suggested };
+  }
+
   async assertRecurringAllowed(adapter: PaymentProviderAdapter) {
     const donation = await this.settings.getDonation();
     const provider = await this.prisma.paymentProvider.findUnique({ where: { code: adapter.code } });
@@ -140,6 +197,7 @@ export class DonationConfigService {
    * Donation operations never modify the campaign.
    */
   async resolveDesignation(dto: Pick<CreateDonationDto, 'designation' | 'campaignSlug' | 'programmeSlug' | 'currency'>): Promise<ResolvedDesignation> {
+    this.assertDesignationAuthorized(dto.designation);
     if (dto.designation === 'GENERAL_FUND') {
       if (dto.campaignSlug || dto.programmeSlug) throw new BadRequestException('GENERAL_FUND donations must not name a campaign or programme');
       return { designation: 'GENERAL_FUND', campaign: null, programme: null };

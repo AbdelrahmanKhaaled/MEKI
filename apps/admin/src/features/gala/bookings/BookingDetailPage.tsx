@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Ban, FileCog, Pencil, Send } from "lucide-react";
 import { Card, CardHeader } from "@/components/cards/Card";
 import { Modal } from "@/components/common/Modal";
@@ -38,7 +39,7 @@ function Loader({ ev, id }: { ev: GalaEvent; id: string }) {
 type Dialog = null | "cancel" | "resend" | "regenerate" | "purchaser" | { guest: BookingGuest };
 
 function Detail({ ev, b }: { ev: GalaEvent; b: BookingDetail }) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const { can } = useAuth();
   const backHref = useBackHref("/gala/bookings");
   const errText = useGalaError();
@@ -60,6 +61,7 @@ function Detail({ ev, b }: { ev: GalaEvent; b: BookingDetail }) {
 
   return (
     <>
+      {zeffy && can('sdi.reports.upload') && <Link className="min-h-11 underline" href={`/${locale}/payments/sdi-evidence`}>{locale === 'ar' ? 'أدلة مدفوعات SDI' : 'SDI payment evidence'}</Link>}
       <PageHeader
         back={{ href: backHref, label: x.title }}
         title={<Ref className="text-2xl">{b.publicReference}</Ref>}

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ArrowRight, ArrowDown, MapPin } from "lucide-react";
+import { ArrowRight, ArrowDown } from "lucide-react";
 import type { Dict } from "@/content/en";
 import type { Locale } from "@/lib/i18n";
 import { media } from "@/content/media";
@@ -63,10 +63,9 @@ export function Hero({ t, locale }: { t: Dict; locale: Locale }) {
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-deep-green-3/50 via-transparent to-transparent" />
             </div>
-            <p className="absolute start-5 top-[12%] inline-flex items-center gap-1.5 rounded-full bg-deep-green-3/70 px-3 py-1.5 text-xs font-bold text-mint-line backdrop-blur">
-              <MapPin className="size-3.5 text-glow" aria-hidden="true" />
-              {h.photoCaption}
-            </p>
+            {/* Phase 13B (MEKI, 21 Nov 2026): the "Luxor · WASH program" badge was out of place beside the general "Give today"
+                preview — it suggested programme-specific giving, which is not authorized. The badge is no longer rendered here;
+                the WASH programme, its page and the CMS value (hero.photoCaption) are untouched. */}
             {/* secondary layered photo */}
             <div className="absolute -bottom-8 -start-8 hidden size-32 overflow-hidden rounded-full border-4 border-deep-green shadow-xl sm:block md:-start-3 xl:-start-14 xl:size-36">
               <Image src={media["water-pier"].src} alt="" fill sizes="144px" className="object-cover" />

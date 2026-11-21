@@ -458,6 +458,8 @@ model Programme {
   gallery             ProgrammeMedia[]
   projects            Project[]
   donationAllocations DonationAllocation[]
+  /// Phase 14B: Gala-only mode — gifts whose donor started from this programme but accepted the Gala destination
+  donationInterests   Donation[]           @relation("DonationInterest")
   recurringDonations  RecurringDonation[]
   campaigns           Campaign[]
   statistics          ImpactStatistic[]
@@ -507,7 +509,11 @@ model Project {
   updatedAt     DateTime          @updatedAt @db.DateTime(3)
   deletedAt     DateTime?         @db.DateTime(3)
 
-  campaigns Campaign[]
+  campaigns           Campaign[]
+  /// Phase 12B: events whose fiscal-sponsor fundraising is restricted to this project (SDI Project Plan)
+  eventFundraising    EventFundraisingConfig[]
+  /// Phase 14: donation intentions designated to this project (e.g. the approved Gala project)
+  donationAllocations DonationAllocation[]
 
   @@index([programmeId])
 }
@@ -788,6 +794,8 @@ model Event {
   campaigns    EventCampaign[]
   donations    Donation[]
   ticketConfig EventTicketConfig?
+  fundraising  EventFundraisingConfig?
+  legalCopy    EventLegalCopy[]
   bookings     EventBooking[]
   tickets      EventTicket[]
 
@@ -840,6 +848,89 @@ enum DonationDesignation {
   GENERAL_FUND
   CAMPAIGN
   PROGRAMME
+  /// Phase 14: a fiscal-sponsor project (e.g. the single approved Gala project)
+  PROJECT
+}
+
+// ───────────────────────────── Phase 14: giving intents, Zakat/Sadaqah ─────────────────────────────
+
+/// Which flow a payment intent belongs to. GALA_TICKET intents are EventBooking rows (EB-…, Phase 12); the three donation
+/// types are Donation rows (DN-…) created by the donor on MEKI's site BEFORE the hand-off to SDI's hosted Zeffy form.
+enum PaymentIntentType {
+  GALA_TICKET
+  GALA_DONATION
+  PROGRAM_DONATION
+  GENERAL_DONATION
+}
+
+/// The donor's charitable classification. First-class and immutable once recorded (DB trigger); never inferred or converted.
+enum CharitableClassification {
+  ZAKAT
+  SADAQAH
+}
+
+/// Payment verification for a hosted donation intent — driven ONLY by an applied (four-eyes) SDI report. Never by a redirect.
+enum DonationReconciliationStatus {
+  AWAITING_REPORT // intent recorded; no SDI report evidence yet (includes abandoned checkouts)
+  VERIFIED // an approved SDI report shows a completed payment that matches the intent
+  NEEDS_REVIEW // SDI reported something that conflicts with the intent (amount, type, designation, form)
+  REPORTED_UNPAID // SDI reported the order as failed / abandoned / cancelled
+}
+
+/// Fund-allocation authorization, independent of payment verification (a verified payment is NOT an approved allocation).
+enum DonationAllocationStatus {
+  PENDING_AUTHORIZATION
+  AUTHORIZED
+  REJECTED
+}
+
+/// Settlement into SDI's bank account. No reliable data source exists (Zeffy payouts are SDI-side), so it is never set
+/// automatically: a completed charge does NOT mean the funds were settled.
+enum PayoutStatus {
+  NOT_REPORTED
+  REPORTED_SETTLED
+}
+
+enum ZakatTargetType {
+  PROGRAMME
+  PROJECT
+  CAMPAIGN
+}
+
+enum ZakatPolicyStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  REVOKED
+  SUPERSEDED
+}
+
+/**
+ * Phase 14 — explicit, audited Zakat-eligibility decisions for a programme / project (cause) / campaign. There is NO default
+ * eligibility: a target is Zakat-eligible only while its latest APPROVED decision says eligible=true AND carries both the MEKI
+ * religious/finance authority reference and SDI's acceptance of the accounting restriction. Requested by one administrator
+ * (zakat.manage), decided by a DIFFERENT administrator (zakat.approve). Rows are never deleted; history is kept.
+ */
+model ZakatEligibilityDecision {
+  id                     String            @id @default(cuid()) @db.VarChar(30)
+  targetType             ZakatTargetType
+  targetId               String            @db.VarChar(30)
+  /// the requested state (true = eligible, false = not eligible / withdraw)
+  eligible               Boolean
+  status                 ZakatPolicyStatus @default(PENDING_APPROVAL)
+  /// MEKI's designated religious/finance authority decision (document / date / signatory) — required for eligible=true
+  authorityReference     String?           @db.VarChar(255)
+  /// SDI's written acceptance of the Zakat accounting restriction — required for eligible=true
+  sdiAcceptanceReference String?           @db.VarChar(255)
+  requestNote            String?           @db.VarChar(500)
+  requestedById          String            @db.VarChar(30)
+  requestedAt            DateTime          @default(now()) @db.DateTime(3)
+  decidedById            String?           @db.VarChar(30)
+  decidedAt              DateTime?         @db.DateTime(3)
+  decisionNote           String?           @db.VarChar(500)
+
+  @@index([targetType, targetId, status])
+  @@index([status])
 }
 
 /// Lifecycle of the donation intent.
@@ -1022,8 +1113,40 @@ model Donation {
   recurringDonationId    String?               @db.VarChar(30)
   recurringDonation      RecurringDonation?    @relation(fields: [recurringDonationId], references: [id], onDelete: Restrict)
   confirmedAt            DateTime?             @db.DateTime(3)
-  createdAt              DateTime              @default(now()) @db.DateTime(3)
-  updatedAt              DateTime              @updatedAt @db.DateTime(3)
+
+  // ── Phase 14: hosted (SDI/Zeffy) donation intents. NULL on legacy MEKI-checkout donations. ──
+  /// GALA_DONATION / PROGRAM_DONATION / GENERAL_DONATION (immutable — DB trigger)
+  intentType                      PaymentIntentType?
+  /// the donor's ORIGINAL choice (immutable — DB trigger; never converted between Zakat and Sadaqah)
+  charitableClassification        CharitableClassification?
+  /// SDI/Zeffy order or payment id, set only from an applied SDI report (one order ↔ one intent)
+  externalPaymentId               String?                       @unique @db.VarChar(64)
+  reconciliationStatus            DonationReconciliationStatus?
+  reconciledAt                    DateTime?                     @db.DateTime(3)
+  /// the applied SDI report import + row that verified (or flagged) this intent
+  reconciledReportId              String?                       @db.VarChar(30)
+  reconciledReportRow             Int?
+  /// amount SDI reported (the donor may change the amount on SDI's form; a difference is reviewed, never assumed)
+  reportedAmount                  Decimal?                      @db.Decimal(18, 2)
+  /// fund-allocation authorization (separate from payment verification)
+  allocationStatus                DonationAllocationStatus?
+  /// the destination/fund an administrator authorized
+  authorizedFund                  String?                       @db.VarChar(160)
+  allocationDecidedById           String?                       @db.VarChar(30)
+  allocationDecidedAt             DateTime?                     @db.DateTime(3)
+  allocationNote                  String?                       @db.VarChar(500)
+  payoutStatus                    PayoutStatus?
+  // ── Phase 14B: temporary Gala-only launch mode. The donor's SOURCE interest (what they clicked) is kept apart from the ACTUAL
+  //    destination (DonationAllocation = the approved Gala project). Set only with the donor's explicit acceptance; immutable (trigger).
+  /// PROGRAMME | GENERAL — the giving option the donor started from (NULL = no redirect)
+  interestKind                    String?                       @db.VarChar(12)
+  interestProgrammeId             String?                       @db.VarChar(30)
+  interestProgramme               Programme?                    @relation("DonationInterest", fields: [interestProgrammeId], references: [id], onDelete: Restrict)
+  /// when the donor accepted that the gift goes to the Gala project instead, and which disclosure text version they saw
+  destinationDisclosureAcceptedAt DateTime?                     @db.DateTime(3)
+  destinationDisclosureVersion    String?                       @db.VarChar(40)
+  createdAt                       DateTime                      @default(now()) @db.DateTime(3)
+  updatedAt                       DateTime                      @updatedAt @db.DateTime(3)
 
   allocations  DonationAllocation[]
   attempts     PaymentAttempt[]
@@ -1032,6 +1155,8 @@ model Donation {
   receipts     DonationReceipt[]
 
   @@index([status, paymentStatus])
+  @@index([intentType, reconciliationStatus])
+  @@index([interestProgrammeId])
   @@index([currency])
   @@index([donorId])
   @@index([createdAt])
@@ -1048,6 +1173,9 @@ model DonationAllocation {
   campaign    Campaign?           @relation(fields: [campaignId], references: [id], onDelete: Restrict)
   programmeId String?             @db.VarChar(30)
   programme   Programme?          @relation(fields: [programmeId], references: [id], onDelete: Restrict)
+  /// Phase 14: PROJECT designation (e.g. the approved Gala project)
+  projectId   String?             @db.VarChar(30)
+  project     Project?            @relation(fields: [projectId], references: [id], onDelete: Restrict)
   amount      Decimal             @db.Decimal(18, 3)
   currency    String              @db.Char(3)
   createdAt   DateTime            @default(now()) @db.DateTime(3)
@@ -1055,6 +1183,7 @@ model DonationAllocation {
   @@index([donationId])
   @@index([campaignId])
   @@index([programmeId])
+  @@index([projectId])
 }
 
 model RecurringDonation {
@@ -1511,6 +1640,42 @@ enum ProviderPaymentMatchStatus {
   IGNORED // outside MEKI's configured campaigns
 }
 
+/// Private evidence queue. Original evidence is retained in the finance-controlled archive;
+/// this table stores its opaque archive reference, never a public media URL.
+model ManualPaymentEvidence {
+  id                   String   @id @default(cuid()) @db.VarChar(30)
+  targetType           String   @db.VarChar(20)
+  targetId             String   @db.VarChar(30)
+  reference            String   @db.VarChar(24)
+  evidenceReference    String?  @db.VarChar(24)
+  externalPaymentId    String?  @db.VarChar(64)
+  amount               Decimal? @db.Decimal(18, 2)
+  currency             String?  @db.Char(3)
+  occurredAt           DateTime? @db.DateTime(3)
+  formUrl              String?  @db.VarChar(1000)
+  classification       String?  @db.VarChar(10)
+  emailMessageId       String?  @db.VarChar(255)
+  emailFrom            String?  @db.VarChar(191)
+  emailTo              String?  @db.VarChar(191)
+  emailReceivedAt      DateTime? @db.DateTime(3)
+  protectedReference   String?  @db.VarChar(255)
+  originalSdiEmail     Boolean  @default(false)
+  note                 String   @db.VarChar(500)
+  status               String   @default("PENDING_REVIEW") @db.VarChar(30)
+  reviewReason         String?  @db.VarChar(500)
+  submittedById        String   @db.VarChar(30)
+  decidedById          String?  @db.VarChar(30)
+  decidedAt            DateTime? @db.DateTime(3)
+  decisionNote         String?  @db.VarChar(500)
+  reportReconciledAt   DateTime? @db.DateTime(3)
+  reportImportId       String?  @db.VarChar(30)
+  createdAt            DateTime @default(now()) @db.DateTime(3)
+
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+  @@index([externalPaymentId])
+}
+
 model ProviderPayment {
   id                      String                     @id @default(cuid()) @db.VarChar(30)
   provider                String                     @db.VarChar(40)
@@ -1642,36 +1807,44 @@ model ProviderReportImport {
  * One interpreted reconciliation row. Only mapped, non-personal columns are stored (no buyer name / e-mail / address).
  */
 model ProviderReportRow {
-  id                  String                  @id @default(cuid()) @db.VarChar(30)
-  importId            String                  @db.VarChar(30)
-  import              ProviderReportImport    @relation(fields: [importId], references: [id], onDelete: Restrict)
-  rowNumber           Int
-  sourceOrderId       String?                 @db.VarChar(64)
-  bookingReferenceRaw String?                 @db.VarChar(80)
-  bookingReference    String?                 @db.VarChar(20)
-  ticketType          String?                 @db.VarChar(120)
+  id                   String                  @id @default(cuid()) @db.VarChar(30)
+  importId             String                  @db.VarChar(30)
+  import               ProviderReportImport    @relation(fields: [importId], references: [id], onDelete: Restrict)
+  rowNumber            Int
+  sourceOrderId        String?                 @db.VarChar(64)
+  bookingReferenceRaw  String?                 @db.VarChar(80)
+  bookingReference     String?                 @db.VarChar(20)
+  ticketType           String?                 @db.VarChar(120)
   /// TICKET | DONATION | UNKNOWN (from the mapping's line-type rules; donation lines are never ledgered automatically)
-  lineKind            String                  @db.VarChar(12)
-  quantity            Int?
-  amount              Decimal?                @db.Decimal(18, 2)
-  refundedAmount      Decimal?                @db.Decimal(18, 2)
-  currency            String?                 @db.Char(3)
-  statusRaw           String?                 @db.VarChar(60)
+  lineKind             String                  @db.VarChar(12)
+  quantity             Int?
+  amount               Decimal?                @db.Decimal(18, 2)
+  refundedAmount       Decimal?                @db.Decimal(18, 2)
+  currency             String?                 @db.Char(3)
+  statusRaw            String?                 @db.VarChar(60)
   /// COMPLETED | PENDING | FAILED | CANCELLED | REFUNDED | PARTIALLY_REFUNDED | UNKNOWN
-  status              String?                 @db.VarChar(20)
-  occurredAt          DateTime?               @db.DateTime(3)
-  matchStatus         ProviderReportRowStatus
-  matchNote           String?                 @db.VarChar(300)
-  bookingId           String?                 @db.VarChar(30)
-  applied             Boolean                 @default(false)
-  appliedAt           DateTime?               @db.DateTime(3)
+  status               String?                 @db.VarChar(20)
+  occurredAt           DateTime?               @db.DateTime(3)
+  matchStatus          ProviderReportRowStatus
+  matchNote            String?                 @db.VarChar(300)
+  bookingId            String?                 @db.VarChar(30)
+  /// Phase 14: MEKI donation reference (DN-…) as typed / normalised, the matched intent, and the reported type / designation
+  donationReferenceRaw String?                 @db.VarChar(80)
+  donationReference    String?                 @db.VarChar(20)
+  donationId           String?                 @db.VarChar(30)
+  donationTypeRaw      String?                 @db.VarChar(60)
+  donationType         String?                 @db.VarChar(10)
+  designationRaw       String?                 @db.VarChar(120)
+  applied              Boolean                 @default(false)
+  appliedAt            DateTime?               @db.DateTime(3)
   /// validation messages (codes only)
-  errors              Json?
-  createdAt           DateTime                @default(now()) @db.DateTime(3)
+  errors               Json?
+  createdAt            DateTime                @default(now()) @db.DateTime(3)
 
   @@unique([importId, rowNumber])
   @@index([sourceOrderId])
   @@index([bookingId])
+  @@index([donationId])
   @@index([importId, matchStatus])
 }
 
@@ -1714,4 +1887,88 @@ model ProviderReportMapping {
   updatedAt             DateTime           @updatedAt @db.DateTime(3)
 
   @@unique([source, kind, name])
+}
+
+// ───────────────────────────── Phase 12B: SDI agreement — single approved Gala Project ─────────────────────────────
+
+/**
+ * Fiscal-sponsor fundraising scope of an event (SDI agreement, 2026-11): Gala proceeds support ONE project in Egypt approved in
+ * writing in SDI's Project Plan. Nothing here is ever chosen automatically; every value is entered by an administrator after
+ * business sign-off. Approvals are separate steps (events.approve, a different user from the last editor) and any change to the
+ * fields an approval depends on clears that approval. Absence of a row = no project selected, nothing authorized.
+ */
+model EventFundraisingConfig {
+  id                               String    @id @default(cuid()) @db.VarChar(30)
+  eventId                          String    @unique @db.VarChar(30)
+  event                            Event     @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  /// The single approved project (an existing Project/cause record entered by MEKI). Never auto-selected.
+  projectId                        String?   @db.VarChar(30)
+  project                          Project?  @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  /// Identifies the signed SDI Project Plan (document title / version / date) — free text, entered by MEKI
+  projectPlanReference             String?   @db.VarChar(255)
+  /// Step 1: MEKI + SDI approved the project in the written Project Plan (recorded by a second administrator)
+  projectPlanApprovedAt            DateTime? @db.DateTime(3)
+  projectPlanApprovedById          String?   @db.VarChar(30)
+  projectPlanApprovalNote          String?   @db.VarChar(500)
+  /// Step 2 (separate): public fundraising for this project may be shown and the Gala donation form linked
+  fundraisingAuthorizedAt          DateTime? @db.DateTime(3)
+  fundraisingAuthorizedById        String?   @db.VarChar(30)
+  /// Approved end of the Gala donation campaign (SDI proposed 2027-01-31, pending MEKI approval). Required for public giving.
+  donationsCloseAt                 DateTime? @db.DateTime(3)
+  /// SDI states donations are not refundable; the notice is shown publicly only after this approval
+  donationRefundNoticeApprovedAt   DateTime? @db.DateTime(3)
+  donationRefundNoticeApprovedById String?   @db.VarChar(30)
+  /// Ticket refund policy is independent of the donation policy; text is published only once approved
+  ticketRefundPolicyEn             String?   @db.Text
+  ticketRefundPolicyAr             String?   @db.Text
+  ticketRefundPolicyApprovedAt     DateTime? @db.DateTime(3)
+  ticketRefundPolicyApprovedById   String?   @db.VarChar(30)
+  updatedById                      String?   @db.VarChar(30)
+  createdAt                        DateTime  @default(now()) @db.DateTime(3)
+  updatedAt                        DateTime  @updatedAt @db.DateTime(3)
+
+  @@index([projectId])
+}
+
+// ───────────────────────────── Nov 19 2026 update: approval-gated Gala legal copy ─────────────────────────────
+
+/**
+ * The three legal drafts MEKI supplied for the Gala (SDI is the fiscal sponsor and the only receipt issuer).
+ */
+enum LegalCopyKind {
+  TICKET_PURCHASE_DISCLOSURE // shown to buyers before they open SDI's form — publishable after SDI approval
+  TICKET_RECEIPT // wording for SDI's own receipt configuration — NEVER published or issued by MEKI
+  WEBSITE_DISCLOSURE // Gala page disclosure — publishable after SDI approval
+}
+
+/**
+ * Exact client/SDI wording, entered by an administrator (never generated). Editing clears approval and publication.
+ * Publishing requires SDI's written approval recorded by a DIFFERENT administrator (events.approve); the ticket amounts
+ * (price = fair market value + potentially deductible portion) must be consistent and match the live ticket price.
+ */
+model EventLegalCopy {
+  id               String        @id @default(cuid()) @db.VarChar(30)
+  eventId          String        @db.VarChar(30)
+  event            Event         @relation(fields: [eventId], references: [id], onDelete: Restrict)
+  kind             LegalCopyKind
+  textEn           String?       @db.Text
+  textAr           String?       @db.Text
+  /// Breakdown stated in the wording (USD); all three or none
+  ticketPrice      Decimal?      @db.Decimal(18, 2)
+  fairMarketValue  Decimal?      @db.Decimal(18, 2)
+  deductibleAmount Decimal?      @db.Decimal(18, 2)
+  currency         String        @default("USD") @db.Char(3)
+  /// Where the text came from (e.g. "MEKI draft, e-mail 2026-11-19")
+  sourceNote       String?       @db.VarChar(255)
+  sdiApprovedAt    DateTime?     @db.DateTime(3)
+  sdiApprovedById  String?       @db.VarChar(30)
+  /// Reference to SDI's written approval (who, date, channel)
+  sdiApprovalNote  String?       @db.VarChar(500)
+  publishedAt      DateTime?     @db.DateTime(3)
+  publishedById    String?       @db.VarChar(30)
+  updatedById      String?       @db.VarChar(30)
+  createdAt        DateTime      @default(now()) @db.DateTime(3)
+  updatedAt        DateTime      @updatedAt @db.DateTime(3)
+
+  @@unique([eventId, kind])
 }

@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { isLocale, locales } from "@/lib/i18n";
 import { getPageContent } from "@/lib/content";
 import { fetchPublicContent } from "@/lib/api";
-import type { PublicTicketing } from "@meki/api-client";
+import type { PublicEventFundraising, PublicGalaGivingOptions, PublicTicketing } from "@meki/api-client";
+import { isTrustedHostedFormUrl } from "@/lib/booking";
+import { venuePhotosFrom, type PublicEventPage } from "@/lib/venue-photos";
 import { getBookingCopy } from "@/content/booking";
 import { publicRobots, siteOrigin, socialMeta } from "@/lib/site";
 import { getGala, PROPOSED_SPONSORSHIP } from "@/content/gala";
@@ -55,13 +57,15 @@ type PublicEvent = { status?: string; mapUrl?: string | null };
 export default async function GalaNightPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const g = getGala(locale);
+  const base = getGala(locale);
   const { t, liveCampaigns } = await getPageContent(locale);
 
   // Draft/unapproved events return 404 from the API, so nothing unpublished can ever surface here.
   // The page shell shows client-confirmed details either way; a published record may only refine the map link.
   const event = await fetchPublicContent<PublicEvent>(`/public/events/gala-night?locale=${locale}`);
   const mapUrl = event?.mapUrl && /^https:\/\//.test(event.mapUrl) ? event.mapUrl : DEFAULT_MAP;
+  // Phase 13B: authentic venue photos, only from the published event's published EVENT_VENUE section (none rendered otherwise).
+  const venuePhotos = event ? venuePhotosFrom(await fetchPublicContent<PublicEventPage>(`/public/events/gala-night/page?locale=${locale}`)) : [];
 
   // Booking opens only when the API says so (sales switch AND checkout available — or, in SDI-hosted mode, the hosted form
   // switch). Unpublished events return 404 -> closed.
@@ -74,6 +78,26 @@ export default async function GalaNightPage({ params }: { params: Promise<{ loca
   const apiPrice = ticketing?.ticket?.price && ticketing.ticket.currency && Number.isFinite(Number(ticketing.ticket.price))
     ? new Intl.NumberFormat(locale === "ar" ? "ar" : "en-US", { style: "currency", currency: ticketing.ticket.currency, currencyDisplay: "code", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(ticketing.ticket.price))
     : undefined;
+
+  // Phase 12B — SDI agreement: Gala gifts support ONE approved project. The project is named, SDI's donation form linked and the
+  // refund wording published ONLY when the API says MEKI approved each of them (never inferred here).
+  const fr = await fetchPublicContent<PublicEventFundraising>(`/public/events/gala-night/fundraising?locale=${locale}`);
+  const giveUrl = fr?.giving.available && isTrustedHostedFormUrl(fr.giving.formUrl) ? fr.giving.formUrl : null;
+  const projectNote = fr?.project?.name ? base.booking.give.projectText.replace("{project}", fr.project.name) : undefined;
+  // Every donation starts with a MEKI reference. Closed gates lead to the explanatory preview.
+  const galaGiving = giveUrl ? await fetchPublicContent<PublicGalaGivingOptions>(`/public/events/gala-night/giving-options?locale=${locale}`) : null;
+  const intentHref = `/${locale}/events/gala-night/donate`;
+  const give = { href: intentHref, internal: true, status: galaGiving?.available ? base.booking.give.openStatus : fr?.giving.campaignClosed ? base.booking.give.closedStatus : base.booking.give.status, note: projectNote };
+  const g = {
+    ...base,
+    faq: {
+      ...base.faq,
+      items: [
+        ...base.faq.items.map((it) => (fr?.ticketRefundPolicy && it.q === base.faq.cancellationsQ ? { q: it.q, a: fr.ticketRefundPolicy } : it)),
+        ...(fr?.donationRefundNotice === "NON_REFUNDABLE" ? [base.faq.donationRefund] : []),
+      ],
+    },
+  };
 
   // Proposed (unvalidated) sponsorship tiers: development preview only, never in a production build.
   const sponsorPreview = process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_GALA_PREVIEW === "1";
@@ -88,13 +112,13 @@ export default async function GalaNightPage({ params }: { params: Promise<{ loca
           <GalaPurpose g={g} />
           <GalaExperience g={g} />
           <GalaTimeline g={g} />
-          <GalaVenue g={g} mapUrl={mapUrl} />
+          <GalaVenue g={g} mapUrl={mapUrl} photos={venuePhotos} />
           <GalaAttendance g={g} price={apiPrice} />
           <SponsorshipSection g={g} tiers={sponsorPreview ? PROPOSED_SPONSORSHIP : undefined} />
           {/* Six approved causes not yet supplied: renders nothing until approved, event-linked data exists. */}
           <GalaCauses g={g} causes={[]} />
           <GalaFaq g={g} />
-          <GalaBooking g={g} bookHref={bookingOpen ? `/${locale}/events/gala-night/book` : undefined} bookStatus={bookingOpen ? (hostedMode ? getBookingCopy(locale).hosted.intro : getBookingCopy(locale).tickets.rule) : undefined} />
+          <GalaBooking g={g} bookHref={`/${locale}/events/gala-night/book`} bookStatus={bookingOpen ? (hostedMode ? getBookingCopy(locale).hosted.intro : getBookingCopy(locale).tickets.rule) : base.booking.book.status} give={give} disclosure={fr?.disclosures?.website ?? null} />
           <p className="bg-deep-green-3 pb-10 text-center">
             <a href={back} className="text-sm font-bold text-mint-line underline-offset-4 hover:text-white hover:underline">
               {g.back}

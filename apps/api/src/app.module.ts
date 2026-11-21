@@ -16,6 +16,9 @@ import { DonationsModule } from './modules/donations/donations.module';
 import { GalaModule } from './modules/gala/gala.module';
 import { ZeffyModule } from './modules/zeffy/zeffy.module';
 import { SdiModule } from './modules/sdi/sdi.module';
+import { ManualEvidenceModule } from './modules/sdi/manual-evidence.module';
+import { FundraisingModule } from './modules/fundraising/fundraising.module';
+import { GivingModule } from './modules/giving/giving.module';
 import { FaqModule } from './modules/faq/faq.module';
 import { HealthModule } from './modules/health/health.module';
 import { MediaModule } from './modules/media/media.module';
@@ -53,6 +56,9 @@ import { UsersModule } from './modules/users/users.module';
     GalaModule,
     ZeffyModule,
     SdiModule,
+    ManualEvidenceModule,
+    FundraisingModule,
+    GivingModule,
     PublicModule,
     HealthModule,
   ],

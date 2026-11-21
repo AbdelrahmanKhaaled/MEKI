@@ -16,6 +16,9 @@ import type { EventDetail, GalaEvent, TicketConfig } from "@/lib/gala-schemas";
 import { fill } from "@/lib/i18n";
 import * as svc from "@/services/gala";
 import { GalaPage, useGalaError, GalaGateNotice } from "../shared";
+import { FundraisingCard } from "./FundraisingCard";
+import { LegalCopyCard } from "./LegalCopyCard";
+import { VenuePhotosCard } from "./VenuePhotosCard";
 
 export function GalaSettingsPage() {
   const { t } = useLocale();
@@ -48,6 +51,12 @@ function Settings({ ev }: { ev: GalaEvent }) {
           <TicketingCard key={cfg.data.updatedAt} ev={ev} c={cfg.data} />
         </>
       )}
+      {/* Phase 12B: the single approved Gala project (SDI agreement) */}
+      {can("events.read") && <FundraisingCard ev={ev} />}
+      {/* Nov 19 2026: MEKI legal drafts, gated by SDI approval */}
+      {can("events.read") && <LegalCopyCard ev={ev} />}
+      {/* Phase 13B (21 Nov 2026): authentic venue photos for the Gala page, via the event's EVENT_VENUE section */}
+      {can("events.read") && <VenuePhotosCard ev={ev} />}
       <Notice tone="gold"><p className="font-bold">{x.approved}</p><p className="mt-1">{x.approvedList}</p></Notice>
       <Notice><p>{x.unsupported}</p></Notice>
     </>

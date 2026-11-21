@@ -1,0 +1,160 @@
+# MEKI — Phase 13A staging stack (API + isolated MySQL). docs/51 and docs/54.
+#
+#   node deploy/staging/init-secrets.mjs                        # once: writes deploy/staging/.env.staging (git-ignored)
+#   docker compose -p meki-staging -f deploy/staging/docker-compose.yml --env-file deploy/staging/.env.staging up -d mysql
+#   docker compose ... run --rm migrate                          # prisma migrate deploy (operator/migrator account)
+#   docker compose ... run --rm seed                             # baseline seed (roles, permissions, verified content)
+#   docker compose ... up -d api
+#   ADMIN_BOOTSTRAP_EMAIL=... ADMIN_BOOTSTRAP_PASSWORD=... docker compose ... run --rm bootstrap-admin   # one-time Super Admin
+#
+# Isolation: its own project name, container names, network, volumes, port (127.0.0.1 only) and database `meki_staging`.
+# It never touches the development container `meki-mysql` or the databases meki_dev / meki_test.
+# Financial switches are hard-wired OFF below and cannot be turned on from the env file.
+
+name: meki-staging
+
+x-api-env: &api-env
+  NODE_ENV: staging
+  PORT: "4000"
+  LOG_FORMAT: json
+  LOG_LEVEL: log
+  # Behind exactly one reverse proxy / load balancer in hosted staging (adjust to the real hop count there).
+  TRUST_PROXY: ${TRUST_PROXY:-1}
+  WEB_URL: ${STAGING_WEB_URL:?set STAGING_WEB_URL}
+  API_PUBLIC_URL: ${STAGING_API_URL:?set STAGING_API_URL}
+  PUBLIC_MEDIA_BASE_URL: ${STAGING_API_URL}/media
+  CORS_ORIGINS: ${STAGING_WEB_URL},${STAGING_ADMIN_URL:?set STAGING_ADMIN_URL}
+  DONATION_RETURN_URL: ${STAGING_WEB_URL}/{locale}/donation/return
+  EVENT_BOOKING_RETURN_URL: ${STAGING_WEB_URL}/{locale}/events/{slug}/booking
+  STAGING_LOCAL_REHEARSAL: ${STAGING_LOCAL_REHEARSAL:-false}
+  SWAGGER_ENABLED: "false"
+  EVENT_BOOKING_TOKEN_SECRET: ${EVENT_BOOKING_TOKEN_SECRET:?run init-secrets.mjs}
+  DONATION_TOKEN_SECRET: ${DONATION_TOKEN_SECRET:?run init-secrets.mjs}
+  LOCAL_STORAGE_DIR: /data/uploads
+  PRIVATE_STORAGE_DIR: /data/private
+  # Staging never sends e-mail: messages are parked (SKIPPED) — the API refuses dev/test transports in staging.
+  MAIL_TRANSPORT: none
+  # ── Financial and fundraising switches: OFF (Phase 13A requirement; changing them needs a reviewed change to this file) ──
+  PAYMENTS_ENABLED: "false"
+  GALA_TICKETING_MODE: zeffy_hosted
+  GALA_HOSTED_SALES_ENABLED: "false"
+  SDI_GALA_GIVING_ENABLED: "false"
+  GENERAL_GIVING_AUTHORIZED: "false"
+  PROGRAMME_GIVING_AUTHORIZED: "false"
+  SDI_GENERAL_GIVING_ENABLED: "false"
+  SDI_PROGRAMME_GIVING_ENABLED: "false"
+  SDI_REPORT_APPLY_ENABLED: "false"
+  SDI_MANUAL_CONFIRMATION_ENABLED: "false"
+  GIVING_GALA_ONLY_MODE: "false"
+  SDI_DONATION_REFERENCE_CONFIRMED: "false"
+  SDI_DONATION_TYPE_CONFIRMED: "false"
+  ZAKAT_GIVING_ENABLED: "false"
+  ZEFFY_GALA_AUTO_CONFIRM: "false"
+  ZEFFY_RECONCILIATION_ENABLED: "false"
+  ALLOW_DEMO_PUBLISH: "false"
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: meki-staging-mysql
+    restart: unless-stopped
+    # Triggers (append-only ledger/audit guards) are created by migrations under binary logging.
+    command: ["--log-bin-trust-function-creators=1", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?run init-secrets.mjs}
+      MYSQL_DATABASE: meki_staging
+      MEKI_MIGRATOR_PASSWORD: ${MEKI_MIGRATOR_PASSWORD:?run init-secrets.mjs}
+      MEKI_APP_DB_PASSWORD: ${MEKI_APP_DB_PASSWORD:?run init-secrets.mjs}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "127.0.0.1:${STAGING_DB_PORT:-3308}:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  api:
+    image: ${MEKI_API_IMAGE:-meki-api:staging-local}
+    container_name: meki-staging-api
+    init: true
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      <<: *api-env
+      # Least-privilege application account (DML only; no DDL, no GRANT).
+      # DB_CONNECTION_PARAMS: the default (allowPublicKeyRetrieval) is ONLY acceptable because this database is reachable solely on
+      # the private compose network. A hosted/managed database MUST use TLS instead (e.g. DB_CONNECTION_PARAMS=ssl=true) — doc 29 §4.
+      DATABASE_URL: mysql://meki_app:${MEKI_APP_DB_PASSWORD}@mysql:3306/meki_staging?${DB_CONNECTION_PARAMS:-allowPublicKeyRetrieval=true}
+    volumes:
+      - uploads:/data/uploads
+      - private:/data/private
+    ports:
+      - "127.0.0.1:${STAGING_API_PORT:-4200}:4000"
+    stop_grace_period: 30s
+
+  # ── operator one-off jobs (not started by `up`) ──
+  migrate:
+    image: ${MEKI_API_IMAGE:-meki-api:staging-local}
+    profiles: ["ops"]
+    depends_on: { mysql: { condition: service_healthy } }
+    environment:
+      DATABASE_URL: mysql://meki_migrator:${MEKI_MIGRATOR_PASSWORD}@mysql:3306/meki_staging
+    command: ["sh", "-c", "pnpm exec prisma migrate status; pnpm exec prisma migrate deploy && pnpm exec prisma migrate status"]
+
+  seed:
+    image: ${MEKI_API_IMAGE:-meki-api:staging-local}
+    profiles: ["ops"]
+    depends_on: { mysql: { condition: service_healthy } }
+    environment:
+      DATABASE_URL: mysql://meki_migrator:${MEKI_MIGRATOR_PASSWORD}@mysql:3306/meki_staging
+    command: ["pnpm", "db:seed"]
+
+  bootstrap-admin:
+    image: ${MEKI_API_IMAGE:-meki-api:staging-local}
+    profiles: ["ops"]
+    depends_on: { mysql: { condition: service_healthy } }
+    environment:
+      DATABASE_URL: mysql://meki_app:${MEKI_APP_DB_PASSWORD}@mysql:3306/meki_staging?${DB_CONNECTION_PARAMS:-allowPublicKeyRetrieval=true}
+      # Supplied by the operator's shell for this one command only — never stored in a file.
+      ADMIN_BOOTSTRAP_EMAIL: ${ADMIN_BOOTSTRAP_EMAIL:-}
+      ADMIN_BOOTSTRAP_PASSWORD: ${ADMIN_BOOTSTRAP_PASSWORD:-}
+      ADMIN_BOOTSTRAP_NAME: ${ADMIN_BOOTSTRAP_NAME:-Staging Super Admin}
+    command: ["pnpm", "admin:bootstrap"]
+
+  # Lockout recovery (e-mail reset is unavailable in staging): temporary password, forced change, all sessions revoked, audited.
+  reset-admin-password:
+    image: ${MEKI_API_IMAGE:-meki-api:staging-local}
+    profiles: ["ops"]
+    depends_on: { mysql: { condition: service_healthy } }
+    environment:
+      DATABASE_URL: mysql://meki_app:${MEKI_APP_DB_PASSWORD}@mysql:3306/meki_staging?${DB_CONNECTION_PARAMS:-allowPublicKeyRetrieval=true}
+      ADMIN_RESET_EMAIL: ${ADMIN_RESET_EMAIL:-}
+      ADMIN_RESET_PASSWORD: ${ADMIN_RESET_PASSWORD:-}
+      ADMIN_RESET_CONFIRM: ${ADMIN_RESET_CONFIRM:-}
+    command: ["pnpm", "admin:reset-password"]
+
+  backup:
+    image: mysql:8.4
+    profiles: ["ops"]
+    depends_on: { mysql: { condition: service_healthy } }
+    environment:
+      MYSQL_PWD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ${STAGING_BACKUP_DIR:-./backups}:/backups
+    entrypoint: ["sh", "-c"]
+    command:
+      - >-
+        ts=$$(date -u +%Y%m%dT%H%M%SZ) && f=/backups/meki_staging-$$ts.sql &&
+        mysqldump -h mysql -uroot --single-transaction --routines --triggers --no-tablespaces meki_staging > $$f &&
+        tail -1 $$f | grep -q 'Dump completed' && cd /backups && sha256sum $$(basename $$f) > $$f.sha256 && chmod 600 $$f $$f.sha256 &&
+        echo "backup ok: $$(basename $$f) tables=$$(grep -c 'CREATE TABLE' $$f) triggers=$$(grep -c 'CREATE.*TRIGGER' $$f)"
+
+volumes:
+  mysql-data:
+  uploads:
+  private:

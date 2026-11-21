@@ -18,8 +18,9 @@ async function bootstrap() {
   });
   setupApp(app);
   const port = app.get(AppConfigService).get('PORT');
-  await app.listen(port);
-  Logger.log(`MEKI API listening on http://localhost:${port}/api/v1`, 'Bootstrap');
+  const host = app.get(AppConfigService).get('API_BIND_HOST');
+  await app.listen(port, host);
+  Logger.log(`MEKI API listening on ${host}:${port}/api/v1`, 'Bootstrap');
 }
 
 void bootstrap();

@@ -40,6 +40,10 @@ export const NAV: NavGroup[] = [
       { key: "sdiZeffy", icon: "PlugZap", href: "/payments/zeffy", anyOf: ["payments.read"] },
       // Phase 12: SDI daily report import + reconciliation (upload/preview: sdi.reports.upload; apply: sdi.reports.approve)
       { key: "sdiReconciliation", icon: "FileSpreadsheet", href: "/payments/sdi-reconciliation", anyOf: ["sdi.reports.upload"] },
+      { key: "sdiEvidence", icon: "FileSpreadsheet", href: "/payments/sdi-evidence", anyOf: ["sdi.reports.upload"] },
+      // Phase 14: hosted donation intents (DN- references, Zakat/Sadaqah, verification, allocation) and Zakat eligibility decisions
+      { key: "givingIntents", icon: "HandHeart", href: "/giving-intents", anyOf: ["donations.read"] },
+      { key: "zakat", icon: "Scale", href: "/zakat-eligibility", anyOf: ["donations.read"] },
       { key: "recurring", icon: "Repeat", href: "/recurring", anyOf: ["recurring.read"] },
       { key: "receipts", icon: "Receipt", href: "/receipts", anyOf: ["receipts.read"] },
     ],

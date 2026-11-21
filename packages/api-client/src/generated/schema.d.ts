@@ -2968,6 +2968,412 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/sdi/payment-evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ManualEvidenceController_list_v1"];
+        put?: never;
+        post: operations["ManualEvidenceController_submit_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sdi/payment-evidence/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ManualEvidenceController_detail_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sdi/payment-evidence/{id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ManualEvidenceController_decide_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/fundraising": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gala fundraising scope: the single approved project, approvals and effective public state */
+        get: operations["AdminFundraisingController_get_v1"];
+        /** Set project / Project Plan reference / closing date / ticket refund policy text (clears dependent approvals) */
+        put: operations["AdminFundraisingController_update_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/fundraising/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record one approval step (different administrator from the last editor) */
+        post: operations["AdminFundraisingController_approve_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/fundraising/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw an approval (always allowed; public state is reduced immediately) */
+        post: operations["AdminFundraisingController_revoke_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/events/{slug}/fundraising": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gala fundraising scope: approved project (only once authorized), SDI donation form availability, approved refund notices */
+        get: operations["PublicFundraisingController_get_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/legal-copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gala legal copy drafts (ticket purchase disclosure, SDI receipt wording, website disclosure) and their approval state */
+        get: operations["AdminLegalCopyController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/legal-copy/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save exact wording / amounts (clears SDI approval and publication) */
+        put: operations["AdminLegalCopyController_update_v1"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/legal-copy/{kind}/sdi-approval": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record SDI's written approval of this wording (different administrator from the last editor) */
+        post: operations["AdminLegalCopyController_approve_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/legal-copy/{kind}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish an SDI-approved disclosure (never the ticket receipt wording) */
+        post: operations["AdminLegalCopyController_publish_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{eventId}/legal-copy/{kind}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw publication or the recorded SDI approval (always allowed) */
+        post: operations["AdminLegalCopyController_withdraw_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/giving/options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** General / programme giving: channels, payable programmes, Zakat availability per programme, USD limits. Information only. */
+        get: operations["PublicGivingController_options_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/events/{slug}/giving-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gala donation options (the single approved Gala project, Zakat only if that project is approved for Zakat) */
+        get: operations["PublicGivingController_galaOptions_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/donation-intents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record a donation INTENT and issue a MEKI donation reference (DN-…) before the hand-off to SDI's form. No payment; 409 GIVING_CHANNEL_DISABLED unless that channel is authorized. */
+        post: operations["PublicGivingController_create_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/donation-intents/{reference}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Donor-facing status (no personal data). A return from Zeffy never verifies a payment: only an approved SDI report does. */
+        get: operations["PublicGivingController_status_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/donation-intents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Hosted donation intents (references, Zakat/Sadaqah, intended designation, verification, allocation). Donor data needs donors.read. */
+        get: operations["AdminGivingController_list_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/donation-intents/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Totals by intent type × Zakat/Sadaqah × verification × allocation (USD, test excluded). Ticket revenue excluded. */
+        get: operations["AdminGivingController_summary_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/donation-intents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Intent detail with reconciliation evidence (SDI report rows, provider record) and audit history */
+        get: operations["AdminGivingController_get_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/donation-intents/{id}/allocation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Authorize or reject the fund allocation of a VERIFIED gift (not by the SDI report approver) */
+        post: operations["AdminGivingController_allocate_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/zakat-eligibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Programmes, projects and campaigns with their effective Zakat eligibility (default: NOT eligible), pending requests and history */
+        get: operations["AdminZakatController_overview_v1"];
+        put?: never;
+        /** Request an eligibility change (eligible=true needs the MEKI authority AND SDI acceptance references) */
+        post: operations["AdminZakatController_request_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/zakat-eligibility/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve a pending request (a different administrator than the requester) */
+        post: operations["AdminZakatController_approve_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/zakat-eligibility/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminZakatController_reject_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/zakat-eligibility/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw the current approval immediately (reduces what is offered) */
+        post: operations["AdminZakatController_revoke_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/hosted-forms": {
         parameters: {
             query?: never;
@@ -3262,7 +3668,7 @@ export interface components {
             isActive: boolean;
         };
         UpdateRolePermissionsDto: {
-            permissions: ("users.read" | "users.manage" | "roles.read" | "roles.manage" | "settings.read" | "settings.manage" | "content.read" | "content.manage" | "content.publish" | "programmes.read" | "programmes.manage" | "programmes.publish" | "campaigns.read" | "campaigns.manage" | "campaigns.approve" | "campaigns.publish" | "media.read" | "media.upload" | "media.delete" | "statistics.read" | "statistics.manage" | "statistics.verify" | "statistics.publish" | "faq.read" | "faq.manage" | "faq.publish" | "audit.read" | "donations.read" | "events.read" | "events.manage" | "events.approve" | "events.publish" | "donors.read" | "donors.manage" | "donors.anonymize" | "payments.read" | "payments.manage" | "refunds.request" | "refunds.approve" | "refunds.execute" | "receipts.read" | "receipts.issue" | "receipts.regenerate" | "recurring.read" | "recurring.manage" | "reports.read" | "gala.bookings.read" | "gala.bookings.manage" | "gala.guests.read" | "gala.guests.export" | "gala.tickets.read" | "gala.tickets.manage" | "gala.checkin.validate" | "gala.checkin.manage" | "sdi.reports.upload" | "sdi.reports.approve")[];
+            permissions: ("users.read" | "users.manage" | "roles.read" | "roles.manage" | "settings.read" | "settings.manage" | "content.read" | "content.manage" | "content.publish" | "programmes.read" | "programmes.manage" | "programmes.publish" | "campaigns.read" | "campaigns.manage" | "campaigns.approve" | "campaigns.publish" | "media.read" | "media.upload" | "media.delete" | "statistics.read" | "statistics.manage" | "statistics.verify" | "statistics.publish" | "faq.read" | "faq.manage" | "faq.publish" | "audit.read" | "donations.read" | "events.read" | "events.manage" | "events.approve" | "events.publish" | "donors.read" | "donors.manage" | "donors.anonymize" | "payments.read" | "payments.manage" | "refunds.request" | "refunds.approve" | "refunds.execute" | "receipts.read" | "receipts.issue" | "receipts.regenerate" | "recurring.read" | "recurring.manage" | "reports.read" | "gala.bookings.read" | "gala.bookings.manage" | "gala.guests.read" | "gala.guests.export" | "gala.tickets.read" | "gala.tickets.manage" | "gala.checkin.validate" | "gala.checkin.manage" | "sdi.reports.upload" | "sdi.reports.approve" | "donations.allocate" | "zakat.manage" | "zakat.approve")[];
         };
         MediaMetadataDto: {
             altEn?: string;
@@ -4035,7 +4441,7 @@ export interface components {
         CreateTicketConfigDto: {
             /**
              * @description Price per guest, decimal string
-             * @example 750.00
+             * @example 500.00
              */
             ticketPrice: string;
             /** @example USD */
@@ -4051,7 +4457,7 @@ export interface components {
             checkInNoteEn?: string;
         };
         UpdateTicketConfigDto: {
-            /** @example 750.00 */
+            /** @example 500.00 */
             ticketPrice?: string;
             /** @description Opens/closes ticket sales (requires events.approve). Independent of payment availability. */
             salesEnabled?: boolean;
@@ -4114,6 +4520,138 @@ export interface components {
         VerifyMappingDto: {
             /** @description Which REAL SDI sample file this mapping was checked against (name/date) */
             note: string;
+        };
+        SubmitManualEvidenceDto: {
+            reference: string;
+            evidenceReference?: string;
+            externalPaymentId?: string;
+            amount?: string;
+            currency?: string;
+            occurredAt?: string;
+            formUrl?: string;
+            classification?: string;
+            emailMessageId?: string;
+            emailFrom?: string;
+            emailTo?: string;
+            emailReceivedAt?: string;
+            /** @description Opaque reference in the finance-only SDI original-email archive; no public URLs or card data */
+            protectedReference?: string;
+            originalSdiEmail?: boolean;
+            note: string;
+        };
+        EvidenceDecisionDto: {
+            decision: string;
+            note: string;
+        };
+        UpdateFundraisingDto: {
+            /** @description Existing project (cause) id — never auto-selected; null clears it */
+            projectId?: Record<string, never> | null;
+            /** @description Identifies SDI's signed Project Plan (title / version / date) */
+            projectPlanReference?: Record<string, never> | null;
+            /**
+             * @description Approved end of the Gala donation campaign
+             * @example 2027-01-31T23:59:59-05:00
+             */
+            donationsCloseAt?: Record<string, never> | null;
+            ticketRefundPolicyEn?: Record<string, never> | null;
+            ticketRefundPolicyAr?: Record<string, never> | null;
+        };
+        ApproveFundraisingDto: {
+            /** @enum {string} */
+            step: "PROJECT_PLAN" | "PUBLIC_FUNDRAISING" | "DONATION_REFUND_NOTICE" | "TICKET_REFUND_POLICY";
+            /** @description What the approval is based on (e.g. signed Project Plan v1, 2026-12-01) */
+            note?: string;
+        };
+        RevokeFundraisingDto: {
+            /** @enum {string} */
+            step: "PROJECT_PLAN" | "PUBLIC_FUNDRAISING" | "DONATION_REFUND_NOTICE" | "TICKET_REFUND_POLICY";
+            reason: string;
+        };
+        UpdateLegalCopyDto: {
+            /** @description Exact English wording (verbatim) */
+            textEn?: Record<string, never> | null;
+            /** @description Exact Arabic wording (verbatim, if supplied) */
+            textAr?: Record<string, never> | null;
+            /** @example 500.00 */
+            ticketPrice?: Record<string, never> | null;
+            /** @example 200.00 */
+            fairMarketValue?: Record<string, never> | null;
+            /** @example 300.00 */
+            deductibleAmount?: Record<string, never> | null;
+            /** @description Where the wording came from (e.g. "MEKI draft, e-mail 2026-11-19") */
+            sourceNote?: Record<string, never> | null;
+        };
+        LegalApprovalDto: {
+            /** @description Reference to SDI's WRITTEN approval (who, date, channel) */
+            note: string;
+        };
+        LegalWithdrawDto: {
+            /** @enum {string} */
+            what: "SDI_APPROVAL" | "PUBLICATION";
+            reason: string;
+        };
+        IntentDonorDto: {
+            /** @example Amina Hassan */
+            fullName: string;
+            /** @example donor@example.org */
+            email: string;
+        };
+        CreateDonationIntentDto: {
+            /** @enum {string} */
+            intentType: "GALA_DONATION" | "PROGRAM_DONATION" | "GENERAL_DONATION";
+            /** @description PROGRAM_DONATION only */
+            programmeSlug?: string;
+            /** @description GALA_DONATION only (e.g. gala-night) */
+            eventSlug?: string;
+            /**
+             * @description Decimal string (the INTENDED amount; SDI's form charges)
+             * @example 100.00
+             */
+            amount: string;
+            /** @enum {string} */
+            currency: "USD";
+            /** @enum {string} */
+            classification: "ZAKAT" | "SADAQAH";
+            donor: components["schemas"]["IntentDonorDto"];
+            /** @description The donor confirmed the review screen and terms */
+            acceptTerms: boolean;
+            /** @enum {string} */
+            locale?: "en" | "ar";
+            /** @description Phase 14B Gala-only mode (GALA_DONATION only): the option the donor started from — "general" or a programme slug */
+            sourceInterest?: string;
+            /** @description Phase 14B: the donor accepted that the gift goes to the approved Gala project instead (required with sourceInterest) */
+            acknowledgeGalaDestination?: boolean;
+        };
+        AllocationDecisionDto: {
+            /** @enum {string} */
+            decision: "AUTHORIZE" | "REJECT";
+            /** @description Authorized fund / destination (required to authorize) */
+            fund?: string;
+            note: string;
+        };
+        ZakatRequestDto: {
+            /** @enum {string} */
+            targetType: "PROGRAMME" | "PROJECT" | "CAMPAIGN";
+            targetId: string;
+            /** @description true = Zakat-eligible; false = not eligible */
+            eligible: boolean;
+            /** @description MEKI religious/finance authority decision (document / date / signatory) — required when eligible */
+            authorityReference?: string;
+            /** @description SDI's written acceptance of the Zakat accounting restriction — required when eligible */
+            sdiAcceptanceReference?: string;
+            note?: string;
+        };
+        ZakatDecisionNoteDto: {
+            note?: string;
+        };
+        ZakatRejectDto: {
+            note: string;
+        };
+        ZakatRevokeDto: {
+            /** @enum {string} */
+            targetType: "PROGRAMME" | "PROJECT" | "CAMPAIGN";
+            targetId: string;
+            reason: string;
         };
     };
     responses: never;
@@ -8761,6 +9299,591 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ManualEvidenceController_list_v1: {
+        parameters: {
+            query?: {
+                status?: string;
+                reference?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ManualEvidenceController_submit_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitManualEvidenceDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ManualEvidenceController_detail_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ManualEvidenceController_decide_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvidenceDecisionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminFundraisingController_get_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminFundraisingController_update_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateFundraisingDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminFundraisingController_approve_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApproveFundraisingDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminFundraisingController_revoke_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeFundraisingDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicFundraisingController_get_v1: {
+        parameters: {
+            query?: {
+                locale?: "en" | "ar";
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminLegalCopyController_list_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminLegalCopyController_update_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateLegalCopyDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminLegalCopyController_approve_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LegalApprovalDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminLegalCopyController_publish_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminLegalCopyController_withdraw_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                eventId: string;
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LegalWithdrawDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicGivingController_options_v1: {
+        parameters: {
+            query?: {
+                locale?: "en" | "ar";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicGivingController_galaOptions_v1: {
+        parameters: {
+            query?: {
+                locale?: "en" | "ar";
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicGivingController_create_v1: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Client-generated unique key (16-80 chars). Replays return the same reference. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDonationIntentDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PublicGivingController_status_v1: {
+        parameters: {
+            query?: {
+                locale?: "en" | "ar";
+                token?: string;
+            };
+            header?: {
+                "X-Donation-Token"?: string;
+            };
+            path: {
+                reference: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGivingController_list_v1: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                /** @description Free-text search */
+                search?: string;
+                /** @description field:asc|desc, comma separated */
+                sort?: string;
+                intentType?: "GALA_DONATION" | "PROGRAM_DONATION" | "GENERAL_DONATION";
+                classification?: "ZAKAT" | "SADAQAH";
+                reconciliationStatus?: "AWAITING_REPORT" | "VERIFIED" | "NEEDS_REVIEW" | "REPORTED_UNPAID";
+                allocationStatus?: "PENDING_AUTHORIZATION" | "AUTHORIZED" | "REJECTED";
+                /** @description Include test/synthetic intents (development data) */
+                includeTest?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGivingController_summary_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGivingController_get_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminGivingController_allocate_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AllocationDecisionDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminZakatController_overview_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminZakatController_request_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ZakatRequestDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminZakatController_approve_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ZakatDecisionNoteDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminZakatController_reject_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ZakatRejectDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AdminZakatController_revoke_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ZakatRevokeDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {

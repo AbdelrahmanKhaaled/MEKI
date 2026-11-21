@@ -4,9 +4,11 @@ import type { PrismaClient, SectionKey } from '../../src/generated/prisma/client
  * MEKI Gala Night — DRAFT skeleton (create-only).
  *
  * Confirmed (client-provided context, Phase 2 brief): the event name and that it takes place on 12 December.
- * NOT confirmed, therefore left empty: year, start/end time, timezone, venue, description, Arabic title,
- * speakers/guests, registration requirements, ticket prices, sponsorship packages.
- * The event stays DRAFT and unapproved; it cannot be published until approval + date/time/timezone exist.
+ * Confirmed by MEKI on 19 November 2026: Saturday 12 December 2026, 3:30–8:30 PM America/New_York (UTC−5 in December).
+ * NOT confirmed, therefore left empty: description, Arabic title, speakers/guests, registration requirements, sponsorship packages.
+ * The event stays DRAFT and unapproved; publishing still needs MEKI's content approval.
+ * Create-only: an existing event row is NEVER modified by the seed — existing databases are updated by an administrator
+ * in the dashboard (audited), see docs/55.
  */
 export const GALA_CODE = 'EVT-GALA-NIGHT';
 
@@ -38,20 +40,21 @@ export async function seedGalaNightDraft(prisma: PrismaClient): Promise<boolean>
         slug: 'gala-night',
         titleEn: 'MEKI Gala Night',
         titleAr: null, // Arabic title pending approved translation
-        scheduleNoteEn: '12 December — year, time and venue to be confirmed',
+        scheduleNoteEn: 'Saturday 12 December 2026, 3:30–8:30 PM (New York time)',
         scheduleNoteAr: null,
-        startsAt: null,
-        endsAt: null,
-        timezone: null,
+        // 3:30 PM and 8:30 PM America/New_York on 2026-12-12 (EST, UTC−5)
+        startsAt: new Date('2026-12-12T20:30:00.000Z'),
+        endsAt: new Date('2026-12-13T01:30:00.000Z'),
+        timezone: 'America/New_York',
         registrationMode: 'NONE',
         visibility: 'PUBLIC',
         isFeatured: false,
         status: 'DRAFT',
         provenance: 'PROPOSED',
-        sourceRef: 'Client-provided context (Phase 2 brief): event name and 12 December date only',
+        sourceRef: 'Client-provided context (Phase 2 brief) + MEKI update 2026-11-19 (date, hours, time zone)',
         internalNotes:
-          'PENDING CLIENT CONFIRMATION: year, start/end time, timezone, venue & address, description, Arabic copy, ' +
-          'highlights, agenda, speakers/guests, registration/RSVP requirements, ticketing, sponsorship packages, ' +
+          'PENDING CLIENT CONFIRMATION: description, Arabic copy, highlights, speakers/guests (agenda roles only), ' +
+          'registration/RSVP requirements, sponsorship packages, ' +
           'related campaign(s), contact details, imagery. Do not publish until MEKI approves the content.',
         pageId: page.id,
       },
@@ -77,8 +80,9 @@ export async function seedGalaNightDraft(prisma: PrismaClient): Promise<boolean>
 
 /**
  * Phase 5B ticket sale configuration for the Gala (create-only; never updates an existing row).
- * Values are the client-confirmed requirements from the Phase 5B brief. Sales are seeded CLOSED (`salesEnabled = false`):
- * MEKI/SDI must approve opening them, and no payment provider is configured. No fair-market value is stored.
+ * Values: Phase 5B brief, updated by MEKI on 19 November 2026 — USD 500 per guest (supersedes USD 750) and capacity 350.
+ * Sales are seeded CLOSED (`salesEnabled = false`): MEKI/SDI must approve opening them. The SDI Zeffy form's own price and
+ * capacity are configured by SDI and must be verified separately (docs/55). No fair-market value is stored here.
  */
 export async function seedGalaTicketConfig(prisma: PrismaClient): Promise<boolean> {
   const event = await prisma.event.findUnique({ where: { code: GALA_CODE }, select: { id: true } });
@@ -88,11 +92,11 @@ export async function seedGalaTicketConfig(prisma: PrismaClient): Promise<boolea
     data: {
       eventId: event.id,
       ticketNameEn: 'Individual ticket',
-      ticketPrice: '750.00',
+      ticketPrice: '500.00',
       currency: 'USD',
       salesEnabled: false,
       maxTicketsPerBooking: 10,
-      capacity: null, // not provided by the client — never invented
+      capacity: 350, // MEKI, 19 November 2026
       displayNameEn: 'Every Light Counts',
       eventDateLabelEn: 'Saturday, December 12, 2026',
       venueLabelEn: '583 Park Avenue, New York, USA',

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppConfigService } from '../../config/app-config.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import type { Prisma } from '../../generated/prisma/client';
 import { generateToken, sha256 } from '../../common/utils';
 import type { AuthUser } from '../../common/types/auth-request';
 import { SUPER_ADMIN } from '../users/permissions.catalog';
@@ -90,8 +91,9 @@ export class SessionService {
     return this.prisma.adminSession.updateMany({ where: { id: sessionId, revokedAt: null }, data: { revokedAt: new Date() } });
   }
 
-  revokeAllForUser(userId: string, exceptSessionId?: string) {
-    return this.prisma.adminSession.updateMany({
+  /** `tx` (optional) lets a caller revoke sessions inside its own transaction (Phase 13A: atomic password change). */
+  revokeAllForUser(userId: string, exceptSessionId?: string, tx: Pick<Prisma.TransactionClient, 'adminSession'> = this.prisma) {
+    return tx.adminSession.updateMany({
       where: { userId, revokedAt: null, ...(exceptSessionId ? { id: { not: exceptSessionId } } : {}) },
       data: { revokedAt: new Date() },
     });

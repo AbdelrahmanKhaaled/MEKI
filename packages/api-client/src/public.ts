@@ -342,6 +342,11 @@ export type CreatedHostedBooking = CreatedBooking & { hosted: HostedGalaGate };
 /** GET /public/hosted-forms — SDI-hosted giving forms. URLs appear only when the matching switch is on. */
 export interface PublicHostedForms {
   mode: 'sdi_hosted_forms';
+  /** Phase 12B: the current SDI agreement covers the Gala campaign for ONE approved project only. */
+  scope?: 'GALA_SINGLE_PROJECT';
+  /** Phase 12B: a separate written agreement exists for general / programme-restricted giving (false today). */
+  generalAuthorized?: boolean;
+  programmeAuthorized?: boolean;
   general: { available: boolean; url: string | null };
   programmeDesignationConfirmed: boolean;
   programmes: { slug: string; code: string; available: boolean; url: string | null }[];
@@ -398,4 +403,167 @@ export interface PublicBookingStatus {
   /** Phase 12: ZEFFY = tickets, QR codes and receipts are issued by Zeffy (tickets is then always empty). */
   ticketIssuer?: 'MEKI' | 'ZEFFY';
   hosted?: HostedGalaGate | null;
+}
+
+/**
+ * GET /public/events/:slug/fundraising?locale= — Phase 12B. The approved Gala project appears ONLY after MEKI recorded both the
+ * Project Plan approval and the separate public-fundraising authorization. Refund texts appear only once approved for publication.
+ */
+export interface PublicEventFundraising {
+  scope: 'GALA_SINGLE_PROJECT';
+  project: { code: string; name: string | null; location: string | null } | null;
+  giving: {
+    /** SDI's Gala donation form may be linked (authorized + campaign open + SDI switch on) */
+    available: boolean;
+    formUrl: string | null;
+    closesAt: string | null;
+    campaignClosed: boolean;
+    /** additional donations during ticket checkout happen on SDI's ticket form */
+    withTickets: 'ON_TICKET_FORM';
+  };
+  /** SDI: Gala donations are not refundable — shown only once MEKI approved publishing it */
+  donationRefundNotice: 'NON_REFUNDABLE' | null;
+  /** The separately confirmed ticket refund policy (localized), only once approved */
+  ticketRefundPolicy: string | null;
+  /** Nov 19 2026: exact SDI-approved, published disclosures (localized); null until SDI approves and MEKI publishes. */
+  disclosures?: { ticketPurchase: string | null; website: string | null };
+}
+
+// ───────────────────────── Phase 14: hosted giving intents (SDI / Zeffy) ─────────────────────────
+
+export type DonationIntentType = 'GALA_DONATION' | 'PROGRAM_DONATION' | 'GENERAL_DONATION';
+export type CharitableClassification = 'ZAKAT' | 'SADAQAH';
+/** Stable reason codes for a closed channel / option (never free text). */
+export type GivingGateReason =
+  | 'REFERENCE_QUESTION_NOT_CONFIRMED'
+  | 'NOT_AUTHORIZED_BY_SDI'
+  | 'FORM_NOT_ENABLED'
+  | 'DESIGNATION_NOT_CONFIRMED'
+  | 'NO_FORM_FOR_PROGRAMME'
+  | 'GALA_GIVING_NOT_AUTHORIZED'
+  | 'ZAKAT_NOT_ENABLED'
+  | 'DONATION_TYPE_NOT_CONFIRMED'
+  | 'NOT_ZAKAT_ELIGIBLE'
+  | 'NO_ZAKAT_TARGET'
+  | 'GALA_ONLY_MODE_OFF';
+export interface ZakatAvailability {
+  allowed: boolean;
+  reason: GivingGateReason | null;
+}
+export interface HostedLimits {
+  currency: 'USD';
+  min: string | null;
+  max: string | null;
+  suggested: string[];
+}
+
+/** GET /public/giving/options?locale= — programmes are listed for information; `payable` says what may actually be paid. */
+export interface PublicGivingOptions {
+  currency: 'USD';
+  limits: HostedLimits;
+  referenceQuestion: string;
+  donationTypeQuestion: string;
+  referencePrefill: false;
+  classifications: CharitableClassification[];
+  channels: {
+    general: { available: boolean; reason: GivingGateReason | null; zakat: ZakatAvailability };
+    programme: { available: boolean; reason: GivingGateReason | null };
+  };
+  programmes: { slug: string; code: string; name: string; payable: boolean; reason: GivingGateReason | null; zakat: ZakatAvailability }[];
+  /** Phase 14B: Gala-only launch mode — program / general gifts may be redirected to the approved Gala project WITH the donor's acceptance */
+  galaOnly?: GalaOnlyOption;
+}
+
+export interface GalaOnlyOption {
+  active: boolean;
+  reason: GivingGateReason | null;
+  eventSlug: string;
+  project: { code: string; name: string } | null;
+  zakat: ZakatAvailability;
+  disclosureVersion: string;
+}
+
+/** Phase 14B: the option the donor started from, kept apart from the actual destination. */
+export interface IntentInterest {
+  kind: "PROGRAMME" | "GENERAL";
+  slug: string | null;
+  name: string | null;
+  acceptedAt: string | null;
+  disclosureVersion: string | null;
+}
+
+/** GET /public/events/:slug/giving-options?locale= — the single approved Gala project. */
+export interface PublicGalaGivingOptions {
+  currency: 'USD';
+  limits: HostedLimits;
+  referenceQuestion: string;
+  donationTypeQuestion: string;
+  referencePrefill: false;
+  available: boolean;
+  reason: GivingGateReason | null;
+  campaignClosed: boolean;
+  project: { code: string; name: string } | null;
+  zakat: ZakatAvailability;
+  /** SDI has not confirmed the donation-reference question: only the Phase 12B direct link is used */
+  directLinkOnly: boolean;
+}
+
+export interface CreateDonationIntentRequest {
+  intentType: DonationIntentType;
+  programmeSlug?: string;
+  eventSlug?: string;
+  amount: string;
+  currency: 'USD';
+  classification: CharitableClassification;
+  donor: { fullName: string; email: string };
+  acceptTerms: true;
+  locale?: Locale;
+  /** Phase 14B (GALA_DONATION only): "general" or a programme slug */
+  sourceInterest?: string;
+  /** Phase 14B: required with sourceInterest */
+  acknowledgeGalaDestination?: boolean;
+}
+
+export type DonorStage = 'PENDING_EXTERNAL' | 'NEEDS_REVIEW' | 'NOT_COMPLETED' | 'VERIFIED' | 'ALLOCATED';
+export interface IntentDesignation {
+  type: 'PROGRAMME' | 'PROJECT' | 'GENERAL_FUND' | null;
+  name: string | null;
+  slug: string | null;
+}
+
+/** POST /public/donation-intents — the MEKI reference is issued BEFORE the hand-off; nothing is paid on MEKI. */
+export interface CreatedDonationIntent {
+  reference: string;
+  accessToken: string;
+  intentType: DonationIntentType;
+  classification: CharitableClassification;
+  amount: string;
+  currency: 'USD';
+  designation: IntentDesignation;
+  interest?: IntentInterest | null;
+  stage: 'PENDING_EXTERNAL';
+  handoff: {
+    formUrl: string | null;
+    referenceQuestion: string;
+    donationTypeQuestion: string | null;
+    donationTypeAnswer: string;
+    designationAnswer: string | null;
+    prefill: false;
+  };
+  createdAt: string;
+}
+
+/** GET /public/donation-intents/:reference/status?token= — no personal data. */
+export interface PublicDonationIntentStatus {
+  reference: string;
+  intentType: DonationIntentType;
+  classification: CharitableClassification;
+  intendedAmount: string;
+  currency: 'USD';
+  designation: IntentDesignation;
+  interest?: IntentInterest | null;
+  stage: DonorStage;
+  verifiedAt: string | null;
+  createdAt: string;
+  receiptsIssuedBy: 'SDI_ZEFFY';
 }
