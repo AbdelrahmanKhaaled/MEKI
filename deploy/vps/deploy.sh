@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# MEKI — build and switch a release on the VPS, as the `meki` user. HTTPS Git only (no SSH deploy keys).
+#
+#   deploy/vps/deploy.sh <git-ref>        e.g. deploy/vps/deploy.sh v1.0.0   (a tag or full commit SHA, never a moving branch)
+#
+# Git authentication: a fine-grained GitHub token with READ-ONLY "Contents" access to this one repository, typed when Git
+# asks for the password (username: the GitHub login). It is cached in memory for 15 minutes by `credential.helper cache`
+# and never written to disk, the repo, the shell history or this script. Set once:  git config --global credential.helper 'cache --timeout=900'
+#
+# What it does NOT do: it never runs migrations, seeds, or touches the database. Migrations are a separate, reviewed step
+# (backup first, migrator account) — see docs/FINAL_PRODUCTION_DEPLOYMENT_RUNBOOK.md §6.
+set -euo pipefail
+
+REF="${1:?usage: deploy.sh <tag-or-commit-sha>}"
+REPO_URL="${MEKI_REPO_URL:?set MEKI_REPO_URL to the https:// clone URL (no credentials in the URL)}"
+case "$REPO_URL" in https://*@*) echo "MEKI_REPO_URL must not contain credentials" >&2; exit 2;; https://*) ;; *) echo "MEKI_REPO_URL must be https://" >&2; exit 2;; esac
+[ "$(id -un)" = "meki" ] || { echo "run as the meki user" >&2; exit 2; }
+for f in /etc/meki/api.env /etc/meki/web.env /etc/meki/admin.env /etc/meki/web.build.env /etc/meki/admin.build.env; do
+  [ -r "$f" ] || { echo "missing $f (see deploy/vps/*.env.example)" >&2; exit 2; }
+done
+
+MIRROR=/srv/meki/repo.git
+REL=/srv/meki/releases/$(date -u +%Y%m%dT%H%M%SZ)
+
+# 1. Fetch over HTTPS into a bare mirror, then export the exact ref into a new release directory.
+[ -d "$MIRROR" ] || git clone --bare "$REPO_URL" "$MIRROR"
+git -C "$MIRROR" fetch --prune --tags "$REPO_URL" '+refs/heads/*:refs/heads/*'
+SHA=$(git -C "$MIRROR" rev-parse --verify "$REF^{commit}")
+mkdir -p "$REL"
+git -C "$MIRROR" archive "$SHA" | tar -x -C "$REL"
+echo "$SHA" > "$REL/REVISION"
+cd "$REL"
+
+# 2. No .env file may exist inside a release (all configuration comes from /etc/meki).
+if find apps -maxdepth 2 -name '.env*' ! -name '*.example' | grep -q .; then echo "a .env file is present in the release" >&2; exit 3; fi
+
+# 3. Install and build. Build-time public values are exported only for the web/admin builds.
+pnpm install --frozen-lockfile
+DATABASE_URL='mysql://build:placeholder@127.0.0.1:3306/none' pnpm --filter @meki/api build
+( set -a; . /etc/meki/web.build.env; set +a; pnpm --filter @meki/web build )
+( set -a; . /etc/meki/admin.build.env; set +a; pnpm --filter @meki/admin build )
+
+# 4. Switch atomically and reload (previous release stays on disk for rollback).
+PREV=$(readlink -f /srv/meki/current 2>/dev/null || true)
+ln -sfn "$REL" /srv/meki/current.next && mv -T /srv/meki/current.next /srv/meki/current
+pm2 startOrReload /srv/meki/current/deploy/vps/ecosystem.config.cjs --update-env
+pm2 save
+echo "deployed $SHA → $REL (previous: ${PREV:-none})"
+echo "next: run the health checks in the runbook §8; rollback = deploy/vps/rollback.sh $PREV"

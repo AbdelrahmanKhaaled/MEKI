@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { ChevronRight, Globe, LogOut, Menu, UserRound } from "lucide-react";
 import { useLocale } from "@/components/common/Providers";
@@ -37,6 +37,7 @@ export function Header({ onMenu, crumbs }: { onMenu: () => void; crumbs: { label
   const { locale, t } = useLocale();
   const { user, signOut } = useAuth();
   const path = usePathname();
+  const router = useRouter();
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const other = locale === "en" ? "ar" : "en";
@@ -63,7 +64,10 @@ export function Header({ onMenu, crumbs }: { onMenu: () => void; crumbs: { label
             <span className="hidden max-w-32 truncate text-sm font-bold text-ink sm:inline">{user?.name}</span>
           </span>
         }
-        items={[{ key: "out", label: t.header.signOut, onSelect: () => setConfirm(true) }]}
+        items={[
+          { key: "password", label: t.header.changePassword, onSelect: () => router.push(`/${locale}/account/password`) },
+          { key: "out", label: t.header.signOut, onSelect: () => setConfirm(true) },
+        ]}
       />
       <Modal
         open={confirm}

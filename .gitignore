@@ -39,3 +39,6 @@ tmp/
 # Phase 13A — staging rehearsal data and backups (may contain personal data) are never committed
 deploy/**/backups/
 deploy/**/data/
+
+# Client-supplied proprietary documents (CLAUDE.md: never commit client resources)
+docs/client-requirements/

@@ -26,6 +26,7 @@ import {
 } from "@/lib/booking";
 import { fill, getBookingCopy, type BookingCopy } from "@/content/booking";
 import { HostedBookingFlow } from "./HostedBookingFlow";
+import { OfficialFormHandoff } from "./OfficialFormHandoff";
 
 const GALA_SLUG = "gala-night";
 const field = "w-full rounded-xl border border-stone-line bg-white px-4 py-3 text-base text-ink outline-none transition focus:border-meki-green focus:ring-2 focus:ring-meki-green/30 aria-[invalid=true]:border-red-700";
@@ -47,7 +48,11 @@ const TRUST = {
   })(),
 };
 
-export function BookingFlow({ locale, disclosure = null }: { locale: Locale; disclosure?: string | null }) {
+/**
+ * `officialFormUrl`: SDI's official ticket form, passed only when its release switch is on. It is offered when the MEKI
+ * reference-first flow is not open, including when the API cannot be reached (never instead of an open MEKI flow).
+ */
+export function BookingFlow({ locale, disclosure = null, officialFormUrl = null }: { locale: Locale; disclosure?: string | null; officialFormUrl?: string | null }) {
   const c = getBookingCopy(locale);
   const router = useRouter();
   const [avail, setAvail] = useState<Availability>({ kind: "loading" });
@@ -85,6 +90,7 @@ export function BookingFlow({ locale, disclosure = null }: { locale: Locale; dis
 
   if (avail.kind === "loading") return <p className="py-24 text-center text-body-grey" role="status">{c.loading}</p>;
   if (avail.kind === "unavailable") {
+    if (officialFormUrl && !avail.soldOut) return <OfficialFormHandoff kind="ticket" url={officialFormUrl} locale={locale} />;
     return (
       <div className={`${card} mx-auto max-w-2xl text-center`} role="status">
         <h2 className="mb-3 font-serif text-3xl text-deep-green">{avail.soldOut ? c.unavailable.soldOut : c.unavailable.title}</h2>

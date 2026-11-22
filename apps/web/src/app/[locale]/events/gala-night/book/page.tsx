@@ -10,6 +10,7 @@ import { Header } from "@/components/Header";
 import { PreviewNote } from "@/components/PreviewNote";
 import { BookingFlow } from "@/components/booking/BookingFlow";
 import { FlowBand } from "@/components/pages/FlowBand";
+import { ticketHandoffUrl } from "@/lib/official-forms";
 
 /** Booking is visitor-specific and its availability is read live in the browser: never cached, never indexed. */
 export const dynamic = "force-dynamic";
@@ -41,7 +42,7 @@ export default async function GalaBookPage({ params }: { params: Promise<{ local
           </p>
         </FlowBand>
         <div className="container-x pt-12">
-          <BookingFlow locale={locale} disclosure={fr?.disclosures?.ticketPurchase ?? null} />
+          <BookingFlow locale={locale} disclosure={fr?.disclosures?.ticketPurchase ?? null} officialFormUrl={ticketHandoffUrl()} />
         </div>
       </main>
       <PreviewNote text={t.previewBar} extra={t.draftTranslation || undefined} closeLabel={t.dialog.close} />

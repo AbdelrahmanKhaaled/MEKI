@@ -10,6 +10,8 @@ import { Header } from "@/components/Header";
 import { PreviewNote } from "@/components/PreviewNote";
 import { FlowBand } from "@/components/pages/FlowBand";
 import { GivingForm } from "@/components/giving/GivingForm";
+import { OfficialFormHandoff } from "@/components/booking/OfficialFormHandoff";
+import { donationHandoffUrl } from "@/lib/official-forms";
 
 /** Gala donation (not admission). Availability is read live from the API; never cached, never indexed. */
 export const dynamic = "force-dynamic";
@@ -26,8 +28,11 @@ export default async function GalaDonatePage({ params }: { params: Promise<{ loc
   const t = getDict(locale);
   const g = getGivingCopy(locale).gala;
   const options = await fetchPublicContent<PublicGalaGivingOptions>(`/public/events/gala-night/giving-options?locale=${locale}`);
-  // Phase 14B: no reference-less direct link. Until SDI confirms the "MEKI Donation Reference" question the form below is a preview
-  // that explains why (REFERENCE_QUESTION_NOT_CONFIRMED): a gift can never bypass DN- reference creation from this site.
+  // Reference-first: when the API reports Gala giving open, the DN- reference flow is used. Otherwise, and only when the
+  // official donation form's release switch is on (final release decision), visitors get a labelled hand-off to SDI's official
+  // Zeffy form; this also keeps the page useful when the API is unreachable. With the switch off the Phase 14B behaviour stays:
+  // a preview form or a truthful "not open" panel, with no external link.
+  const handoff = options?.available ? null : donationHandoffUrl();
 
   return (
     <DonateProvider t={t} locale={locale}>
@@ -43,7 +48,9 @@ export default async function GalaDonatePage({ params }: { params: Promise<{ loc
           </p>
         </FlowBand>
         <div className="container-x pt-12">
-          {options && (options.available || options.project) ? (
+          {handoff ? (
+            <OfficialFormHandoff kind="donation" url={handoff} locale={locale} />
+          ) : options && (options.available || options.project) ? (
             <GivingForm locale={locale} mode="gala" gala={options} eventSlug="gala-night" />
           ) : (
             <section className="max-w-2xl rounded-2xl border border-dashed border-gold-text/50 bg-paper p-6 sm:p-8" role="status" data-testid="gala-giving-unavailable">

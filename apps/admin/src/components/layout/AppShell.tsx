@@ -7,10 +7,14 @@ import { useLocale } from "@/components/common/Providers";
 import { Skeleton } from "@/components/common/States";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
+import { AccountGate } from "@/features/account/AccountGate";
 
 const COLLAPSE_KEY = "meki-admin:sidebar-collapsed"; // a UI preference only, nothing sensitive
 
-/** Authenticated layout. Redirects to the login page when there is no session (the API remains the authority on every call). */
+/**
+ * Authenticated layout. Redirects to the login page when there is no session (the API remains the authority on every call).
+ * Pages are wrapped in AccountGate (pending first-sign-in credential change; see features/account).
+ */
 export function AppShell({ crumbs, children }: { crumbs: { label: string; href?: string }[]; children: React.ReactNode }) {
   const { status } = useAuth();
   const { locale, t } = useLocale();
@@ -62,7 +66,7 @@ export function AppShell({ crumbs, children }: { crumbs: { label: string; href?:
       <div className="min-w-0 flex-1">
         <Header onMenu={() => setMobile(true)} crumbs={crumbs} />
         <main id="content" className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6">
-          {children}
+          <AccountGate>{children}</AccountGate>
         </main>
       </div>
     </div>

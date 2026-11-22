@@ -61,9 +61,12 @@ test('giving form: a Gala offer is never payable without the donor ticking the a
   assert.match(form, /\[f0\.reviewInterest, interestName\], \[f0\.reviewRedirected, destinationName\]/);
 });
 
-test('Gala donation page has no reference-less direct SDI link', () => {
+test('Gala donation page has no ungated reference-less SDI link', () => {
   const page = src('app/[locale]/events/gala-night/donate/page.tsx');
-  assert.doesNotMatch(page, /directUrl|target="_blank"|zeffy/i);
+  // Final release (client instruction): the ONLY external route is the official-form hand-off behind its own release switch
+  // (default OFF, src/lib/official-forms.ts) and only when the DN- reference flow is not open. No hard-coded link on the page.
+  assert.doesNotMatch(page, /directUrl|target="_blank"|https?:\/\/[^\s"]*zeffy/i);
+  assert.match(page, /const handoff = options\?\.available \? null : donationHandoffUrl\(\);/);
   assert.match(page, /<GivingForm locale=\{locale\} mode="gala"/);
 });
 

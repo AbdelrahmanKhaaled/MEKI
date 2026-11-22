@@ -82,7 +82,8 @@ export const NAV: NavGroup[] = [
     key: "admin",
     items: [
       { key: "reports", icon: "FileBarChart", anyOf: ["reports.read"] },
-      { key: "users", icon: "ShieldCheck", anyOf: ["users.read", "roles.read"] },
+      // Final release: users & roles (list/create/roles/activation: users.read / users.manage; role catalogue: roles.read)
+      { key: "users", icon: "ShieldCheck", href: "/users", anyOf: ["users.read"] },
       { key: "audit", icon: "ScrollText", anyOf: ["audit.read"] },
       { key: "settings", icon: "Settings", anyOf: ["settings.read"] },
     ],

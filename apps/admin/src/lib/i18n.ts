@@ -32,7 +32,7 @@ export const en = {
     openMenu: "Open menu",
     closeMenu: "Close menu",
   },
-  header: { language: "العربية", profile: "Account", signOut: "Sign out", signingOut: "Signing out…", confirmSignOut: "Sign out of the admin dashboard?", cancel: "Cancel", roles: "Roles" },
+  header: { language: "العربية", profile: "Account", changePassword: "Change password", signOut: "Sign out", signingOut: "Signing out…", confirmSignOut: "Sign out of the admin dashboard?", cancel: "Cancel", roles: "Roles" },
   breadcrumbs: { home: "Home" },
   login: {
     title: "Sign in",
@@ -107,7 +107,7 @@ export const ar: Dict = {
     openMenu: "فتح القائمة",
     closeMenu: "إغلاق القائمة",
   },
-  header: { language: "English", profile: "الحساب", signOut: "تسجيل الخروج", signingOut: "جارٍ تسجيل الخروج…", confirmSignOut: "هل تريد تسجيل الخروج من لوحة الإدارة؟", cancel: "إلغاء", roles: "الأدوار" },
+  header: { language: "English", profile: "الحساب", changePassword: "تغيير كلمة المرور", signOut: "تسجيل الخروج", signingOut: "جارٍ تسجيل الخروج…", confirmSignOut: "هل تريد تسجيل الخروج من لوحة الإدارة؟", cancel: "إلغاء", roles: "الأدوار" },
   breadcrumbs: { home: "الرئيسية" },
   login: {
     title: "تسجيل الدخول",

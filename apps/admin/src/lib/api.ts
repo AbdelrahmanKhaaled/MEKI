@@ -58,7 +58,9 @@ type Method = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 /** The API's error envelope → ApiError (stable `code`, optional `details`, e.g. publish blockers or a duplicate's id). */
 function toError(status: number, json: unknown, path: string): ApiError {
   const e = (json as { error?: { code?: string; message?: unknown; details?: unknown } } | null)?.error;
-  if (status === 401 && path !== "/admin/auth/login") unauthorizedListeners.forEach((f) => f());
+  // A wrong CURRENT password on the change-password form is also a 401: it must show an inline error, not sign the user out
+  // (a genuinely expired session is caught by the next request, e.g. the /me refresh that follows).
+  if (status === 401 && path !== "/admin/auth/login" && path !== "/admin/auth/password/change") unauthorizedListeners.forEach((f) => f());
   return new ApiError(e?.code ?? (status === 413 ? "PAYLOAD_TOO_LARGE" : status === 415 ? "UNSUPPORTED_MEDIA_TYPE" : "UNKNOWN_ERROR"), status, e?.details, typeof e?.message === "string" ? e.message : undefined);
 }
 

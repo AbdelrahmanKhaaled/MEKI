@@ -13,6 +13,8 @@ interface Ctx {
   user: AuthUser | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  /** Re-reads /admin/auth/me (e.g. after a password change clears mustChangePassword). */
+  refresh: () => Promise<void>;
   can: (...anyOf: string[]) => boolean;
 }
 const AuthContext = createContext<Ctx | null>(null);
@@ -70,7 +72,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatus("anonymous");
   }, [qc]);
 
-  const value = useMemo<Ctx>(() => ({ status, user, signIn, signOut, can: (...p) => canFn(user, ...p) }), [status, user, signIn, signOut]);
+  const refresh = useCallback(async () => {
+    setUser(await fetchMe());
+  }, []);
+
+  const value = useMemo<Ctx>(() => ({ status, user, signIn, signOut, refresh, can: (...p) => canFn(user, ...p) }), [status, user, signIn, signOut, refresh]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
