@@ -5,6 +5,7 @@ import { ReorderDto } from '../../common/dto/shared.dto';
 import type { ActorContext } from '../../common/types/auth-request';
 import { CreatePageDto, CreateSectionDto, CreateSectionItemDto, UpdatePageDto, UpdateSectionDto, UpdateSectionItemDto } from './cms.dto';
 import { CmsService } from './cms.service';
+import { RevalidatesPublic } from '../revalidation/revalidation.module';
 
 @ApiTags('Admin · CMS')
 @ApiCookieAuth()
@@ -33,6 +34,7 @@ export class CmsController {
   }
 
   @Patch('pages/:slug')
+  @RevalidatesPublic('cms-page') // title/SEO fields are read live by the public page
   @RequirePermissions('content.manage')
   @ApiOperation({ summary: 'Update page title and SEO metadata' })
   updatePage(@Param('slug') slug: string, @Body() dto: UpdatePageDto, @Actor() actor: ActorContext) {
@@ -40,6 +42,7 @@ export class CmsController {
   }
 
   @Post('pages/:slug/publish')
+  @RevalidatesPublic('cms-page')
   @HttpCode(200)
   @RequirePermissions('content.publish')
   publishPage(@Param('slug') slug: string, @Actor() actor: ActorContext) {
@@ -47,6 +50,7 @@ export class CmsController {
   }
 
   @Post('pages/:slug/unpublish')
+  @RevalidatesPublic('cms-page')
   @HttpCode(200)
   @RequirePermissions('content.publish')
   unpublishPage(@Param('slug') slug: string, @Actor() actor: ActorContext) {
@@ -60,6 +64,7 @@ export class CmsController {
   }
 
   @Put('pages/:slug/sections/order')
+  @RevalidatesPublic('cms-page') // public order follows sortOrder
   @RequirePermissions('content.manage')
   @ApiOperation({ summary: 'Reorder sections (takes effect publicly after each section is republished)' })
   reorderSections(@Param('slug') slug: string, @Body() dto: ReorderDto, @Actor() actor: ActorContext) {
@@ -80,6 +85,7 @@ export class CmsController {
   }
 
   @Post('sections/:id/publish')
+  @RevalidatesPublic('cms-section')
   @HttpCode(200)
   @RequirePermissions('content.publish')
   @ApiOperation({ summary: 'Publish the working copy (snapshot) of a section' })
@@ -88,6 +94,7 @@ export class CmsController {
   }
 
   @Post('sections/:id/unpublish')
+  @RevalidatesPublic('cms-section')
   @HttpCode(200)
   @RequirePermissions('content.publish')
   unpublishSection(@Param('id') id: string, @Actor() actor: ActorContext) {

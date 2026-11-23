@@ -39,7 +39,7 @@ export function setupApp(app: NestExpressApplication) {
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     // X-Booking-Token: the public booking pages (status, checkout, ticket PDF) send the purchaser token in this header (Phase 7 fix)
     allowedHeaders: ['Content-Type', 'X-CSRF-Token', 'X-Request-Id', 'Idempotency-Key', 'X-Donation-Token', 'X-Booking-Token'],
-    exposedHeaders: ['X-Request-Id'],
+    exposedHeaders: ['X-Request-Id', 'X-Meki-Revalidation'],
   });
 
   app.setGlobalPrefix(API_PREFIX, { exclude: [{ path: 'media/*path', method: RequestMethod.GET }] });

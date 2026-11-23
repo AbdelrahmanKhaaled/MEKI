@@ -27,6 +27,7 @@ import { Actor, Public, RequirePermissions } from '../../common/decorators';
 import type { ActorContext } from '../../common/types/auth-request';
 import { MediaMetadataDto, MediaQueryDto, UploadMediaDto } from './media.dto';
 import { MediaService } from './media.service';
+import { RevalidatesPublic } from '../revalidation/revalidation.module';
 import { LocalStorage, S3StorageNotConfigured, STORAGE_DRIVER } from './storage/storage';
 
 
@@ -75,6 +76,7 @@ export class MediaController {
 
   @Patch(':id')
   @RequirePermissions('media.upload')
+  @RevalidatesPublic('media') // alt text, captions and consent are read live by published pages
   update(@Param('id') id: string, @Body() dto: MediaMetadataDto, @Actor() actor: ActorContext) {
     return this.media.updateMetadata(id, dto, actor);
   }

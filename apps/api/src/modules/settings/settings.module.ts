@@ -10,6 +10,7 @@ import { Actor, RequirePermissions } from '../../common/decorators';
 import type { ActorContext } from '../../common/types/auth-request';
 import { defined } from '../../common/utils';
 import { UpdateDonationSettingsDto, UpdateSiteSettingsDto } from './settings.dto';
+import { RevalidatesPublic } from '../revalidation/revalidation.module';
 
 export const SETTINGS_ID = 'default';
 
@@ -97,6 +98,7 @@ export class SettingsService {
 
 @ApiTags('Admin · Settings')
 @ApiCookieAuth()
+@RevalidatesPublic('site')
 @Controller('admin/settings')
 export class SettingsController {
   constructor(private readonly settings: SettingsService) {}

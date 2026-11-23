@@ -26,6 +26,7 @@ import { Actor, RequirePermissions } from '../../common/decorators';
 import { ListQueryDto } from '../../common/dto/list-query.dto';
 import type { ActorContext } from '../../common/types/auth-request';
 import { defined, Paginated, parseSort } from '../../common/utils';
+import { RevalidatesPublic } from '../revalidation/revalidation.module';
 
 export class CreateStatisticDto {
   @ApiProperty({ example: 'beneficiaries' }) @IsString() @Matches(/^[a-z0-9_-]{2,60}$/) code!: string;
@@ -200,6 +201,7 @@ export class StatisticsService {
 
 @ApiTags('Admin · Impact statistics')
 @ApiCookieAuth()
+@RevalidatesPublic('statistics')
 @Controller('admin/statistics')
 export class StatisticsController {
   constructor(private readonly stats: StatisticsService) {}

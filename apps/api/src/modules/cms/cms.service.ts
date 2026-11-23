@@ -3,10 +3,11 @@ import { Prisma } from '../../generated/prisma/client';
 import type { MediaAsset, PageSection, SectionItem } from '../../generated/prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
-import { MediaService } from '../media/media.service';
+import { isPubliclyServable, MediaService } from '../media/media.service';
 import { PublishingPolicy } from '../../common/publishing/publishing.policy';
 import type { ActorContext } from '../../common/types/auth-request';
 import { defined } from '../../common/utils';
+import { HERO_IMAGE_RULES, HERO_SECONDARY_ITEM_CODE, heroImageProblems, type HeroImageSlot } from './hero-images';
 import { buildSectionSnapshot, type SectionSnapshot, type SnapshotMedia } from './section-snapshot';
 import type { CreatePageDto, CreateSectionDto, CreateSectionItemDto, UpdatePageDto, UpdateSectionDto, UpdateSectionItemDto } from './cms.dto';
 
@@ -53,6 +54,26 @@ export class CmsService {
     const event = await this.prisma.event.findUnique({ where: { pageId }, select: { id: true } });
     if (event) {
       throw new ForbiddenException({ message: 'Event pages are managed through the Events API', code: 'EVENT_PAGE_SCOPE' });
+    }
+  }
+
+  /**
+   * Homepage Hero images: an asset placed in the main (section media) or secondary (item `hero-secondary-image`) slot must be a
+   * live, publicly servable, non-DEMO raster image of at least the slot's size. Null (= website default) is always allowed.
+   */
+  private async assertHeroImage(sectionId: string, slot: HeroImageSlot, mediaId: string | null | undefined) {
+    if (!mediaId) return;
+    const section = await this.prisma.pageSection.findUnique({ where: { id: sectionId }, select: { key: true } });
+    if (section?.key !== 'HERO') return;
+    const asset = await this.prisma.mediaAsset.findUnique({ where: { id: mediaId } });
+    if (!asset) throw new BadRequestException('One or more media references are invalid');
+    const reasons = heroImageProblems(asset, slot, this.media.consentMode);
+    if (reasons.length) {
+      throw new BadRequestException({
+        message: `This image cannot be used as the ${slot} Hero image`,
+        code: 'HERO_IMAGE_INVALID',
+        details: { slot, reasons, ...HERO_IMAGE_RULES[slot] },
+      });
     }
   }
 
@@ -173,6 +194,7 @@ export class CmsService {
     assertLabels(dto.labelsEn, 'labelsEn');
     assertLabels(dto.labelsAr, 'labelsAr');
     await this.media.assertExists([dto.mediaId]);
+    await this.assertHeroImage(id, 'main', dto.mediaId);
     await this.prisma.pageSection.update({
       where: { id },
       data: {
@@ -245,6 +267,7 @@ export class CmsService {
   async createItem(sectionId: string, dto: CreateSectionItemDto, actor: ActorContext, scope?: CmsScope) {
     await this.assertSectionScope(sectionId, scope);
     await this.media.assertExists([dto.mediaId]);
+    if (dto.code === HERO_SECONDARY_ITEM_CODE) await this.assertHeroImage(sectionId, 'secondary', dto.mediaId);
     const max = await this.prisma.sectionItem.aggregate({ where: { sectionId }, _max: { sortOrder: true } });
     const item = await this.prisma.sectionItem.create({
       data: { ...defined(dto), sectionId, sortOrder: dto.sortOrder ?? (max._max.sortOrder ?? 0) + 10 },
@@ -264,6 +287,7 @@ export class CmsService {
     const item = await this.getItem(id);
     await this.assertSectionScope(item.sectionId, scope);
     await this.media.assertExists([dto.mediaId]);
+    if ((dto.code ?? item.code) === HERO_SECONDARY_ITEM_CODE) await this.assertHeroImage(item.sectionId, 'secondary', dto.mediaId);
     const updated = await this.prisma.sectionItem.update({ where: { id }, data: defined(dto) });
     await this.touch(item.sectionId, actor);
     await this.audit.record(actor, 'section_item.update', 'SectionItem', id, { fields: AuditService.changedFields(dto) });
@@ -307,20 +331,39 @@ export class CmsService {
       include: this.publicPageInclude,
     });
     if (!page) throw new NotFoundException('Page not found');
-    return this.presentPublicPage(page);
+    return await this.presentPublicPage(page);
   }
 
   /** For the Events API, which has already checked the event's own publication rules. */
   async getPublishedPageById(pageId: string) {
     const page = await this.prisma.page.findFirst({ where: { id: pageId, status: 'PUBLISHED' }, include: this.publicPageInclude });
     if (!page) throw new NotFoundException('Page not found');
-    return this.presentPublicPage(page);
+    return await this.presentPublicPage(page);
   }
 
-  private presentPublicPage(page: Prisma.PageGetPayload<{ include: CmsService['publicPageInclude'] }>) {
+  /**
+   * Snapshot media that can no longer be served (deleted, or consent withdrawn after publication) are left out, so the website
+   * shows its built-in image instead of a broken one. One query per page.
+   */
+  private async unservableMedia(snapshots: SectionSnapshot[]): Promise<Set<string>> {
+    const ids = new Set<string>();
+    for (const d of snapshots) {
+      if (d.media?.id) ids.add(d.media.id);
+      for (const i of d.items ?? []) if (i.media?.id) ids.add(i.media.id);
+    }
+    if (!ids.size) return new Set();
+    const rows = await this.prisma.mediaAsset.findMany({ where: { id: { in: [...ids] } }, select: { id: true, deletedAt: true, consentStatus: true } });
+    const ok = new Set(rows.filter((r) => isPubliclyServable(r, this.media.consentMode)).map((r) => r.id));
+    return new Set([...ids].filter((id) => !ok.has(id)));
+  }
+
+  private async presentPublicPage(page: Prisma.PageGetPayload<{ include: CmsService['publicPageInclude'] }>) {
     const allowDemo = (p: string) => p !== 'DEMO';
+    const unservable = await this.unservableMedia(
+      page.sections.map((s) => s.publishedData as unknown as SectionSnapshot | null).filter((d): d is SectionSnapshot => !!d),
+    );
     const resolveMedia = (m: SnapshotMedia | null | undefined) =>
-      m
+      m && !unservable.has(m.id)
         ? {
             id: m.id,
             url: this.media.url(m),

@@ -360,6 +360,18 @@ export class EnvironmentVariables {
    */
   @Transform(toBool) @IsBoolean()
   STAGING_LOCAL_REHEARSAL = false;
+
+  // ── CMS live publishing: on-demand cache invalidation of the public website (server-to-server, never via a browser) ──
+  /**
+   * Internal URL of the website's revalidation route, e.g. http://127.0.0.1:3000/api/internal/revalidate on the VPS (loopback,
+   * never the public hostname). Unset → publishing still works and the website refreshes on its 300 s ISR window.
+   */
+  @IsOptional() @IsString()
+  WEB_REVALIDATE_URL?: string;
+
+  /** Shared secret (min 32 chars) sent as a Bearer token to WEB_REVALIDATE_URL. Same value in the website's runtime env. Never logged. */
+  @IsOptional() @IsString()
+  MEKI_REVALIDATE_SECRET?: string;
 }
 
 /** Hosts a configured Zeffy hosted-form URL may use (extended only after SDI confirms other hosts). */
@@ -460,7 +472,29 @@ export function validateEnv(config: Record<string, unknown>): EnvironmentVariabl
   validateZeffyConfig(validated);
   validateSdiHostedConfig(validated);
   validateDeploymentUrls(validated);
+  validateRevalidationConfig(validated);
   return validated;
+}
+
+/**
+ * CMS live publishing: both values or neither. The URL must be a plain http(s) URL without credentials, query or fragment (the
+ * secret travels only in the Authorization header), and the secret must be long and random.
+ */
+export function validateRevalidationConfig(v: Pick<EnvironmentVariables, 'WEB_REVALIDATE_URL' | 'MEKI_REVALIDATE_SECRET'>) {
+  const url = v.WEB_REVALIDATE_URL?.trim();
+  const secret = v.MEKI_REVALIDATE_SECRET;
+  if (!url && !secret) return;
+  if (!url || !secret) throw new Error('WEB_REVALIDATE_URL and MEKI_REVALIDATE_SECRET must be set together');
+  if (secret.length < 32 || /\s/.test(secret)) throw new Error('MEKI_REVALIDATE_SECRET must be at least 32 characters without whitespace');
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    throw new Error('WEB_REVALIDATE_URL must be an absolute URL');
+  }
+  if (!['http:', 'https:'].includes(u.protocol) || u.username || u.password || u.search || u.hash) {
+    throw new Error('WEB_REVALIDATE_URL must be an http(s) URL without credentials, query or fragment');
+  }
 }
 
 /** Settings whose development defaults point at localhost. */

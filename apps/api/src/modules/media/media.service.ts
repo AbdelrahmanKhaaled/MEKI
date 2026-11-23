@@ -40,6 +40,11 @@ export class MediaService {
     @Inject(STORAGE_DRIVER) private readonly storage: StoragePort,
   ) {}
 
+  /** Consent policy of the public media route (MEDIA_PUBLIC_CONSENT_MODE). */
+  get consentMode() {
+    return this.config.get('MEDIA_PUBLIC_CONSENT_MODE');
+  }
+
   get maxBytes() {
     return this.config.get('MEDIA_MAX_UPLOAD_MB') * 1024 * 1024;
   }

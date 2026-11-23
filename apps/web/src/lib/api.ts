@@ -1,5 +1,6 @@
 import type { ApiEnvelope, ApiErrorBody } from "@meki/api-client";
 import { contentFailureLevel } from "./content-failure";
+import { tagsForPath } from "./revalidation-tags";
 
 /**
  * API base URLs. NEXT_PUBLIC_API_URL is a public value (the browser calls the donation endpoints with it);
@@ -10,7 +11,10 @@ import { contentFailureLevel } from "./content-failure";
 export const PUBLIC_API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
 const SERVER_API_URL = (process.env.API_INTERNAL_URL ?? PUBLIC_API_URL).replace(/\/$/, "");
 
-/** Seconds published CMS content may be served from cache before Next.js revalidates it (ISR). */
+/**
+ * Seconds published CMS content may be served from cache before Next.js revalidates it (ISR). This is only the SAFETY NET:
+ * publishing in the admin invalidates the affected tags immediately through /api/internal/revalidate (CMS live publishing).
+ */
 export const CONTENT_REVALIDATE_SECONDS = 300;
 
 /**
@@ -29,7 +33,7 @@ export async function fetchPublicContent<T>(path: string, attempt = 1): Promise<
   try {
     const res = await fetch(`${SERVER_API_URL}${path}`, {
       headers: { Accept: "application/json" },
-      next: { revalidate: CONTENT_REVALIDATE_SECONDS, tags: ["meki-public"] },
+      next: { revalidate: CONTENT_REVALIDATE_SECONDS, tags: tagsForPath(path) },
       signal: AbortSignal.timeout(CONTENT_TIMEOUT_MS),
     });
     if (!res.ok) {
@@ -56,7 +60,7 @@ export async function fetchPublicResource<T>(path: string, attempt = 1): Promise
   try {
     const res = await fetch(`${SERVER_API_URL}${path}`, {
       headers: { Accept: "application/json" },
-      next: { revalidate: CONTENT_REVALIDATE_SECONDS, tags: ["meki-public"] },
+      next: { revalidate: CONTENT_REVALIDATE_SECONDS, tags: tagsForPath(path) },
       signal: AbortSignal.timeout(CONTENT_TIMEOUT_MS),
     });
     if (res.status === 404) return { status: "not_found" };

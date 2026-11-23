@@ -45,10 +45,12 @@ export interface SectionDef {
   data?: { module: "statistics" | "programmes" | "enabling" | "campaigns" | "faqs"; href: string; fixed?: number };
   /** structural sections are always rendered by the website; they cannot be hidden */
   hideable: boolean;
+  /** Homepage Hero: main image (section media) + secondary image (item hero-secondary-image), with EN/AR alt labels */
+  heroImages?: boolean;
 }
 
 export const HOMEPAGE: SectionDef[] = [
-  { key: "HERO", fields: ["eyebrow", "title", "subtitle", "body", "ctaPrimaryLabel", "ctaSecondaryLabel"], labels: ["photoCaption", "scroll"], lists: [], hideable: false },
+  { key: "HERO", fields: ["eyebrow", "title", "subtitle", "body", "ctaPrimaryLabel", "ctaSecondaryLabel"], labels: ["photoCaption", "scroll"], lists: [], hideable: false, heroImages: true },
   {
     key: "QUICK_DONATE",
     fields: ["title", "body"],

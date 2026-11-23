@@ -5,6 +5,9 @@ import { toMediaRef } from "@/content/media";
 import { getDict, type Locale } from "@/lib/i18n";
 import { fetchPublicContent } from "@/lib/api";
 
+/** CMS item code of the Hero's secondary (circular) image — same constant as the API (apps/api/src/modules/cms/hero-images.ts). */
+export const HERO_SECONDARY_ITEM_CODE = "hero-secondary-image";
+
 /** A campaign the backend reports as live + approved; the donation form may target it by slug. */
 export type LiveCampaign = { slug: string; title: string; currency: string; acceptingDonations: boolean };
 
@@ -65,6 +68,19 @@ export function mergeContent(base: Dict, home: PublicHome): Dict {
     t.hero.ctaSecondary = str(hero.ctaSecondaryLabel, t.hero.ctaSecondary);
     t.hero.photoCaption = L(hero, "photoCaption", t.hero.photoCaption);
     t.hero.scroll = L(hero, "scroll", t.hero.scroll);
+    // Hero images (CMS): main = section media, secondary = item "hero-secondary-image". Unset → the curated defaults stay.
+    // Alt text: the slot's own EN/AR label, else the Media Library alt text, else decorative ("").
+    const main = toMediaRef(hero.media);
+    if (main) {
+      t.hero.image = main;
+      t.hero.imageAlt = L(hero, "mainImageAlt", str(hero.media?.alt, ""));
+    }
+    const second = hero.items?.find((i) => i.code === HERO_SECONDARY_ITEM_CODE)?.media;
+    const secondRef = toMediaRef(second);
+    if (secondRef) {
+      t.hero.secondaryImage = secondRef;
+      t.hero.secondaryImageAlt = L(hero, "secondaryImageAlt", str(second?.alt, ""));
+    }
   }
 
   const quick = sec.get("QUICK_DONATE");

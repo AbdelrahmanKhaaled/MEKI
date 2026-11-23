@@ -27,6 +27,7 @@ import { ListQueryDto } from '../../common/dto/list-query.dto';
 import { ReorderDto } from '../../common/dto/shared.dto';
 import type { ActorContext } from '../../common/types/auth-request';
 import { defined, Paginated, parseSort } from '../../common/utils';
+import { RevalidatesPublic } from '../revalidation/revalidation.module';
 
 export class CreateFaqDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @Matches(/^[a-z0-9_-]{2,60}$/) code?: string;
@@ -133,6 +134,7 @@ export class FaqService {
 
 @ApiTags('Admin · FAQ')
 @ApiCookieAuth()
+@RevalidatesPublic('faq')
 @Controller('admin/faqs')
 export class FaqController {
   constructor(private readonly faq: FaqService) {}

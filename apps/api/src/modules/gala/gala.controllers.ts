@@ -26,6 +26,7 @@ import { GalaJobsService } from './gala-jobs.service';
 import { GuestsService } from './guests.service';
 import { CreateTicketConfigDto, TicketConfigService, UpdateTicketConfigDto } from './ticket-config.service';
 import { TicketsService } from './tickets.service';
+import { RevalidatesPublic } from '../revalidation/revalidation.module';
 
 /** Ticket numbers are TK- + 10 Crockford characters: anything else (NUL bytes, traversal, odd encodings) is a plain 404. */
 class TicketNumberPipe implements PipeTransform<string, string> {
@@ -159,14 +160,14 @@ export class AdminGalaController {
     return this.config.get(eventId);
   }
 
-  @Post('ticketing') @RequirePermissions('events.manage')
+  @Post('ticketing') @RequirePermissions('events.manage') @RevalidatesPublic('events')
   @ApiOperation({ summary: 'Create the ticket configuration (sales start CLOSED; opening them needs events.approve)' })
   async createConfig(@Param('eventId', SafeIdPipe) eventId: string, @Body() dto: CreateTicketConfigDto, @Actor() actor: ActorContext) {
     await this.lookup.adminEvent(eventId);
     return this.config.create(eventId, dto, actor);
   }
 
-  @Patch('ticketing') @RequirePermissions('events.manage')
+  @Patch('ticketing') @RequirePermissions('events.manage') @RevalidatesPublic('events')
   @ApiOperation({ summary: 'Update price/limits/labels; salesEnabled additionally requires events.approve' })
   async updateConfig(@Param('eventId', SafeIdPipe) eventId: string, @Body() dto: UpdateTicketConfigDto, @CurrentUser() user: AuthUser, @Actor() actor: ActorContext) {
     await this.lookup.adminEvent(eventId);

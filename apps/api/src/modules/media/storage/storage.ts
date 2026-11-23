@@ -1,6 +1,6 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import { Injectable, Logger, NotImplementedException } from '@nestjs/common';
 import { mkdir, rename, unlink, writeFile } from 'node:fs/promises';
-import { dirname, resolve, sep } from 'node:path';
+import { dirname, isAbsolute, resolve, sep } from 'node:path';
 import { AppConfigService } from '../../../config/app-config.service';
 
 export const STORAGE_DRIVER = Symbol('STORAGE_DRIVER');
@@ -14,6 +14,19 @@ export interface StoragePort {
   localPath?(key: string): string;
 }
 
+/**
+ * Uploaded media must outlive releases, PM2 restarts and rollbacks. A relative LOCAL_STORAGE_DIR resolves inside the release
+ * that is running (e.g. /srv/meki/releases/<ts>/apps/api/storage/uploads) and would be left behind by the next deploy.
+ * Returns a warning for staging/production when the directory is relative or inside a release / the `current` symlink.
+ */
+export function storageDirWarning(raw: string, env: string): string | null {
+  if (env !== 'production' && env !== 'staging') return null;
+  const dir = raw.replace(/\\/g, '/');
+  if (!isAbsolute(raw)) return `LOCAL_STORAGE_DIR "${raw}" is relative: uploads would be stored inside the running release and lost on the next deploy. Use /var/lib/meki/uploads.`;
+  if (/\/srv\/meki\/(releases|current)(\/|$)/.test(dir)) return `LOCAL_STORAGE_DIR "${raw}" is inside a release directory: uploads would not survive a deploy or rollback. Use /var/lib/meki/uploads.`;
+  return null;
+}
+
 /** Local disk storage for development. Keys are generated server-side (never from user input). */
 @Injectable()
 export class LocalStorage implements StoragePort {
@@ -23,6 +36,8 @@ export class LocalStorage implements StoragePort {
 
   constructor(config: AppConfigService) {
     this.root = resolve(config.get('LOCAL_STORAGE_DIR'));
+    const warning = storageDirWarning(config.get('LOCAL_STORAGE_DIR'), config.get('NODE_ENV'));
+    if (warning) new Logger('MediaStorage').error(warning);
     this.baseUrl = config.get('PUBLIC_MEDIA_BASE_URL').replace(/\/$/, '');
   }
 

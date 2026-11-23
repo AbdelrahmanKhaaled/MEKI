@@ -52,6 +52,38 @@ export function resolveMedia(ref: MediaRef): { src: string; w: number; h: number
 }
 
 /**
+ * Origin of uploaded Media Library images: the API's /media/ route on the NEXT_PUBLIC_API_URL host — the only remote origin
+ * next.config.ts allows for next/image (no unrestricted remote domains).
+ */
+const API_MEDIA_ORIGIN = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_API_URL ?? "").origin;
+  } catch {
+    return null;
+  }
+})();
+
+/** True only for an uploaded image served by the API's media route (the next/image remotePatterns entry). */
+export function isAllowedRemoteImage(url: string, origin: string | null = API_MEDIA_ORIGIN): boolean {
+  try {
+    const u = new URL(url);
+    return !!origin && u.origin === origin && u.pathname.startsWith("/media/") && !u.username && !u.password;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Image for a CMS-managed slot (e.g. the Hero images): a curated key or an allowed uploaded image; anything else — unset, an
+ * unexpected host — falls back to the curated default, so the slot never renders a broken or blocked image.
+ */
+export function slotImage(ref: MediaRef | undefined, fallback: MediaKey): { src: string; w: number; h: number } {
+  if (ref && isKey(ref)) return media[ref];
+  if (ref && isAllowedRemoteImage(ref)) return { src: ref, w: 2000, h: 1333 };
+  return media[fallback];
+}
+
+/**
  * Maps an API media object to a MediaRef. Curated website images (served by this app from
  * /images/work/<key>.webp) map back to their local key so they render exactly as before.
  */

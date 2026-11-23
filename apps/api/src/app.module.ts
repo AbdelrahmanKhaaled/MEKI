@@ -27,6 +27,7 @@ import { PublicModule } from './modules/public/public.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { StatisticsModule } from './modules/statistics/statistics.module';
 import { UsersModule } from './modules/users/users.module';
+import { RevalidationModule } from './modules/revalidation/revalidation.module';
 
 @Module({
   imports: [
@@ -41,6 +42,8 @@ import { UsersModule } from './modules/users/users.module';
       }),
     }),
     PublishingModule,
+    // CMS live publishing: invalidates the website cache after content mutations (interceptor + admin status/retry).
+    RevalidationModule,
     AuditModule,
     AuthModule,
     UsersModule,

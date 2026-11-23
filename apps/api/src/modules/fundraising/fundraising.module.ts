@@ -9,6 +9,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { SafeIdPipe } from '../gala/gala-support';
 import { AdminLegalCopyController, LegalCopyService } from './legal-copy';
+import { RevalidatesPublic } from '../revalidation/revalidation.module';
 
 /**
  * Phase 12B — SDI agreement: the Gala campaign raises funds for ONE project in Egypt approved in writing in SDI's Project Plan.
@@ -249,6 +250,7 @@ export class EventFundraisingService {
 
 @ApiTags('Admin · Gala fundraising project')
 @ApiCookieAuth()
+@RevalidatesPublic('events')
 @Controller('admin/events/:eventId/fundraising')
 export class AdminFundraisingController {
   constructor(private readonly svc: EventFundraisingService) {}

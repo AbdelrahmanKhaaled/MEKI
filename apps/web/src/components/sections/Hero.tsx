@@ -2,12 +2,15 @@ import Image from "next/image";
 import { ArrowRight, ArrowDown } from "lucide-react";
 import type { Dict } from "@/content/en";
 import type { Locale } from "@/lib/i18n";
-import { media } from "@/content/media";
+import { slotImage } from "@/content/media";
 import { Pattern, PointsOfLight, GoldArc } from "../Decor";
 import { QuickDonate } from "../QuickDonate";
 
 export function Hero({ t, locale }: { t: Dict; locale: Locale }) {
   const h = t.hero;
+  // CMS-managed images (Homepage → Hero) with the curated photos as fallback; only allowed origins reach next/image.
+  const mainImage = slotImage(h.image, "hero-field");
+  const secondaryImage = slotImage(h.secondaryImage, "water-pier");
   return (
     <section id="top" className="relative isolate overflow-hidden bg-deep-green text-white">
       {/* Layered background: gradient + Nile pattern + points of light */}
@@ -52,8 +55,8 @@ export function Hero({ t, locale }: { t: Dict; locale: Locale }) {
               <div data-hero-image className="absolute inset-[-8%]">
                 <div data-parallax="0.06" className="absolute inset-0">
                   <Image
-                    src={media["hero-field"].src}
-                    alt=""
+                    src={mainImage.src}
+                    alt={h.imageAlt}
                     fill
                     priority
                     sizes="(min-width: 1280px) 26vw, (min-width: 768px) 45vw, 75vw"
@@ -68,7 +71,7 @@ export function Hero({ t, locale }: { t: Dict; locale: Locale }) {
                 the WASH programme, its page and the CMS value (hero.photoCaption) are untouched. */}
             {/* secondary layered photo */}
             <div className="absolute -bottom-8 -start-8 hidden size-32 overflow-hidden rounded-full border-4 border-deep-green shadow-xl sm:block md:-start-3 xl:-start-14 xl:size-36">
-              <Image src={media["water-pier"].src} alt="" fill sizes="144px" className="object-cover" />
+              <Image src={secondaryImage.src} alt={h.secondaryImageAlt} fill sizes="144px" className="object-cover" />
             </div>
           </div>
 

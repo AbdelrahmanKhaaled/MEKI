@@ -72,9 +72,9 @@ sudo -u meki pm2 install pm2-logrotate
 
 | File | Owner / mode | Loaded | Contents |
 |---|---|---|---|
-| `/etc/meki/api.env` | root:meki 0640 | runtime (`node --env-file`, via PM2) | from `api.env.example`: `DATABASE_URL` (meki_app), token secrets (`openssl rand -base64 48`), origins, **all financial switches `false`** |
+| `/etc/meki/api.env` | root:meki 0640 | runtime (`node --env-file`, via PM2) | from `api.env.example`: `DATABASE_URL` (meki_app), token secrets (`openssl rand -base64 48`), origins, `LOCAL_STORAGE_DIR=/var/lib/meki/uploads` (absolute, outside releases), `WEB_REVALIDATE_URL=http://127.0.0.1:3000/api/internal/revalidate`, `MEKI_REVALIDATE_SECRET`, **all financial switches `false`** |
 | `/etc/meki/web.build.env` | root:meki 0640 | build time (`deploy.sh`) | `MEKI_DEPLOY_ENV=production`, `NEXT_PUBLIC_API_URL=https://api.meki-us.org/api/v1`, `NEXT_PUBLIC_SITE_URL=https://meki-us.org`, `NEXT_PUBLIC_CHECKOUT_ALLOWED_HOSTS=www.zeffy.com`, `NEXT_PUBLIC_GALA_TICKET_FORM_HANDOFF=false`, `NEXT_PUBLIC_GALA_DONATION_FORM_HANDOFF=false` |
-| `/etc/meki/web.env` | root:meki 0640 | runtime | `NODE_ENV=production`, `API_INTERNAL_URL=http://127.0.0.1:6666/api/v1` |
+| `/etc/meki/web.env` | root:meki 0640 | runtime | `NODE_ENV=production`, `API_INTERNAL_URL=http://127.0.0.1:8080/api/v1` (nginx loopback proxy — Node's fetch refuses port 6666 as a "bad port"), `MEKI_REVALIDATE_SECRET` (same value as in api.env) |
 | `/etc/meki/admin.build.env` | root:meki 0640 | build time | `MEKI_DEPLOY_ENV=production`, `ADMIN_API_UPSTREAM=https://api.meki-us.org` (no `/api/v1`) |
 | `/etc/meki/admin.env` | root:meki 0640 | runtime | `NODE_ENV=production` |
 
@@ -149,14 +149,24 @@ Sales stay closed.
 ## 7. Health checks after every deploy
 
 ```sh
-ss -ltnp | grep -E ':(3000|3001|6666)'                 # all on 127.0.0.1 only
+ss -ltnp | grep -E ':(3000|3001|6666|8080)'            # all on 127.0.0.1 only
 curl -fsS https://api.meki-us.org/api/v1/health
 curl -sI https://meki-us.org/en | head -1                # 200
 curl -sI http://meki-us.com/x?y=1 | grep -i location     # https://meki-us.org/x?y=1
 curl -sI https://admin.meki-us.org/en/login | head -1    # 200
 curl -s -o /dev/null -w '%{http_code}\n' -X POST https://admin.meki-us.org/api/v1/admin/auth/login -H 'content-type: application/json' -d '{}'   # 400 (validation) — NOT 404
 pm2 status && pm2 logs --lines 50 --nostream
+# CMS live publishing (docs/CMS_LIVE_PUBLISHING.md)
+curl -s -o /dev/null -w '%{http_code}
+' -X POST https://meki-us.org/api/internal/revalidate          # 404 (nginx keeps it internal)
+curl -s -o /dev/null -w '%{http_code}
+' -X POST http://127.0.0.1:3000/api/internal/revalidate -d '{}' # 401 (no secret) — 503 means the secret is missing in web.env
+curl -s -o /dev/null -w '%{http_code}
+' http://127.0.0.1:8080/api/v1/health                          # 200 (SSR proxy)
+grep -c 'LOCAL_STORAGE_DIR=/var/lib/meki/uploads' /etc/meki/api.env                                    # 1
 ```
+
+Then in the admin: edit the Hero title → **Save & publish** → the editor must say "The live website has been refreshed" and `https://meki-us.org/en` must show it on the next load. Revert the title the same way. For an uploaded image, `curl -sI "https://meki-us.org/_next/image?url=<url-encoded https://api.meki-us.org/media/uploads/...>&w=828&q=75"` must return `200` with an `image/*` content type.
 
 The last check proves the former admin login 404 is gone **on the real domain**. Record its output. Until then it is "fixed in code/config, not verified".
 

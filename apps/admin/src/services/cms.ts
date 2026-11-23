@@ -3,7 +3,7 @@
  * settings.module.ts) plus the two additive 6D endpoints (create page, delete section). No component calls the network.
  */
 import { z } from "zod";
-import { apiDelete, apiGet, apiList, apiPatch, apiPost, apiPut, type Query } from "@/lib/api";
+import { apiDelete, apiGet, apiList, apiPatch, apiPost, apiPostOutcome, apiPut, type Query } from "@/lib/api";
 import { FaqSchema, ItemWriteSchema, PageDetailSchema, PageRowSchema, SectionSchema, SiteSettingsSchema, StatisticSchema } from "@/lib/cms-schemas";
 
 const id = (s: string) => encodeURIComponent(s);
@@ -20,6 +20,23 @@ export const reorderSections = (slug: string, ids: string[]) => apiPut(`/admin/c
 export const updateSection = (sid: string, b: Body) => apiPatch(`/admin/cms/sections/${id(sid)}`, SectionSchema, b);
 export const setSectionStatus = (sid: string, publish: boolean) => apiPost(`/admin/cms/sections/${id(sid)}/${publish ? "publish" : "unpublish"}`, SectionSchema);
 export const deleteSection = (sid: string) => apiDelete(`/admin/cms/sections/${id(sid)}`);
+/** Publish / unpublish with the live-website refresh outcome (revalidated | pending | disabled). */
+export const publishSectionOutcome = (sid: string, publish: boolean) => apiPostOutcome(`/admin/cms/sections/${id(sid)}/${publish ? "publish" : "unpublish"}`, SectionSchema);
+
+// ── CMS live publishing: website cache refresh status / retry (content.read / content.publish) ──
+export const RevalidationStatusSchema = z.object({
+  enabled: z.boolean(),
+  state: z.enum(["ok", "pending", "disabled"]),
+  pendingTags: z.array(z.string()),
+  consecutiveFailures: z.number(),
+  lastSuccessAt: z.string().nullable(),
+  lastFailureAt: z.string().nullable(),
+  lastError: z.string().nullable(),
+  nextRetryAt: z.string().nullable(),
+});
+export type RevalidationStatus = z.infer<typeof RevalidationStatusSchema>;
+export const getRevalidationStatus = () => apiGet("/admin/cms/revalidation", RevalidationStatusSchema);
+export const retryRevalidation = (all = false) => apiPost(`/admin/cms/revalidation/retry${all ? "?all=true" : ""}`, RevalidationStatusSchema);
 export const createItem = (sid: string, b: Body) => apiPost(`/admin/cms/sections/${id(sid)}/items`, ItemWriteSchema, b);
 export const updateItem = (iid: string, b: Body) => apiPatch(`/admin/cms/items/${id(iid)}`, ItemWriteSchema, b);
 export const deleteItem = (iid: string) => apiDelete(`/admin/cms/items/${id(iid)}`);

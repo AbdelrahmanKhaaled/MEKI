@@ -14,11 +14,15 @@ import { ArrowDown, ArrowUp, Eye, EyeOff, Plus, Save, Trash2, Upload } from "luc
 import { Card } from "@/components/cards/Card";
 import { useLocale } from "@/components/common/Providers";
 import { CoverField } from "@/components/content/media";
-import { Bilingual, Checkbox, ContentGateNotice, ProvenanceBadge, useContentError } from "@/components/content/ui";
+import { HeroImagesField } from "@/components/cms/HeroImagesField";
+import { Bilingual, Checkbox, ContentGateNotice, ProvenanceBadge, Thumb, useContentError } from "@/components/content/ui";
 import { ConfirmDialog, DateText, Notice } from "@/components/finance/ui";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useCmsMutation } from "@/hooks/useCmsData";
 import { useForm } from "@/hooks/useForm";
+import type { RevalidationOutcome } from "@/lib/api";
+import { HERO_ALT_LABELS, HERO_SECONDARY_ITEM_CODE } from "@/lib/hero-images";
+import { liveAr, liveEn } from "@/lib/i18n-live";
 import { isDirtySection, itemsFor, listCountState, mergeLabels, nextCode, sectionPublishGate, sectionUnpublishGate, type ListRule, type SectionDef, type SectionField } from "@/lib/cms";
 import type { Section, SectionItem } from "@/lib/cms-schemas";
 import type { Media } from "@/lib/content-schemas";
@@ -37,11 +41,21 @@ function toForm(s: Section, def: SectionDef): Form {
     f[`${k}En`] = (s[`${k}En` as keyof Section] as string | null) ?? "";
     f[`${k}Ar`] = (s[`${k}Ar` as keyof Section] as string | null) ?? "";
   }
-  for (const l of def.labels) {
+  for (const l of [...def.labels, ...heroAltLabels(def)]) {
     f[`labelEn.${l}`] = s.labelsEn?.[l] ?? "";
     f[`labelAr.${l}`] = s.labelsAr?.[l] ?? "";
   }
+  if (def.heroImages) f.secondaryMedia = heroSecondaryItem(s)?.media ?? null;
   return f;
+}
+
+const heroAltLabels = (def: SectionDef) => (def.heroImages ? Object.values(HERO_ALT_LABELS) : []);
+const heroSecondaryItem = (s: Section) => s.items.find((i) => i.code === HERO_SECONDARY_ITEM_CODE);
+
+/** Message after a publish/unpublish, worded from the website's confirmed refresh outcome (never "refreshed" unless confirmed). */
+function outcomeMessage(e: typeof liveEn.editor, publish: boolean, o: RevalidationOutcome | null) {
+  if (publish) return o === "revalidated" ? e.publishedLive : o === "pending" ? e.publishedPending : e.publishedDisabled;
+  return o === "revalidated" ? e.unpublishedLive : o === "pending" ? e.unpublishedPending : e.unpublishedDisabled;
 }
 
 export function useSectionName() {
@@ -59,16 +73,20 @@ export function SectionEditor({ section, def, canManage, canPublish, anchorId }:
   const form = useForm<Form>(toForm(section, def));
   const v = form.values;
   const [message, setMessage] = useState<string | null>(null);
-  const [dialog, setDialog] = useState<null | "publish" | "unpublish">(null);
+  const [dialog, setDialog] = useState<null | "publish" | "unpublish" | "savePublish">(null);
+  const live = (locale === "ar" ? liveAr : liveEn).editor;
   const [preview, setPreview] = useState(false);
   const label = (f: string) => t.cms.fieldOverrides[`${section.key}.${f}`] ?? t.cms.fields[f] ?? f;
 
-  const save = useCmsMutation(async () => {
+  /** Saves the changed fields (working copy only — nothing becomes public). The Hero secondary image is its own item. */
+  const saveChanges = async () => {
     const body: Record<string, unknown> = {};
+    let secondary: { mediaId: string | null } | null = null;
     const labelEditsEn: Record<string, string> = {};
     const labelEditsAr: Record<string, string> = {};
     for (const k of form.dirty) {
-      if (k === "media") body.mediaId = (v.media as Media | null)?.id ?? null;
+      if (k === "secondaryMedia") secondary = { mediaId: (v.secondaryMedia as Media | null)?.id ?? null };
+      else if (k === "media") body.mediaId = (v.media as Media | null)?.id ?? null;
       else if (k === "isVisible") body.isVisible = v.isVisible;
       else if (k.startsWith("labelEn.")) labelEditsEn[k.slice(8)] = v[k] as string;
       else if (k.startsWith("labelAr.")) labelEditsAr[k.slice(8)] = v[k] as string;
@@ -76,13 +94,25 @@ export function SectionEditor({ section, def, canManage, canPublish, anchorId }:
     }
     if (Object.keys(labelEditsEn).length) body.labelsEn = mergeLabels(section.labelsEn, labelEditsEn);
     if (Object.keys(labelEditsAr).length) body.labelsAr = mergeLabels(section.labelsAr, labelEditsAr);
+    if (secondary) {
+      const item = heroSecondaryItem(section);
+      if (item) await svc.updateItem(item.id, { ...secondary, isVisible: true });
+      else if (secondary.mediaId) await svc.createItem(section.id, { code: HERO_SECONDARY_ITEM_CODE, mediaId: secondary.mediaId, isVisible: true, titleEn: "", provenance: "PROPOSED" });
+    }
+    // PATCH even when only the secondary image changed: returns the refreshed section (with its items)
     return svc.updateSection(section.id, body);
+  };
+  const save = useCmsMutation(saveChanges);
+  /** Save & publish (publishers only): one deliberate action. The API still checks content.manage AND content.publish. */
+  const savePublish = useCmsMutation(async () => {
+    if (form.dirty.length) await saveChanges();
+    return svc.publishSectionOutcome(section.id, true);
   });
-  const toggle = useCmsMutation((publish: boolean) => svc.setSectionStatus(section.id, publish));
+  const toggle = useCmsMutation((publish: boolean) => svc.publishSectionOutcome(section.id, publish));
   const pubG = sectionPublishGate(section, canPublish);
   const unpubG = sectionUnpublishGate(section, canPublish);
-  const unknownLabels = Object.keys(section.labelsEn ?? {}).filter((k) => !def.labels.includes(k));
-  const close = () => { toggle.reset(); setDialog(null); };
+  const unknownLabels = Object.keys(section.labelsEn ?? {}).filter((k) => !def.labels.includes(k) && !heroAltLabels(def).includes(k));
+  const close = () => { toggle.reset(); savePublish.reset(); setDialog(null); };
 
   return (
     <Card id={anchorId} labelledBy={`sec-${section.id}`} className="scroll-mt-24">
@@ -114,6 +144,18 @@ export function SectionEditor({ section, def, canManage, canPublish, anchorId }:
           <Bilingual key={f} label={label(f)} en={v[`${f}En`] as string} ar={v[`${f}Ar`] as string} onEn={(s) => form.set(`${f}En`, s)} onAr={(s) => form.set(`${f}Ar`, s)} multiline={f === "body"} rows={f === "body" ? 4 : undefined} disabled={!canManage} />
         ))}
         {def.fields.includes("media") && <CoverField media={v.media as Media | null} onChange={(m) => form.set("media", m)} disabled={!canManage || !can("media.read")} />}
+        {def.heroImages && (
+          <HeroImagesField
+            main={{ media: v.media as Media | null, altEn: v[`labelEn.${HERO_ALT_LABELS.main}`] as string, altAr: v[`labelAr.${HERO_ALT_LABELS.main}`] as string }}
+            secondary={{ media: v.secondaryMedia as Media | null, altEn: v[`labelEn.${HERO_ALT_LABELS.secondary}`] as string, altAr: v[`labelAr.${HERO_ALT_LABELS.secondary}`] as string }}
+            onChange={(slot, p) => {
+              if (p.media !== undefined) form.set(slot === "main" ? "media" : "secondaryMedia", p.media);
+              if (p.altEn !== undefined) form.set(`labelEn.${HERO_ALT_LABELS[slot]}`, p.altEn);
+              if (p.altAr !== undefined) form.set(`labelAr.${HERO_ALT_LABELS[slot]}`, p.altAr);
+            }}
+            disabled={!canManage || !can("media.read")}
+          />
+        )}
         {def.labels.length > 0 && (
           <details className="rounded-xl border border-line p-4" open={def.labels.length <= 3}>
             <summary className="cursor-pointer text-sm font-bold text-ink">{c.labels} ({def.labels.length})</summary>
@@ -133,13 +175,19 @@ export function SectionEditor({ section, def, canManage, canPublish, anchorId }:
         {canManage && (form.dirty.length > 0 || message || save.isError) && (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-bg p-3" role="region" aria-label={`${t.content.common.save} — ${name}`}>
             <span className="text-sm" aria-live="polite">
-              {save.isError ? <span className="text-danger" role="alert">{errText(save.error)}</span> : form.dirty.length ? <span className="font-bold text-warn">{fill(t.content.common.unsaved, { n: form.dirty.length })}</span> : <span className="text-ok">{message}</span>}
+              {save.isError ? <span className="text-danger" role="alert">{errText(save.error)}</span> : form.dirty.length ? <span className="font-bold text-warn">{fill(t.content.common.unsaved, { n: form.dirty.length })}</span> : <span className="text-ok" data-testid="section-message">{message}</span>}
+              {form.dirty.length > 0 && !canPublish && <span className="block text-xs text-muted">{live.draftOnly}</span>}
             </span>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button type="button" className="btn-admin btn-ghost !min-h-9" disabled={!form.dirty.length || save.isPending} onClick={form.discard}>{t.content.common.discard}</button>
-              <button type="button" className="btn-admin btn-primary !min-h-9" disabled={!form.dirty.length || save.isPending} onClick={() => { setMessage(null); save.mutate(undefined, { onSuccess: (s) => { form.reset(toForm(s, def)); setMessage(t.content.common.saved); } }); }}>
+              <button type="button" className={`btn-admin !min-h-9 ${canPublish ? "btn-ghost" : "btn-primary"}`} disabled={!form.dirty.length || save.isPending || savePublish.isPending} onClick={() => { setMessage(null); save.mutate(undefined, { onSuccess: (s) => { form.reset(toForm(s, def)); setMessage(live.savedDraft); } }); }} data-testid="section-save">
                 <Save className="size-4" aria-hidden="true" /> {save.isPending ? t.content.common.saving : t.content.common.save}
               </button>
+              {canPublish && (
+                <button type="button" className="btn-admin btn-primary !min-h-9" disabled={!form.dirty.length || !pubG.allowed || save.isPending || savePublish.isPending} onClick={() => { setMessage(null); setDialog("savePublish"); }} data-testid="section-save-publish">
+                  <Upload className="size-4" aria-hidden="true" /> {live.savePublish}
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -159,7 +207,20 @@ export function SectionEditor({ section, def, canManage, canPublish, anchorId }:
         )}
       </div>
 
-      {dialog && (
+      {dialog === "savePublish" && (
+        <ConfirmDialog
+          open
+          title={fill(live.savePublishTitle, { name })}
+          confirmLabel={live.savePublish}
+          busy={savePublish.isPending}
+          error={savePublish.isError ? errText(savePublish.error) : null}
+          onClose={close}
+          onConfirm={() => savePublish.mutate(undefined, { onSuccess: (r) => { form.reset(toForm(r.data, def)); setMessage(outcomeMessage(live, true, r.revalidation)); close(); } })}
+        >
+          <p>{live.savePublishBody}</p>
+        </ConfirmDialog>
+      )}
+      {(dialog === "publish" || dialog === "unpublish") && (
         <ConfirmDialog
           open
           title={fill(dialog === "publish" ? c.publishTitle : c.unpublishTitle, { name })}
@@ -167,7 +228,7 @@ export function SectionEditor({ section, def, canManage, canPublish, anchorId }:
           busy={toggle.isPending}
           error={toggle.isError ? errText(toggle.error) : null}
           onClose={close}
-          onConfirm={() => toggle.mutate(dialog === "publish", { onSuccess: close })}
+          onConfirm={() => { const publish = dialog === "publish"; toggle.mutate(publish, { onSuccess: (r) => { setMessage(outcomeMessage(live, publish, r.revalidation)); close(); } }); }}
         >
           <p>{dialog === "publish" ? c.publishBody : c.unpublishBody}</p>
         </ConfirmDialog>
@@ -312,8 +373,38 @@ export function ContentPreview({ section, def }: { section: Section; def: Sectio
         <div><p className="mb-2 text-xs font-bold text-warn">{c.previewDraft}</p>{render(draft)}</div>
         <div><p className="mb-2 text-xs font-bold text-ok">{c.previewLive}</p>{render(live)}</div>
       </div>
+      {def.heroImages && <HeroImagesPreview section={section} live={live} />}
       {section.updatedAt && <p className="mt-3 text-xs text-muted">{t.content.common.updated}: <DateText value={section.updatedAt} /></p>}
     </div>
   );
 }
 
+
+/** Hero images in the preview: the DRAFT images (admin-only preview) and whether each matches what visitors see now. */
+function HeroImagesPreview({ section, live }: { section: Section; live: Snap | null }) {
+  const { locale } = useLocale();
+  const x = (locale === "ar" ? liveAr : liveEn).hero;
+  const liveMain = (live?.media as { id?: string } | null | undefined)?.id ?? null;
+  const liveSecond = ((live?.items ?? []).find((i) => i.code === HERO_SECONDARY_ITEM_CODE)?.media as { id?: string } | null | undefined)?.id ?? null;
+  const draftSecond = heroSecondaryItem(section);
+  const rows = [
+    { label: x.main, media: section.media as Media | null, same: (section.media?.id ?? null) === liveMain, round: "rounded-t-full" },
+    { label: x.secondary, media: (draftSecond?.isVisible ? draftSecond.media : null) as Media | null, same: ((draftSecond?.isVisible ? draftSecond.media?.id : null) ?? null) === liveSecond, round: "rounded-full" },
+  ];
+  return (
+    <div className="mt-4 border-t border-line pt-3" data-testid="hero-images-preview">
+      <p className="mb-2 text-xs font-bold text-warn">{x.previewDraft}</p>
+      <div className="flex flex-wrap gap-4">
+        {rows.map((r) => (
+          <figure key={r.label} className="flex items-center gap-3">
+            {r.media ? <Thumb media={r.media} className={`size-16 ${r.round}`} /> : <span className={`grid size-16 place-items-center border border-dashed border-line bg-white p-1 text-center text-[0.6rem] text-muted ${r.round}`}>{x.defaultImage}</span>}
+            <figcaption className="text-xs">
+              <span className="block font-bold text-ink">{r.label}</span>
+              <span className={r.same ? "text-ok" : "text-warn"}>{r.same ? x.previewSameLive : x.previewDiffers}</span>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  );
+}

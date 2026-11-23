@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/common/States";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { AccountGate } from "@/features/account/AccountGate";
+import { LiveSiteNotice } from "@/features/live/LiveSiteNotice";
 
 const COLLAPSE_KEY = "meki-admin:sidebar-collapsed"; // a UI preference only, nothing sensitive
 
@@ -68,6 +69,7 @@ export function AppShell({ crumbs, children }: { crumbs: { label: string; href?:
         <main id="content" className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6">
           <AccountGate>{children}</AccountGate>
         </main>
+        <LiveSiteNotice />
       </div>
     </div>
   );

@@ -33,6 +33,20 @@ export const onUnauthorized = (fn: () => void) => {
   return () => void unauthorizedListeners.delete(fn);
 };
 
+/**
+ * CMS live publishing: after a successful content mutation the API reports whether the public website confirmed its cache
+ * refresh (X-Meki-Revalidation: revalidated | pending | disabled). Listeners (the live-website notice) are told every outcome.
+ */
+export type RevalidationOutcome = "revalidated" | "pending" | "disabled";
+const revalidationListeners = new Set<(o: RevalidationOutcome) => void>();
+export const onRevalidation = (fn: (o: RevalidationOutcome) => void) => {
+  revalidationListeners.add(fn);
+  return () => void revalidationListeners.delete(fn);
+};
+export function readRevalidation(header: string | null): RevalidationOutcome | null {
+  return header === "revalidated" || header === "pending" || header === "disabled" ? header : null;
+}
+
 export type Query = Record<string, string | number | boolean | undefined | null>;
 
 const qs = (q?: Query) => {
@@ -71,7 +85,11 @@ async function refreshCsrfToken() {
   if (res.ok && json?.data?.csrfToken) csrfToken = json.data.csrfToken;
 }
 
-async function request(method: Method, path: string, opts: { query?: Query; body?: unknown } = {}, retried = false): Promise<unknown> {
+async function request(method: Method, path: string, opts: { query?: Query; body?: unknown } = {}): Promise<unknown> {
+  return (await requestFull(method, path, opts)).json;
+}
+
+async function requestFull(method: Method, path: string, opts: { query?: Query; body?: unknown } = {}, retried = false): Promise<{ json: unknown; revalidation: RevalidationOutcome | null }> {
   const headers: Record<string, string> = { Accept: "application/json" };
   if (opts.body !== undefined) headers["Content-Type"] = "application/json";
   if (method !== "GET" && csrfToken) headers["X-CSRF-Token"] = csrfToken;
@@ -100,11 +118,13 @@ async function request(method: Method, path: string, opts: { query?: Query; body
     const err = toError(res.status, json, path);
     if (method !== "GET" && !retried && err.status === 403 && err.code === "CSRF_INVALID") {
       await refreshCsrfToken();
-      return request(method, path, opts, true);
+      return requestFull(method, path, opts, true);
     }
     throw err;
   }
-  return json;
+  const revalidation = method === "GET" ? null : readRevalidation(res.headers.get("X-Meki-Revalidation"));
+  if (revalidation) revalidationListeners.forEach((f) => f(revalidation));
+  return { json, revalidation };
 }
 
 /** GET + validate `data` against a schema. A response that does not match is an error, never rendered. */
@@ -137,6 +157,14 @@ async function send<T>(method: "POST" | "PATCH" | "PUT", path: string, schema: Z
 }
 
 export const apiPost = <T>(path: string, schema: ZodType<T>, body?: unknown) => send("POST", path, schema, body);
+
+/** POST that also returns the live-website refresh outcome (publish / unpublish actions). */
+export async function apiPostOutcome<T>(path: string, schema: ZodType<T>, body?: unknown): Promise<{ data: T; revalidation: RevalidationOutcome | null }> {
+  const { json, revalidation } = await requestFull("POST", path, { body: body ?? {} });
+  const parsed = schema.safeParse((json as Envelope<unknown> | null)?.data);
+  if (!parsed.success) throw new ApiError("INVALID_RESPONSE", 502);
+  return { data: parsed.data, revalidation };
+}
 export const apiPatch = <T>(path: string, schema: ZodType<T>, body: unknown) => send("PATCH", path, schema, body);
 export const apiPut = <T>(path: string, schema: ZodType<T>, body: unknown) => send("PUT", path, schema, body);
 

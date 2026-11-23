@@ -74,6 +74,12 @@ export const en = {
     ctaSecondary: "Explore Our Programs",
     photoCaption: "Luxor · WASH program", // [P] caption from source folder; confirm with MEKI
     scroll: "Scroll",
+    // Hero images: curated defaults; the CMS (Homepage → Hero) may replace them with published Media Library images.
+    // Empty alt = decorative (the headline carries the meaning); editors may add EN/AR alt text in the CMS.
+    image: "hero-field" as MediaRef,
+    imageAlt: "",
+    secondaryImage: "water-pier" as MediaRef,
+    secondaryImageAlt: "",
   },
   galaBanner: {
     eyebrow: "MEKI Gala Night",

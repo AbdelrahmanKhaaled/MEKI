@@ -5,9 +5,11 @@ import { MediaIdsDto } from '../../common/dto/shared.dto';
 import type { ActorContext } from '../../common/types/auth-request';
 import { CreateProgrammeDto, CreateProjectDto, ProgrammeQueryDto, ProjectQueryDto, UpdateProgrammeDto, UpdateProjectDto } from './programmes.dto';
 import { ProgrammesService } from './programmes.service';
+import { RevalidatesPublic } from '../revalidation/revalidation.module';
 
 @ApiTags('Admin · Programmes')
 @ApiCookieAuth()
+@RevalidatesPublic('programmes')
 @Controller('admin')
 export class ProgrammesController {
   constructor(private readonly programmes: ProgrammesService) {}

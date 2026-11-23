@@ -44,6 +44,10 @@ export const ar: Dict = {
     ctaSecondary: "استكشف برامجنا",
     photoCaption: "الأقصر · برنامج المياه والصرف الصحي",
     scroll: "مرّر",
+    image: "hero-field",
+    imageAlt: "",
+    secondaryImage: "water-pier",
+    secondaryImageAlt: "",
   },
   galaBanner: {
     eyebrow: "أمسية MEKI الخيرية",

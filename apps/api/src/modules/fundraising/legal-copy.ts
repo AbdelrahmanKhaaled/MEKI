@@ -8,6 +8,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { D } from '../donations/money';
 import { SafeIdPipe } from '../gala/gala-support';
+import { RevalidatesPublic } from '../revalidation/revalidation.module';
 
 /**
  * November 19 2026 client update — approval-gated legal copy for the Gala (ticket purchase disclosure, ticket receipt wording,
@@ -157,6 +158,7 @@ export class LegalCopyService {
 
 @ApiTags('Admin · Gala legal copy')
 @ApiCookieAuth()
+@RevalidatesPublic('events')
 @Controller('admin/events/:eventId/legal-copy')
 export class AdminLegalCopyController {
   constructor(private readonly svc: LegalCopyService) {}

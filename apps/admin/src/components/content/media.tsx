@@ -125,10 +125,10 @@ export function Uploader({ onUploaded, defaultCategory = "OTHER", compact = fals
 
 // ───────────── picker ─────────────
 
-export function MediaPicker({ open, mode, initial, onClose, onConfirm, defaultCategory }: { open: boolean; mode: "single" | "multi"; initial: Media[]; onClose: () => void; onConfirm: (m: Media[]) => void; defaultCategory?: string }) {
+export function MediaPicker({ open, mode, initial, onClose, onConfirm, defaultCategory, initialTab = "browse" }: { open: boolean; mode: "single" | "multi"; initial: Media[]; onClose: () => void; onConfirm: (m: Media[]) => void; defaultCategory?: string; initialTab?: "browse" | "upload" }) {
   const { t } = useLocale();
   const x = t.content.media;
-  const [tab, setTab] = useState<"browse" | "upload">("browse");
+  const [tab, setTab] = useState<"browse" | "upload">(initialTab);
   const [selected, setSelected] = useState<Media[]>(initial);
   const [q, setQ] = useState({ search: "", category: "", provenance: "", page: 1 });
   const list = useMediaList({ search: q.search || undefined, category: q.category || undefined, provenance: q.provenance || undefined, page: q.page, pageSize: 24, sort: "createdAt:desc" }, open);

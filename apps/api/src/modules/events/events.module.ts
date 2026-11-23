@@ -16,9 +16,11 @@ import {
   UpdateEventDto,
 } from './events.dto';
 import { EventsService } from './events.service';
+import { RevalidatesPublic } from '../revalidation/revalidation.module';
 
 @ApiTags('Admin · Events')
 @ApiCookieAuth()
+@RevalidatesPublic('events')
 @Controller('admin/events')
 export class EventsAdminController {
   constructor(private readonly events: EventsService) {}

@@ -1,6 +1,60 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/v1/admin/cms/revalidation": {
+      "get": {
+        "operationId": "RevalidationController_status_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Live-website refresh status: ok | pending (with the pending cache tags and last error code) | disabled",
+        "tags": [
+          "Admin · CMS"
+        ]
+      }
+    },
+    "/api/v1/admin/cms/revalidation/retry": {
+      "post": {
+        "operationId": "RevalidationController_retry_v1",
+        "parameters": [
+          {
+            "name": "all",
+            "required": false,
+            "in": "query",
+            "description": "true = refresh every public page, not only what is pending",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "Retry the pending website refresh now (no republish needed); ?all=true refreshes every public page",
+        "tags": [
+          "Admin · CMS"
+        ]
+      }
+    },
     "/api/v1/admin/audit-logs": {
       "get": {
         "operationId": "AuditController_list_v1",

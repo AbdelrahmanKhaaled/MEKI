@@ -5,9 +5,11 @@ import { MediaIdsDto } from '../../common/dto/shared.dto';
 import type { ActorContext } from '../../common/types/auth-request';
 import { ApproveCampaignDto, CampaignQueryDto, CreateCampaignDto, DonationsOpenDto, UpdateCampaignDto } from './campaigns.dto';
 import { CampaignsService } from './campaigns.service';
+import { RevalidatesPublic } from '../revalidation/revalidation.module';
 
 @ApiTags('Admin · Campaigns')
 @ApiCookieAuth()
+@RevalidatesPublic('campaigns')
 @Controller('admin/campaigns')
 export class CampaignsController {
   constructor(private readonly campaigns: CampaignsService) {}
