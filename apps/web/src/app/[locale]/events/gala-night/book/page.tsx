@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getDict, isLocale } from "@/lib/i18n";
+import { isLocale } from "@/lib/i18n";
 import { getBookingCopy } from "@/content/booking";
 import type { PublicEventFundraising } from "@meki/api-client";
 import { fetchPublicContent } from "@/lib/api";
+import { Footer } from "@/components/sections/FinalFooter";
+import { getPageContent } from "@/lib/content";
 import { DonateProvider } from "@/components/DonateProvider";
 import { Header } from "@/components/Header";
 import { PreviewNote } from "@/components/PreviewNote";
@@ -24,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function GalaBookPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const t = getDict(locale);
+  const { t } = await getPageContent(locale);
   const c = getBookingCopy(locale);
   // Nov 19 2026: the SDI-approved ticket purchase disclosure (exact wording), shown before the buyer opens SDI's form.
   const fr = await fetchPublicContent<PublicEventFundraising>(`/public/events/gala-night/fundraising?locale=${locale}`);
@@ -45,6 +47,7 @@ export default async function GalaBookPage({ params }: { params: Promise<{ local
           <BookingFlow locale={locale} disclosure={fr?.disclosures?.ticketPurchase ?? null} officialFormUrl={ticketHandoffUrl()} />
         </div>
       </main>
+      <Footer t={t} />
       <PreviewNote text={t.previewBar} extra={t.draftTranslation || undefined} closeLabel={t.dialog.close} />
     </DonateProvider>
   );

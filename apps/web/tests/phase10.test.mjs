@@ -32,7 +32,7 @@ test("transactional pages give the transparent header a dark surface (white link
 test("Gala page: the ticket price comes from the published ticketing API (same value the booking flow charges), brief text as fallback", () => {
   const page = src("app/[locale]/events/gala-night/page.tsx");
   assert.match(page, /ticketing\?\.ticket\?\.price/);
-  assert.match(page, /<GalaAttendance g=\{g\} price=\{apiPrice\} \/>/);
+  assert.match(page, /<GalaAttendance g=\{g\} price=\{apiPrice\}/);
   assert.match(src("components/gala/GalaSections.tsx"), /\{price \?\? a\.price\}/);
 });
 
@@ -46,7 +46,9 @@ test("Gala page still never opens sales by itself and never invents causes", () 
 
 test("decorative motion is hidden from assistive technology", () => {
   const gala = src("components/gala/GalaSections.tsx");
-  assert.match(gala, /function LampField[\s\S]*?<div aria-hidden="true"/);
+  // MEKI client edits (22 Nov 2026, Gala item 14): the lamp fields, particles and glowing dots were removed from the Gala page.
+  assert.doesNotMatch(gala, /LampField|PointsOfLight|p10-lamp|p10-travel/);
+  assert.match(gala, /aria-hidden="true"/);
   assert.match(src("components/pages/FlowBand.tsx"), /aria-hidden="true"/);
   const hero = src("components/pages/PageShell.tsx");
   assert.match(hero, /layout\?: "arch" \| "backdrop" \| "mosaic" \| "plain"/);

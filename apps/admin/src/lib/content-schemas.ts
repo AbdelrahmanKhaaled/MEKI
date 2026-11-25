@@ -105,6 +105,16 @@ export const ProgrammeSchema = z.object({
   descriptionAr: strN,
   focusAreasEn: z.array(z.string()).nullable(),
   focusAreasAr: z.array(z.string()).nullable(),
+  /** MEKI client edits (25 Nov 2026) — optional so an older API build still parses */
+  focusAreaDetailsEn: z.array(z.string()).nullable().optional(),
+  focusAreaDetailsAr: z.array(z.string()).nullable().optional(),
+  pageTitleEn: strN.optional(),
+  pageTitleAr: strN.optional(),
+  /** MEKI client edits (22 Nov 2026) — optional so an older API build still parses */
+  summaryEn: strN.optional(),
+  summaryAr: strN.optional(),
+  outcomesEn: z.array(z.string()).nullable().optional(),
+  outcomesAr: z.array(z.string()).nullable().optional(),
   icon: strN,
   coverMediaId: strN,
   coverMedia: MediaSchema.nullable(),

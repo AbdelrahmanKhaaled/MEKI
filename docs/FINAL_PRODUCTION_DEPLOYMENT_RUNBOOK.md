@@ -110,16 +110,17 @@ sudo certbot renew --dry-run
    ```sh
    sudo -iu meki
    export MEKI_REPO_URL=https://github.com/<owner>/<repo>.git    # no credentials in the URL
-   /srv/meki/current/deploy/vps/deploy.sh <tag-or-sha>   # first time: run the script from a manual `git archive` checkout
+   bash /path/to/reviewed-checkout/deploy/vps/deploy.sh <tag-or-sha>   # use the deployment script from the target revision
    ```
 
    `deploy.sh` does the following:
    - fetches into a bare mirror and exports the exact commit into `/srv/meki/releases/<ts>`;
    - runs `pnpm install --frozen-lockfile`;
    - builds the API, then web and admin with their build env files;
-   - switches the `current` symlink atomically, then runs `pm2 startOrReload` and `pm2 save`.
+   - checks migration status using the runtime connection. A pending migration or a failed check leaves the current release serving traffic;
+   - on a successful check, switches the `current` symlink atomically, then runs `pm2 startOrReload` and `pm2 save`.
 
-   It **never** touches the database.
+   The status check reads migration history. Migration deployment uses the separate migrator account.
 
 **Migrations** — a separate, reviewed step before the switch (or immediately after the first build):
 1. Read every new `apps/api/prisma/migrations/*/migration.sql`. They must be additive; none in this release contains `DROP`.
@@ -129,10 +130,16 @@ sudo certbot renew --dry-run
    ```sh
    cd /srv/meki/releases/<ts>/apps/api
    read -rs MIGRATOR_PW; export DATABASE_URL="mysql://meki_migrator:${MIGRATOR_PW}@127.0.0.1:3306/meki?allowPublicKeyRetrieval=true"
-   pnpm exec prisma migrate status && pnpm exec prisma migrate deploy
+   pnpm exec prisma migrate status
+   # Pending reviewed migrations produce a nonzero status. Resolve connection errors, failures or divergent history before proceeding.
+   # Only after confirming the expected pending list and a verified backup:
+   pnpm exec prisma migrate deploy
+   pnpm exec prisma migrate status
    pnpm db:seed          # first install only; create-only, never modifies rows; 0 published campaigns, 0 transactions
    unset DATABASE_URL MIGRATOR_PW
    ```
+
+   After a paused deployment, activate the same built release as `meki` with `bash /srv/meki/releases/<ts>/deploy/vps/switch.sh /srv/meki/releases/<ts>`. This repeats the status check before switching.
 
 **First run:**
 - `pm2 startup systemd -u meki --hp /srv/meki` (run the printed command as root), then `pm2 save`.
@@ -185,7 +192,7 @@ This never marks payments as paid. Reconciliation stays SDI report or manual evi
 
 ## 9. Rollback
 
-- **Code:** `deploy/vps/rollback.sh /srv/meki/releases/<previous>`. The database is untouched, and migrations are additive.
+- **Code:** `bash deploy/vps/rollback.sh /srv/meki/releases/<previous>`. The database is untouched, and migrations are additive.
 - **Data:** restore into a **new** database only (docs/54 §6). Never drop.
 - **Config:** restore `/etc/meki/*.env` from the operator's secure copy, then `pm2 reload all --update-env`.
 

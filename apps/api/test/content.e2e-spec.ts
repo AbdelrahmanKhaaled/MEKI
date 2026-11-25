@@ -75,8 +75,8 @@ describe('CMS, programmes, statistics, FAQ, settings', () => {
       const keys = res.body.data.page.sections.map((s: { key: string }) => s.key);
       expect(keys).toEqual(expect.arrayContaining(['HERO', 'ABOUT', 'VISION_MISSION', 'HOW_WE_WORK', 'IMPACT', 'PROGRAMMES', 'CAMPAIGNS', 'GALLERY', 'FAQ', 'FOOTER']));
       const hero = res.body.data.page.sections.find((s: { key: string }) => s.key === 'HERO');
-      expect(hero.title).toBe('Lasting change,');
-      expect(hero.media.url).toMatch(/\/images\/work\/hero-field\.webp$/);
+      expect(hero.title).toBe('Lasting Change,'); // approved brand tagline "Lasting Change, Built Together." (apps/web/src/content/en.ts)
+      expect(hero.media.url).toMatch(/\/images\/work\/hero-family\.webp$/);
       expect(res.body.data.programmes.filter((p: { kind: string }) => p.kind === 'PROGRAMME')).toHaveLength(9);
       expect(res.body.data.site.contactEmail).toBeNull();
       expect(res.body.data.donation.paymentsEnabled).toBe(false);

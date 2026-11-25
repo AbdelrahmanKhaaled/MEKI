@@ -92,6 +92,14 @@ export interface PublicProgramme extends Localized {
   mandate: string | null;
   description: string | null;
   focusAreas: string[] | null;
+  /** MEKI client edits (22 Nov 2026): two short sentences under the italic line (null until set for this programme). */
+  summary?: string | null;
+  /** MEKI client edits (22 Nov 2026): "The change we aim for" lines (null until set). */
+  outcomes?: string[] | null;
+  /** MEKI client edits (25 Nov 2026): description of each focus area, same order as focusAreas ("Areas of work"). */
+  focusAreaDetails?: string[] | null;
+  /** MEKI client edits (25 Nov 2026): page title when it differs from the card name. */
+  pageTitle?: string | null;
   icon: string | null;
   isFeatured: boolean;
   sortOrder: number;

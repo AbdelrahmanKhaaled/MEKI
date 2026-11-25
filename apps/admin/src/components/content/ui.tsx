@@ -5,7 +5,7 @@
  * forms are new because 6A/6B had none beyond dialogs.
  */
 import { useEffect, useId, useState, type ReactNode } from "react";
-import { BadgeCheck, CheckCircle2, CircleDashed, FlaskConical, ImageOff, Lock, PencilRuler, Save, Undo2 } from "lucide-react";
+import { BadgeCheck, CheckCircle2, CircleDashed, FileText, FlaskConical, ImageOff, Lock, PencilRuler, Save, Undo2 } from "lucide-react";
 import { useLocale } from "@/components/common/Providers";
 import { Notice } from "@/components/finance/ui";
 import { ApiError } from "@/lib/api";
@@ -220,6 +220,15 @@ export function Thumb({ media, alt, className = "size-14" }: { media: { storageD
   // a preview that cannot load (curated website images are served by the public site; a consent-restricted file) shows the
   // neutral placeholder instead of a broken image
   const [failed, setFailed] = useState<string | null>(null);
+  if (media && /\.pdf$/i.test(media.storageKey)) {
+    // a PDF document (24 Nov 2026): document icon instead of an image preview
+    return (
+      <span className={`grid shrink-0 place-items-center rounded-lg border border-line bg-bg text-meki-green ${className}`} title={media.storageKey.split("/").pop() ?? ""}>
+        <FileText className="size-5" aria-hidden="true" />
+        <span className="sr-only">PDF</span>
+      </span>
+    );
+  }
   if (!media || !src || failed === src) {
     return (
       <span className={`grid shrink-0 place-items-center rounded-lg border border-dashed border-line bg-bg text-muted ${className}`} aria-hidden="true" title={media ? (media.storageKey.split("/").pop() ?? "") : undefined}>

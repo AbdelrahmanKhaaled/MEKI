@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getDict, isLocale } from "@/lib/i18n";
+import { isLocale } from "@/lib/i18n";
 import { DONATION_REFERENCE } from "@/lib/giving";
 import { getGivingCopy } from "@/content/giving";
+import { Footer } from "@/components/sections/FinalFooter";
+import { getPageContent } from "@/lib/content";
 import { DonateProvider } from "@/components/DonateProvider";
 import { Header } from "@/components/Header";
 import { PreviewNote } from "@/components/PreviewNote";
@@ -22,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function GiftStatusPage({ params }: { params: Promise<{ locale: string; reference: string }> }) {
   const { locale, reference } = await params;
   if (!isLocale(locale) || !DONATION_REFERENCE.test(reference)) notFound();
-  const t = getDict(locale);
+  const { t } = await getPageContent(locale);
   const s = getGivingCopy(locale).status;
   return (
     <DonateProvider t={t} locale={locale}>
@@ -39,6 +41,7 @@ export default async function GiftStatusPage({ params }: { params: Promise<{ loc
           <IntentStatus locale={locale} reference={reference} />
         </div>
       </main>
+      <Footer t={t} />
       <PreviewNote text={t.previewBar} extra={t.draftTranslation || undefined} closeLabel={t.dialog.close} />
     </DonateProvider>
   );

@@ -2,10 +2,15 @@
 export type VenuePhoto = { src: string; alt: string; title: string; place?: string; w?: number | null; h?: number | null };
 
 /** Minimal slice of GET /public/events/:slug/page (localized; published, visible, non-DEMO sections only). */
+type PublicMediaSlice = { url?: string; alt?: string | null; width?: number | null; height?: number | null } | null;
 export type PublicEventPage = {
   sections?: {
     key?: string;
-    items?: { title?: string | null; text?: string | null; provenance?: string; media?: { url?: string; alt?: string | null; width?: number | null; height?: number | null } | null }[];
+    provenance?: string;
+    media?: PublicMediaSlice;
+    ctaPrimaryLabel?: string | null;
+    ctaPrimaryHref?: string | null;
+    items?: { code?: string | null; title?: string | null; text?: string | null; href?: string | null; provenance?: string; media?: PublicMediaSlice }[];
   }[];
 };
 

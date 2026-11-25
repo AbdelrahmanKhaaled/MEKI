@@ -65,7 +65,7 @@ export const STAT_META = [
 
 /** Landing page images and which section/caption they serve. */
 export const SECTION_MEDIA: Partial<Record<string, string>> = {
-  HERO: 'hero-field',
+  HERO: 'hero-family', // approved "Home P" family / community-school photo (client delivery 24 Nov 2026); replaces the older hero-field photo
   ABOUT: 'weaver',
   IMPACT: 'water-pump',
   WHY: 'greenhouse',

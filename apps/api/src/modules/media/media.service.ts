@@ -16,7 +16,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import type { ActorContext } from '../../common/types/auth-request';
 import { defined, Paginated, parseSort } from '../../common/utils';
-import { ALLOWED_IMAGE_TYPES, detectImageMime, sanitizeFilename } from './media.validation';
+import { ALLOWED_DOCUMENT_TYPES, ALLOWED_IMAGE_TYPES, detectDocumentMime, detectImageMime, sanitizeFilename, type AllowedMime } from './media.validation';
 import { STORAGE_DRIVER, type StoragePort } from './storage/storage';
 import type { MediaMetadataDto, MediaQueryDto } from './media.dto';
 
@@ -67,13 +67,17 @@ export class MediaService {
   async upload(file: Express.Multer.File | undefined, meta: MediaMetadataDto, actor: ActorContext) {
     if (!file?.buffer?.length) throw new BadRequestException('A file field named "file" is required');
     if (file.size > this.maxBytes) throw new PayloadTooLargeException(`File exceeds ${this.config.get('MEDIA_MAX_UPLOAD_MB')} MB`);
-    const mime = detectImageMime(file.buffer);
-    if (!mime) throw new UnsupportedMediaTypeException('Only JPEG, PNG and WebP images are accepted');
+    const docMime = detectDocumentMime(file.buffer);
+    const mime = detectImageMime(file.buffer) ?? docMime;
+    if (!mime) throw new UnsupportedMediaTypeException('Only JPEG, PNG and WebP images or PDF documents are accepted');
 
     let body: Buffer;
     let width: number | undefined;
     let height: number | undefined;
-    try {
+    if (docMime) {
+      // PDF: stored unmodified (no re-encoding); no dimensions.
+      body = file.buffer;
+    } else try {
       const img = sharp(file.buffer, { limitInputPixels: MAX_PIXELS, failOn: 'error' });
       // Re-encode: applies EXIF orientation, strips EXIF/GPS/XMP metadata, rejects malformed files.
       const encoded = img.rotate();
@@ -97,7 +101,8 @@ export class MediaService {
 
     const now = new Date();
     const id = randomBytes(12).toString('hex'); // 96-bit CSPRNG, unguessable storage key
-    const key = `uploads/${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, '0')}/${id}.${ALLOWED_IMAGE_TYPES[mime]}`;
+    const ext = docMime ? ALLOWED_DOCUMENT_TYPES[docMime] : ALLOWED_IMAGE_TYPES[mime as AllowedMime];
+    const key = `uploads/${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, '0')}/${id}.${ext}`;
     await this.storage.put(key, body, mime);
 
     try {
@@ -129,6 +134,8 @@ export class MediaService {
       ...(q.category ? { category: q.category } : {}),
       ...(q.consentStatus ? { consentStatus: q.consentStatus } : {}),
       ...(q.provenance ? { provenance: q.provenance } : {}),
+      // 24 Nov 2026: image pickers ask for kind=image, the document picker for kind=document (PDF).
+      ...(q.kind === 'image' ? { mimeType: { startsWith: 'image/' } } : q.kind === 'document' ? { mimeType: 'application/pdf' } : {}),
       ...(q.search
         ? { OR: [{ originalName: { contains: q.search } }, { altEn: { contains: q.search } }, { altAr: { contains: q.search } }, { sourceFolder: { contains: q.search } }, { code: { contains: q.search } }] }
         : {}),
@@ -201,14 +208,19 @@ export class MediaService {
     if (!asset || asset.storageDriver !== 'LOCAL' || !this.storage.localPath) throw notFound;
     const publicAccess = isPubliclyServable(asset, this.config.get('MEDIA_PUBLIC_CONSENT_MODE'));
     if (!publicAccess && !(canPreview && !asset.deletedAt)) throw notFound;
-    return { absolutePath: this.storage.localPath(key), mimeType: asset.mimeType, publicAccess };
+    return { absolutePath: this.storage.localPath(key), mimeType: asset.mimeType, publicAccess, originalName: asset.originalName };
   }
 
   /** Throws if any of the given IDs is missing or deleted (used by programmes/campaigns/CMS). */
-  async assertExists(ids: (string | null | undefined)[]) {
+  async assertExists(ids: (string | null | undefined)[], opts: { allowDocuments?: boolean } = {}) {
     const wanted = Array.from(new Set(ids.filter((v): v is string => !!v)));
     if (!wanted.length) return;
     const found = await this.prisma.mediaAsset.count({ where: { id: { in: wanted }, deletedAt: null } });
     if (found !== wanted.length) throw new BadRequestException('One or more media references are invalid');
+    // 24 Nov 2026: PDFs live in the same library; only CMS section/item references (e.g. the sponsorship packages) may point at one.
+    if (!opts.allowDocuments) {
+      const docs = await this.prisma.mediaAsset.count({ where: { id: { in: wanted }, mimeType: 'application/pdf' } });
+      if (docs > 0) throw new BadRequestException({ message: 'A document (PDF) cannot be used as an image', code: 'MEDIA_NOT_IMAGE' });
+    }
   }
 }

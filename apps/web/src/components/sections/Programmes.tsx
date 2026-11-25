@@ -2,11 +2,47 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { ArrowUpRight, Heart } from "lucide-react";
-import type { Dict } from "@/content/en";
+import { ArrowUpRight, Check, Heart } from "lucide-react";
+import type { Dict, Programme } from "@/content/en";
 import { resolveMedia } from "@/content/media";
 import { Icon } from "../Icon";
 import { GiveButton } from "../DonateProvider";
+
+/**
+ * One program block, in the order MEKI approved (client edits, 22 Nov 2026 — "Program copy"): the italic line, two short
+ * sentences, "What we do" (three tags), "The change we aim for" (four lines with check marks). The photo sits above it.
+ */
+export function ProgramBody({ item, p, tone }: { item: Programme; p: Dict["programmes"]; tone: "light" | "dark" }) {
+  const dark = tone === "dark";
+  const label = `mb-2 text-xs font-bold uppercase tracking-[0.2em] ${dark ? "text-glow" : "text-gold-text"}`;
+  return (
+    <>
+      <p className={`mb-3 font-serif text-xl italic ${dark ? "text-mint-line" : "text-meki-green"}`}>{item.short}</p>
+      <p className={`mb-5 ${dark ? "text-[0.95rem] text-white/85" : "text-body-grey"}`}>{item.summary}</p>
+      <p className={label}>{p.themesLabel}</p>
+      <ul className="mb-5 flex flex-wrap gap-2" aria-label={p.themesLabel}>
+        {item.themes.map((th) => (
+          <li key={th} className={dark ? "rounded-full border border-white/25 px-3 py-1 text-xs text-white/90 backdrop-blur" : "rounded-full border border-stone-line bg-paper px-3 py-1 text-sm text-body-grey"}>
+            {th}
+          </li>
+        ))}
+      </ul>
+      {item.outcomes.length > 0 && (
+        <>
+          <p className={label}>{p.outcomesLabel}</p>
+          <ul className="grid gap-1.5 sm:grid-cols-2" aria-label={p.outcomesLabel}>
+            {item.outcomes.map((o) => (
+              <li key={o} className={`flex items-start gap-2 text-sm ${dark ? "text-white/90" : "text-ink"}`}>
+                <Check aria-hidden="true" className={`mt-0.5 size-4 shrink-0 ${dark ? "text-glow" : "text-meki-green"}`} strokeWidth={2.2} />
+                {o}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </>
+  );
+}
 
 /**
  * Split-screen programme explorer: an index of the nine programmes beside a sticky visual panel.
@@ -30,9 +66,31 @@ export function Programmes({ t }: { t: Dict }) {
               {p.title}
             </h2>
           </div>
-          <p data-reveal className="self-end text-lg text-body-grey lg:col-span-5 lg:col-start-8">
-            {p.intro}
-          </p>
+          <div data-reveal className="space-y-4 self-end text-lg text-body-grey lg:col-span-5 lg:col-start-8">
+            {p.intro.split(/\n\s*\n/).map((para) => (
+              <p key={para.slice(0, 40)}>{para}</p>
+            ))}
+          </div>
+        </div>
+
+        {/* MEKI client edits (22 Nov 2026, item 7): "How it works" — five numbered steps in one row (wraps to 2–3 columns on smaller screens). */}
+        <div className="mb-16 lg:mb-24">
+          <h3 data-reveal className="mb-6 font-sans text-xs font-bold uppercase tracking-[0.22em] text-gold-text">
+            {p.howTitle}
+          </h3>
+          <ol data-stagger className="grid gap-px overflow-hidden rounded-[1.75rem] bg-stone-line sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+            {p.how.map((step, i) => (
+              <li key={step.title} data-stagger-item className="flex gap-4 bg-paper p-6 lg:flex-col lg:gap-3">
+                <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-meki-green font-serif text-lg text-white tabular-nums">
+                  {i + 1}
+                </span>
+                <span>
+                  <span className="block font-bold text-ink">{step.title}</span>
+                  <span className="block text-sm text-body-grey">{step.text}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
         </div>
 
         <div className="grid gap-10 lg:grid-cols-12 lg:gap-16">
@@ -86,17 +144,9 @@ export function Programmes({ t }: { t: Dict }) {
                     <div className="overflow-hidden">
                       <div className="pb-8">
                         <div className="relative mb-5 aspect-[16/10] overflow-hidden rounded-3xl">
-                          <Image src={resolveMedia(item.image).src} alt="" fill sizes="100vw" className="object-cover" />
+                          <Image src={resolveMedia(item.image).src} alt="" fill sizes="(min-width:640px) 90vw, 100vw" quality={85} className="object-cover" />
                         </div>
-                        <p className="mb-3 font-serif text-xl italic text-meki-green">{item.short}</p>
-                        <p className="mb-4 text-body-grey">{item.mandate}</p>
-                        <ul className="flex flex-wrap gap-2">
-                          {item.themes.map((th) => (
-                            <li key={th} className="rounded-full border border-stone-line bg-paper px-3 py-1 text-sm text-body-grey">
-                              {th}
-                            </li>
-                          ))}
-                        </ul>
+                        <ProgramBody item={item} p={p} tone="light" />
                         {/* Phase 14B: the same Give entry point as the desktop panel (mobile had none), carrying the programme interest */}
                         <GiveButton selection={{ destination: item.name, programmeSlug: item.slug }} className="btn btn-green mt-5 w-full justify-center sm:w-auto">
                           <Heart className="size-4" aria-hidden="true" /> {p.give}
@@ -112,35 +162,26 @@ export function Programmes({ t }: { t: Dict }) {
           {/* Sticky visual panel (desktop) */}
           <div className="hidden lg:col-span-6 lg:block">
             <div className="sticky top-28">
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[2.5rem] rounded-se-[8rem] bg-deep-green shadow-[var(--shadow-lift)]">
+              {/* min-height (not a fixed ratio) so the longer approved copy always fits above the photo's lower edge */}
+              <div className="relative flex min-h-[720px] flex-col justify-end overflow-hidden rounded-[2.5rem] rounded-se-[8rem] bg-deep-green shadow-[var(--shadow-lift)]">
                 {p.items.map((item, i) => (
                   <Image
                     key={item.slug}
                     src={resolveMedia(item.image).src}
                     alt=""
                     fill
-                    sizes="40vw"
+                    sizes="(min-width:1536px) 720px, 45vw"
+                    quality={85}
                     className={`object-cover transition-[opacity,transform] duration-[1200ms] ease-[var(--ease-premium)] ${
                       i === active ? "scale-100 opacity-100" : "scale-110 opacity-0"
                     }`}
                   />
                 ))}
-                <div className="absolute inset-0 bg-gradient-to-t from-deep-green-3 via-deep-green-3/45 to-transparent" />
-                <div key={cur.slug} className="prog-panel-in absolute inset-x-0 bottom-0 p-8 text-white xl:p-10" aria-live="polite">
-                  <span className="mb-3 block font-serif text-6xl font-light text-glow/90">{cur.n}</span>
+                <div className="absolute inset-0 bg-gradient-to-t from-deep-green-3 from-45% via-deep-green-3/70 to-deep-green-3/5" />
+                <div key={cur.slug} className="prog-panel-in relative p-8 pt-40 text-white xl:p-10 xl:pt-48" aria-live="polite">
+                  <span className="mb-2 block font-serif text-5xl font-light text-glow/90">{cur.n}</span>
                   <h3 className="mb-3 text-3xl">{cur.name}</h3>
-                  <p className="mb-5 font-serif text-lg italic text-mint-line">{cur.short}</p>
-                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-glow">{p.mandateLabel}</p>
-                  <p className="mb-6 text-[0.95rem] text-white/85">{cur.mandate}</p>
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <ul className="flex flex-wrap gap-2" aria-label={p.themesLabel}>
-                      {cur.themes.map((th) => (
-                        <li key={th} className="rounded-full border border-white/25 px-3 py-1 text-xs text-white/90 backdrop-blur">
-                          {th}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  <ProgramBody item={cur} p={p} tone="dark" />
                   <GiveButton selection={{ destination: cur.name, programmeSlug: cur.slug }} className="btn btn-green mt-6">
                     <Heart className="size-4" aria-hidden="true" /> {p.give}
                   </GiveButton>

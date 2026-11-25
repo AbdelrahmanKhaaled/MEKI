@@ -1,0 +1,19 @@
+import type { GalaCms } from "@/lib/gala-cms";
+import type { Locale } from "@/lib/i18n";
+
+export function approvedGalaAssets(cms: GalaCms, locale: Locale): GalaCms {
+  const ar = locale === "ar";
+  const place = ar ? "نيويورك" : "New York";
+  const night = { src: "/gala/venue-exterior-night.jpeg", alt: ar ? "واجهة مبنى 583 بارك أفينيو مضاءة ليلاً" : "The illuminated façade of 583 Park Avenue", title: ar ? "583 بارك أفينيو ليلاً" : "583 Park Avenue at night", place, w: 1809, h: 1298 };
+  const day = { src: "/gala/venue-exterior-day.jpeg", alt: ar ? "واجهة مبنى 583 بارك أفينيو" : "The façade of 583 Park Avenue", title: ar ? "واجهة المبنى" : "Building exterior", place, w: 547, h: 365 };
+  const arrival = cms.experience["black-tie"];
+  return {
+    ...cms,
+    heroImage: cms.heroImage ?? night,
+    venuePhotos: cms.venuePhotos.length ? cms.venuePhotos : [night, day],
+    venueLogo: cms.venueLogo ?? { src: "/gala/venue-logo-white.png", alt: ar ? "583 بارك أفينيو" : "583 Park Avenue" },
+    host: { ...cms.host, image: cms.host?.image ?? { src: "/gala/host-raya-abirached.png", alt: ar ? "رايا أبي راشد" : "Raya Abirached" } },
+    experience: { ...cms.experience, "black-tie": { ...arrival, image: arrival?.image ?? day } },
+    sponsorship: cms.sponsorship?.document ? cms.sponsorship : { document: true, href: "/gala/sponsorship-packages.pdf" },
+  };
+}

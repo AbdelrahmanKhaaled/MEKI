@@ -24,14 +24,14 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function ContactPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const { site } = await getPageContent(locale);
+  const { site, t } = await getPageContent(locale);
   const c = getPages(locale).contact;
 
   // Only details published in Site Settings are shown; nothing is invented.
-  const email = site?.contactEmail && EMAIL.test(site.contactEmail) ? site.contactEmail : null;
+  const email = site?.contactEmail && EMAIL.test(site.contactEmail) ? site.contactEmail : t.footer.email ?? null;
   const phone = site?.contactPhone?.trim() || null;
   const address = site?.address?.trim() || null;
-  const social = (site?.socialLinks ?? []).filter((s) => /^https:\/\//.test(s.url));
+  const social = (site?.socialLinks?.length ? site.socialLinks : t.footer.social).filter((s) => /^https:\/\//.test(s.url));
   const hasDetails = !!(email || phone || address || social.length);
 
   return (

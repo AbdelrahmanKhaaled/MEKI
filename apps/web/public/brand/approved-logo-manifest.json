@@ -1,0 +1,113 @@
+{
+  "generatedFrom": "references/client-edits-2026-11-23/03-approved-logos",
+  "approvedBy": "MEKI marketing (client edits, 23 Nov 2026)",
+  "files": [
+    {
+      "source": "MEKI_secondary_green.png",
+      "width": 5920,
+      "height": 1799
+    },
+    {
+      "file": "apps/web/public/brand/MEKI_Secondary_Green.png",
+      "width": 1200,
+      "height": 365,
+      "bytes": 40206,
+      "note": "MEKI_secondary_green.png, proportional resize"
+    },
+    {
+      "file": "apps/admin/public/brand/MEKI_Secondary_Green.png",
+      "width": 1200,
+      "height": 365,
+      "bytes": 40206,
+      "note": "MEKI_secondary_green.png, proportional resize"
+    },
+    {
+      "source": "MEKI_secondary_rev.png",
+      "width": 5920,
+      "height": 1799
+    },
+    {
+      "file": "apps/web/public/brand/MEKI_Secondary_White.png",
+      "width": 1200,
+      "height": 365,
+      "bytes": 35763,
+      "note": "MEKI_secondary_rev.png, proportional resize"
+    },
+    {
+      "file": "apps/admin/public/brand/MEKI_Secondary_White.png",
+      "width": 1200,
+      "height": 365,
+      "bytes": 35763,
+      "note": "MEKI_secondary_rev.png, proportional resize"
+    },
+    {
+      "file": "apps/web/public/brand/MEKI_Icon_Approved_32.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 1259,
+      "note": "symbol cropped from MEKI_secondary_green.png (icon only)"
+    },
+    {
+      "file": "apps/web/public/brand/MEKI_Icon_Approved_192.png",
+      "width": 192,
+      "height": 192,
+      "bytes": 8009,
+      "note": "symbol cropped from MEKI_secondary_green.png (icon only)"
+    },
+    {
+      "file": "apps/web/public/brand/MEKI_Icon_Approved_512.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 25501,
+      "note": "symbol cropped from MEKI_secondary_green.png (icon only)"
+    },
+    {
+      "file": "apps/admin/public/brand/MEKI_Icon_Approved_32.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 1259,
+      "note": "symbol cropped from MEKI_secondary_green.png (icon only)"
+    },
+    {
+      "file": "apps/web/public/brand/MEKI_Icon_Approved_White_128.png",
+      "width": 128,
+      "height": 128,
+      "bytes": 3776,
+      "note": "symbol cropped from MEKI_secondary_rev.png (icon only)"
+    },
+    {
+      "file": "apps/admin/public/brand/MEKI_Icon_Approved_White_128.png",
+      "width": 128,
+      "height": 128,
+      "bytes": 3776,
+      "note": "symbol cropped from MEKI_secondary_rev.png (icon only)"
+    },
+    {
+      "file": "apps/web/public/brand/MEKI_Icon_Approved_Green_128.png",
+      "width": 128,
+      "height": 128,
+      "bytes": 5467,
+      "note": "symbol cropped from MEKI_secondary_green.png (icon only)"
+    },
+    {
+      "file": "apps/web/public/brand/MEKI_Icon_Approved_Apple_180.png",
+      "width": 180,
+      "height": 180,
+      "bytes": 6957,
+      "note": "symbol on white, 180x180"
+    },
+    {
+      "file": "apps/web/public/og/meki-og-approved-logo.jpg",
+      "width": 1200,
+      "height": 630,
+      "bytes": 26200,
+      "note": "white approved logo (MEKI_secondary_rev.png) centred on Deep Green #0B3B30"
+    }
+  ],
+  "iconCrop": {
+    "left": 61,
+    "top": 81,
+    "width": 1656,
+    "height": 1655
+  }
+}

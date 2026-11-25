@@ -22,6 +22,8 @@ RUN pnpm install --frozen-lockfile --filter @meki/api...
 COPY apps/api apps/api
 # The seed reproduces the approved website copy from these files (prisma/seed/seed-data.ts imports them).
 COPY apps/web/src/content apps/web/src/content
+# The seed reads the packaged manifests, byte lengths and checksums of the curated public images.
+COPY apps/web/public/images/work apps/web/public/images/work
 # prisma generate + nest build + copy brand assets/fonts to dist/assets. prisma.config.ts resolves DATABASE_URL even though
 # `generate` never connects: a non-secret placeholder scoped to this build step only (it is NOT in the runtime image).
 RUN DATABASE_URL="mysql://build:build@127.0.0.1:3306/build" pnpm --filter @meki/api build && test -f apps/api/dist/main.js && test -d apps/api/dist/assets

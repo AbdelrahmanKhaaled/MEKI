@@ -7,6 +7,8 @@ import { media } from "@/content/media";
 import { Curve, Pattern, PointsOfLight } from "../Decor";
 import { Logo } from "../Logo";
 import { GiveButton } from "../DonateProvider";
+import { NoBreak } from "../NoBreak";
+import { SocialLinks } from "../SocialLinks";
 
 export function FinalCta({ t }: { t: Dict }) {
   const f = t.final;
@@ -88,7 +90,7 @@ function FinalVisual({ t }: { t: Dict }) {
       </div>
       <div className="float-y absolute bottom-[14%] end-[0%] flex items-center gap-2 rounded-full bg-paper/95 py-2 pe-4 ps-2 text-sm font-bold text-ink shadow-xl [animation-delay:-5s]">
         <span className="grid size-8 place-items-center rounded-full bg-meki-green">
-          <img src="/brand/MEKI_Icon_White.svg" alt="" className="size-5" />
+          <img src="/brand/MEKI_Icon_Approved_White_128.png" alt="" className="size-5" />
         </span>
         {f.chipProgrammes}
       </div>
@@ -100,16 +102,24 @@ export function Footer({ t }: { t: Dict }) {
   const f = t.footer;
   const loc = t.locale === "ar" ? "ar" : "en";
   const pages = getPages(loc);
-  const year = 2026;
+  // Copyright text comes from Site settings (applySiteSettings). A text that already carries © or "copyright" is shown as written;
+  // otherwise "© <current year>" is prefixed (the year never goes stale).
+  const copyright = /©|copyright/i.test(f.rights) ? f.rights : `© ${new Date().getFullYear()} ${f.rights}`;
+  const hasContact = !!(f.email || f.phone || f.address);
   return (
     <footer className="relative isolate overflow-hidden bg-deep-green-3 text-mint-line">
       <Pattern opacity={0.04} className="-z-10" />
       <div className="container-x pb-10 pt-24">
         <div className="grid gap-14 border-b border-white/10 pb-16 md:grid-cols-2 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <Logo variant="white" className="mb-6 !w-[170px]" />
+            <Logo variant="white" className="mb-6 !w-[200px]" brand={t.brand} />
             <p className="mb-2 font-serif text-2xl font-light text-white">{f.tagline}</p>
-            <p className="text-sm">{f.legacy}</p>
+            <p className="text-sm">
+              <NoBreak text={f.legacy} />
+            </p>
+            {f.text && <p className="mt-4 max-w-sm whitespace-pre-line text-sm text-mint-line/90">{f.text}</p>}
+            {/* MEKI client edits (22 Nov 2026, item 14): "Follow us" on every page that uses this footer. */}
+            <SocialLinks links={f.social} title={f.followUs} newTab={f.newTab} className="mt-8" />
           </div>
           <nav aria-label={f.explore} className="lg:col-span-2">
             <h2 className="mb-5 font-sans text-xs font-bold uppercase tracking-[0.22em] text-glow">{f.explore}</h2>
@@ -152,13 +162,30 @@ export function Footer({ t }: { t: Dict }) {
               ))}
             </ul>
             <h2 className="mb-3 font-sans text-xs font-bold uppercase tracking-[0.22em] text-glow">{f.contactTitle}</h2>
-            <p className="text-sm">{f.contactPending}</p>
+            {hasContact ? (
+              <ul className="space-y-2 text-sm">
+                {f.email && (
+                  <li>
+                    <a href={`mailto:${f.email}`} className="break-all transition hover:text-white">
+                      {f.email}
+                    </a>
+                  </li>
+                )}
+                {f.phone && (
+                  <li dir="ltr" className="text-start rtl:text-end">
+                    {f.phone}
+                  </li>
+                )}
+                {f.address && <li className="whitespace-pre-line">{f.address}</li>}
+              </ul>
+            ) : (
+              <p className="text-sm">{f.note ?? f.contactPending}</p>
+            )}
+            {hasContact && f.note && <p className="mt-3 text-sm text-mint-line/80">{f.note}</p>}
           </div>
         </div>
         <div className="flex flex-col items-start justify-between gap-4 pt-8 text-xs sm:flex-row sm:items-center">
-          <p>
-            © {year} {f.rights}
-          </p>
+          <p data-testid="footer-copyright">{copyright}</p>
           <p className="text-mint-line/70">{f.legalPending}</p>
           <a href="#top" className="inline-flex min-h-11 items-center gap-2 font-bold transition hover:text-white">
             {f.backToTop} <ArrowUp className="size-4" aria-hidden="true" />

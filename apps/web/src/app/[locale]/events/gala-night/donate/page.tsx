@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { PublicGalaGivingOptions } from "@meki/api-client";
-import { getDict, isLocale } from "@/lib/i18n";
+import { isLocale } from "@/lib/i18n";
 import { fetchPublicContent } from "@/lib/api";
 import { getGivingCopy } from "@/content/giving";
+import { Footer } from "@/components/sections/FinalFooter";
+import { getPageContent } from "@/lib/content";
 import { DonateProvider } from "@/components/DonateProvider";
 import { Header } from "@/components/Header";
 import { PreviewNote } from "@/components/PreviewNote";
@@ -25,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function GalaDonatePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const t = getDict(locale);
+  const { t } = await getPageContent(locale);
   const g = getGivingCopy(locale).gala;
   const options = await fetchPublicContent<PublicGalaGivingOptions>(`/public/events/gala-night/giving-options?locale=${locale}`);
   // Reference-first: when the API reports Gala giving open, the DN- reference flow is used. Otherwise, and only when the
@@ -60,6 +62,7 @@ export default async function GalaDonatePage({ params }: { params: Promise<{ loc
           )}
         </div>
       </main>
+      <Footer t={t} />
       <PreviewNote text={t.previewBar} extra={t.draftTranslation || undefined} closeLabel={t.dialog.close} />
     </DonateProvider>
   );

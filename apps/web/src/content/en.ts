@@ -22,10 +22,22 @@ export type Programme = {
   name: string; // [V] exact Brand Guidelines p.24 name
   short: string; // [V] Brand Guidelines p.24
   mandate: string; // [V] Portfolio graphic mandate
-  themes: string[]; // [V] Portfolio graphic sub-themes
+  /** [C] page title when it differs from the card name ("Emergency Response & Gaza Relief", 25 Nov 2026) */
+  pageTitle?: string;
+  themes: string[]; // [C] "Areas of work" titles (Programs Word document, 25 Nov 2026)
+  /** [C] description of each area of work, same order as `themes` */
+  areaTexts: string[];
+  /** [C] two short sentences under the italic line (MEKI client edits, 22 Nov 2026 — "Program copy") */
+  summary: string;
+  /** [C] "The change we aim for": four short lines with check marks */
+  outcomes: string[];
   image: MediaRef;
   icon: IconName;
 };
+
+/** One "Our work in action" photo: caption "Title – Place" with the program underneath (program = programme slug; optional). */
+export type GalleryItem = { width?: number; height?: number; image: MediaRef; title: string; place?: string; program?: string };
+export type SocialLink = { network: string; url: string };
 
 export type Campaign = {
   slug: string;
@@ -48,13 +60,15 @@ export const en = {
   draftTranslation: "",
   nav: {
     skip: "Skip to content",
+    // The website's real navigation (pages.ts NAV_ORDER). This list seeds the CMS menu (Admin → Menus), so Admin and the site agree.
+    // Gala Night and the Give button are fixed entries outside the list.
     links: [
-      { href: "#who-we-are", label: "Who we are" },
-      { href: "#programmes", label: "Programs" },
-      { href: "#impact", label: "Impact" },
-      { href: "#campaigns", label: "Campaigns" },
-      { href: "#giving", label: "How giving works" },
-      { href: "#faq", label: "FAQ" },
+      { href: "/", label: "Home" },
+      { href: "/about", label: "About MEKI" },
+      { href: "/programs", label: "Programs" },
+      { href: "/give", label: "Give" },
+      { href: "/faq", label: "FAQ" },
+      { href: "/contact", label: "Contact" },
     ],
     gala: { href: "/en/events/gala-night", label: "Gala Night" },
     donate: "Give",
@@ -68,18 +82,19 @@ export const en = {
     eyebrow: "Inspired by the legacy of Misr El-Kheir", // [V] legacy line
     titleA: "Lasting Change,", // [V] tagline
     titleB: "Built Together.",
-    lead: "MEKI unites partners across the world behind development that lasts, supporting people, communities and institutions through evidence-based programs, with every contribution accounted for from start to finish.", // [V] boilerplate
+    // [C] MEKI client edits (22 Nov 2026, item 3): the approved mission replaces the intro text.
+    lead: "We partner with people, communities and institutions worldwide to deliver evidence-based development that lasts, with every contribution transparently accounted for and its impact measured.",
     ctaPrimary: "Attend the Gala",
     ctaPrimaryHref: "/en/events/gala-night",
-    ctaSecondary: "Explore Our Programs",
+    ctaSecondary: "Explore our programs", // [C] one capitalization style for buttons (item 13)
     photoCaption: "Luxor · WASH program", // [P] caption from source folder; confirm with MEKI
     scroll: "Scroll",
     // Hero images: curated defaults; the CMS (Homepage → Hero) may replace them with published Media Library images.
     // Empty alt = decorative (the headline carries the meaning); editors may add EN/AR alt text in the CMS.
-    image: "hero-field" as MediaRef,
-    imageAlt: "",
-    secondaryImage: "water-pier" as MediaRef,
-    secondaryImageAlt: "",
+    image: "hero-family" as MediaRef, // client delivery 24 Nov 2026 ("Home P"): approved family / community-school photo
+    imageAlt: "A mother with her daughters at a community school",
+    secondaryImage: "hero-school" as MediaRef,
+    secondaryImageAlt: "Pupils working together in class",
   },
   galaBanner: {
     eyebrow: "MEKI Gala Night",
@@ -111,20 +126,25 @@ export const en = {
   },
   trust: [
     { title: "Every contribution accounted for", text: "From start to finish." },
-    { title: "Released against milestones", text: "With results reported back." },
+    { title: "Results are reported back to supporters.", text: "" }, // [C] item 11 (replaces "Released against milestones, with results reported back")
     { title: "Evidence-based programs", text: "Nine programs, one strategy." },
     { title: "A legacy to build on", text: "Drawing on 20 years of Misr El-Kheir's experience." },
   ],
   about: {
     eyebrow: "Who we are",
     title: "Thriving people, resilient institutions and strong communities.",
-    body: "MEKI unites partners across the world behind development that lasts. Drawing on 20 years of Misr El-Kheir's experience, we support people, communities and institutions through evidence-based programs, with every contribution accounted for from start to finish.",
+    // [C] "Intro copy — Who we are" (item 6). Paragraphs are separated by a blank line.
+    body: "For 20 years, Misr El-Kheir has worked alongside families and communities in all 27 of Egypt's governorates, reaching more than 35 million people. It has built deep community trust and a wide network of local partners.\n\nIt has also learned that lasting change comes from addressing the connected challenges in people's lives, not one need at a time. MEKI brings that experience to partners around the world.",
     visionLabel: "Our vision",
     vision: "Thriving people, resilient institutions and strong communities, built together.",
     missionLabel: "Our mission",
     mission:
       "We partner with people, communities and institutions worldwide to deliver evidence-based development that lasts, with every contribution transparently accounted for and its impact measured.",
-    legacy: "Inspired by the legacy of Misr El-Kheir.",
+    legacy: "Inspired by the legacy of Misr El-Kheir.", // [C] item 6: no longer rendered under "Who we are" (it already appears in the hero)
+    // [C] MEKI Legacy (Programs Word document, 25 Nov 2026) — About page section; CMS: ABOUT labels legacyTitle/legacyTagline + items legacy-1…3
+    legacyTitle: "MEKI Legacy",
+    legacyTagline: "Building on 20 Years of Outreach and Impact. Creating Opportunities for Generations to Come.",
+    legacyParas: ["Misr El-Kheir Foundation has stood on the forefront of development and charity work alongside individuals, families, and communities across Egypt for 20 Years.","On an individual, household, community and institutional fronts this work has touched millions of lives and helped build an unmatched foundation of experience, community outreach, trust, and partner networks.","Yet the true legacy extends beyond the number of people reached or the services delivered; it is deeply embedded in the understanding that lasting change requires addressing the interconnected challenges shaping people’s lives and in the ability to turn that into more effective, sustainable interventions."],
     vmEyebrow: "Vision & mission", // [P]
     vmTitle: "Where we are going, and how we get there.", // [P]
     vmTagline: "Lasting Change, Built Together.", // [V] tagline
@@ -156,31 +176,42 @@ export const en = {
   },
   programmes: {
     eyebrow: "Our programs",
-    title: "Nine programs. One purpose.",
-    intro: "Each program tackles a different part of what people and communities need to thrive. Based on assessed needs, a household may enter one or more program pathways.",
-    mandateLabel: "Mandate",
-    themesLabel: "Focus areas",
+    // [C] "Program copy" (item 7)
+    title: "Nine Programs. One Commitment.",
+    intro: "Building on 20 years of experience addressing the diverse needs of communities across Egypt, Misr El-Kheir champions a development approach that recognizes the fundamental truth of the holistic and non-fragmented nature of vulnerability across households.\n\nMEKI inherently believes that addressing one need in isolation may provide immediate relief, but sustainable progress often requires a broader understanding of the circumstances affecting each household.\n\nBecause lasting change is not simply about what we provide. It is about what becomes possible for the people we serve.",
+    mandateLabel: "Program mandate",
+    themesLabel: "Areas of work",
+    outcomesLabel: "The change we aim to create",
     give: "Give to this program",
+    howTitle: "How it works",
+    how: [
+      { title: "Understand", text: "One shared assessment of each family's needs and strengths." },
+      { title: "Plan", text: "One household plan, with one team following up." },
+      { title: "Connect", text: "Programs and local partners deliver the support each family needs." },
+      { title: "Adapt", text: "Regular follow-up as circumstances change." },
+      { title: "Measure", text: "Success is lasting improvement, not aid delivered." },
+    ],
     items: [
-      { n: "01", slug: "social-solidarity", name: "Social Solidarity & Household Resilience", short: "Helping families in hardship become stable and secure.", mandate: "Protect and stabilize vulnerable households, reduce repeated dependence, and connect households to progression pathways where appropriate.", themes: ["Safety-net support", "Household stabilization", "Protecting the vulnerable"], image: "livestock", icon: "users" },
-      { n: "02", slug: "health", name: "Health Access, Coverage & Quality", short: "Making good healthcare affordable and reachable.", mandate: "Secure affordable, quality-assured healthcare through coverage, strategic purchasing, patient navigation, provider support and system stewardship.", themes: ["Access to care", "Continuity of treatment", "Patient support & quality"], image: "doctor-patient", icon: "stethoscope" },
-      { n: "03", slug: "education", name: "Education", short: "Helping children and young people enrol, stay in school, learn and progress.", mandate: "Ensure access, retention, learning, completion and progression across the learner journey.", themes: ["Community education", "Access & scholarships", "Learner progression"], image: "student-reading", icon: "graduation" },
-      { n: "04", slug: "economic-empowerment", name: "Economic Empowerment & Labor Market Activation", short: "Sustainable income through skills, decent work and enterprise.", mandate: "Move people toward sustainable income, employability, decent work and enterprise opportunities.", themes: ["Employability", "Technical education", "Enterprise & livelihoods"], image: "weaver", icon: "briefcase" },
-      { n: "05", slug: "housing", name: "Housing & Safe Living Conditions", short: "Safe, adequate and dignified homes, and shelter when needed.", mandate: "Improve the safety, adequacy and dignity of living conditions and provide temporary accommodation when required.", themes: ["Safer housing", "Temporary shelter", "Rehabilitation & co-financing"], image: "housing-roof", icon: "home" },
-      { n: "06", slug: "wash", name: "WASH, Environment & Climate Resilience", short: "Water, sanitation and hygiene, and protection from climate risks.", mandate: "Reduce water, sanitation, environmental and climate-related vulnerability.", themes: ["Water & sanitation access", "Environmental protection", "Climate-risk reduction"], image: "water-pier", icon: "droplets" },
-      { n: "07", slug: "emergency-response", name: "Emergency Response", short: "Fast, coordinated help in crises, and early recovery.", mandate: "Provide rapid, coordinated support in crises and shocks and support early recovery.", themes: ["Readiness", "Humanitarian response", "Transition & recovery"], image: "relief", icon: "lifebuoy" },
-      { n: "08", slug: "heritage-culture", name: "Heritage, Culture & Identity", short: "Participation, culture, heritage and community engagement.", mandate: "Strengthen participation, identity, culture, heritage and constructive community engagement.", themes: ["Participation", "Cultural engagement", "Identity-building opportunities"], image: "swimmer", icon: "landmark" },
-      { n: "09", slug: "scientific-research", name: "Scientific Research & Research Ecosystem", short: "Funding research and strengthening the research ecosystem.", mandate: "Advance a research agenda, sponsor high-value studies, support researchers and strengthen the research ecosystem in Egypt.", themes: ["Sponsored research", "Grants & fellowships", "Research capacity building"], image: "student-lab", icon: "flask" },
+      { n: "01", slug: "social-solidarity", name: "Social Solidarity & Household Resilience", short: "Alleviating Basic Household Needs Today. Building Resilience for Tomorrow.", summary: "Protecting vulnerable individuals and households from severe hardship while alleviating basic needs gaps, strengthening household stability and preserving dignity.", mandate: "For severely underprivileged households limited resources can mean making impossible choices; without appropriate assistance, this can undermine family stability, increase exposure to complex vulnerability.\n\nThis program aims to safeguard vulnerable families against economic and social hardship and progressively alleviate the underlying causes of vulnerability including debt, food insecurity, geographic hardships and destitution; through integrated assistance pathways that restore household stability, preserve dignity, strengthen family resilience, and reduce long-term dependency.", themes: ["Protecting Vulnerable Individuals and Households","Strengthening Household Stability and Resilience"], areaTexts: ["Safeguarding individuals and households facing severe financial, social, or situational hardship affecting access to basic household needs.","Addressing conditions that threaten household security, reducing exposure to recurring distress, and supporting families’ ability to maintain stability during difficult circumstances."], outcomes: ["Greater household stability and security.","Improved ability to meet essential needs.","Reduced exposure to severe financial and social distress.","Stronger household resilience."], image: "program-social-solidarity", icon: "users" },
+      { n: "02", slug: "health", name: "Health Access, Coverage & Quality", short: "Making Healthcare More Accessible. Improving National Health Ecosystems.", summary: "Reducing financial, physical and access barriers to essential healthcare while supporting continuity of treatment, improved service quality, and stronger healthcare systems for underserved populations.", mandate: "For vulnerable individuals and households, the inability to afford or access appropriate medical care can create significant multidisciplinary vulnerability; MEKI bridges critical gaps in healthcare access, and affordability, for vulnerable and underserved populations.\n\nMEKI improves health outcomes and continuity of care through medical assistance and outreach programs, that expand access to healthcare and reaches remote and underserved communities.", themes: ["Improving Equitable Access to Healthcare","Strengthening Continuity and Financial Protection","Advancing Healthcare Service Capacity"], areaTexts: ["Reducing financial, geographic, and service-related barriers that prevent vulnerable individuals from receiving appropriate healthcare when they need it.","Supporting more reliable access to necessary care while reducing the financial pressures that can interrupt treatment and undermine household stability.","Strengthening the capabilities, readiness, and quality of healthcare providers to improve the accessibility, safety, and effectiveness of services delivered to communities."], outcomes: ["Improved access to essential healthcare.","Reduced financial hardship associated with medical needs.","Greater continuity of necessary treatment.","Improved quality and reliability of healthcare services.","Stronger health-related functional and participatory outcomes for beneficiaries."], image: "program-health", icon: "stethoscope" },
+      { n: "03", slug: "education", name: "Education", short: "Expanding Opportunity Through Supporting Learner’s Journey.", summary: "Expanding equitable access to quality learning, supporting educational continuity and achievement, and enabling children and young people to progress toward their full potential.", mandate: "MEKI ensures equitable educational opportunities and support by removing barriers that prevent disadvantaged learners from accessing, continuing, and succeeding in education.\n\nThrough strengthening educational institutions, reaching underserved communities, improving accessibility for learners with disabilities, providing scholarships and supporting learners throughout their educational journeys.", themes: ["Expanding Equitable Access to Education","Strengthening Educational Quality and Inclusion","Supporting Achievement and Educational Progression"], areaTexts: ["Addressing barriers that prevent disadvantaged learners from accessing appropriate educational opportunities, with particular attention to underserved populations and those at risk of exclusion.","Improving the learning environment and institutional capabilities needed to provide accessible, inclusive, and effective educational experiences.","Helping learners remain engaged, develop their capabilities, complete relevant educational stages, and progress toward further learning and opportunities."], outcomes: ["Increased access to education among underserved populations.","Improved student retention and continuity.","More inclusive and supportive learning environments.","Stronger educational achievement and progression.","Expanded opportunities for personal and future economic development."], image: "program-education", icon: "graduation" },
+      { n: "04", slug: "economic-empowerment", name: "Economic Empowerment & Labor Market Activation", short: "Turning Potential into Opportunity. Opportunity into Sustainable Livelihoods.", summary: "Connecting skills, capabilities, aspirations and labor market demands with productive opportunities that support sustainable income, decent work, and economic independence.", mandate: "For many people, Economic Vulnerability is not a consequence of lack of motivation or potential, but the absence of relevant skills, productive resources, or viable economic opportunities.\n\nThe aim of this program is to transform economic vulnerability into sustainable livelihoods, empowering young entrepreneurs and enabling working-age individuals to access productive opportunities.\n\nMEKI empowers people to become economically active, financially independent, and capable of contributing to their families and communities through incubation, income generation, technical and vocational education, market-relevant skills development, and employment pathways.", themes: ["Developing Market-Relevant Capabilities","Expanding Access to Productive Opportunities","Strengthening Livelihood Sustainability"], areaTexts: ["Strengthening the practical knowledge, competencies, and work readiness that enable individuals to participate effectively in changing labor markets.","Connecting individuals with appropriate pathways into employment, entrepreneurship, and economically productive activities.","Supporting individuals’ capacity to maintain economic participation, generate more reliable income, and build resilience against future financial shocks."], outcomes: ["Improved employability and economic participation.","Greater access to appropriate income-generating opportunities.","More sustainable livelihoods.","Stronger household financial resilience.","Reduced long-term economic vulnerability."], image: "program-economic-empowerment", icon: "briefcase" },
+      { n: "05", slug: "housing", name: "Housing & Safe Living Conditions", short: "Safer Homes. Stable Households. More Secure Futures.", summary: "Improving the safety, adequacy, and dignity of living environments so vulnerable families have a more secure foundation for health, stability, and wellbeing.", mandate: "For vulnerable households; unsafe housing structures and deteriorating living environments can reinforce existing vulnerability and undermine efforts to improve household wellbeing; which creates serious risks to physical wellbeing, and emotional security.\n\nThe aim of this program is to ensure vulnerable families have access to safe, adequate, and dignified living environments that protect their health, security, and wellbeing by addressing critical housing deficiencies, and restoring essential living conditions, family stability, protection, and social resilience.", themes: ["Improving Housing Safety and Adequacy","Protecting Housing Security and Dignity","Strengthening Long-Term Residential Resilience"], areaTexts: ["Addressing physical living conditions that expose vulnerable families to safety risks, structural deterioration, or inadequate residential environments.","Supporting vulnerable households in accessing or maintaining appropriate living conditions that provide essential protection and stability.","Improving the sustainability and suitability of household living environments so families are better protected against recurring housing-related vulnerabilities."], outcomes: ["Safer and more adequate living conditions.","Reduced exposure to housing-related risks.","Greater household security and stability.","Improved dignity and wellbeing.","Stronger resilience among vulnerable families."], image: "program-housing", icon: "home" },
+      { n: "06", slug: "wash", name: "WASH, Environment & Climate Resilience", short: "Safer Water. Healthier Communities. A More Resilient Future.", summary: "Strengthening access to essential water and sanitation while addressing infrastructure gaps in underserved communities and tackling pressing environmental issues.", mandate: "Access to safe water, sanitation, and essential environmental services plays a fundamental role in protecting health, preserving dignity, and supporting everyday life.\n\nWhere these services are inadequate or unreliable, communities may face heightened health risks, additional financial burdens, and barriers to social and economic participation.\n\nMEKI ensures access to safe drinking water, water networks, wells, and environmental preservation and resilience initiatives; to improve community health, and quality of life by addressing critical gaps in essential infrastructure and environmental services.", themes: ["Expanding Access to Essential Water and Sanitation Services","Improving Environmental Health and Safety","Strengthening Infrastructure and Community Resilience"], areaTexts: ["Reducing gaps in the availability, accessibility, and adequacy of water and sanitation services for underserved households and communities.","Addressing environmental conditions and service deficiencies that negatively affect community health, wellbeing, and quality of life.","Supporting more reliable and sustainable essential services while reducing vulnerability to relevant environmental and climate-related risks."], outcomes: ["Improved access to essential water and sanitation services.","Healthier and safer community environments.","Reduced vulnerability associated with infrastructure gaps.","Greater reliability of supported services.","Stronger community resilience."], image: "program-wash", icon: "droplets" },
+      { n: "07", slug: "emergency-response", name: "Emergency Response", pageTitle: "Emergency Response & Gaza Relief", short: "Immediate Crisis Relief. Supporting Recovery Beyond the Crisis.", summary: "Protecting lives and preserving dignity during crises through timely humanitarian assistance, coordinated support, and pathways toward recovery.", mandate: "For vulnerable families, emergencies and sudden crises may create immediate threats to safety, health, food security, shelter, and household stability.\n\nThe consequences can extend long after the immediate emergency has passed.\n\nMEKI's established humanitarian response capabilities and partnerships mobilize timely assistance, essential supplies, shelter, and early recovery support, strengthening community preparedness and resilience while helping affected populations restore stability.", themes: ["Strengthening Emergency Preparedness and Response Capacity","Protecting Lives and Essential Human Needs","Supporting Stabilization and Early Recovery"], areaTexts: ["Improving the ability to identify urgent needs, mobilize appropriate resources, and coordinate timely assistance during crises.","Addressing immediate humanitarian vulnerabilities and supporting access to essential protection, assistance, and services for affected populations.","Helping affected individuals and communities restore essential stability and reconnect with appropriate development and recovery pathways."], outcomes: ["Faster access to essential humanitarian assistance.","Reduced immediate distress and exposure to crisis-related risks.","Improved protection of vulnerable populations.","Greater coordination of emergency interventions."], image: "program-emergency-response", icon: "lifebuoy" },
+      { n: "08", slug: "heritage-culture", name: "Heritage, Culture & Identity", short: "Preserving Identity. Enriching Lives. Strengthening Communities.", summary: "Strengthening cultural participation, preserving heritage, and expanding opportunities for creativity, inclusion, identity, and meaningful community engagement.", mandate: "Human wellbeing is shaped not only by access to essential services and economic opportunities, but also by identity, belonging, creativity, and participation in community life.\n\nMEKI aims to enrich the individual and community through initiatives that nurture creativity, strengthen national identity and belonging, preserve cultural heritage, and empower children and youth in underserved communities to participate in and contribute to Egypt's cultural and social development.", themes: ["Preserving Heritage and Cultural Identity","Expanding Cultural Participation and Inclusion","Nurturing Creativity, Belonging, and Community Engagement"], areaTexts: ["Supporting the continuity, appreciation, and preservation of cultural traditions and heritage that connect communities to their history and identity.","Improving opportunities for individuals and underserved communities to engage meaningfully in cultural, artistic, and social activities.","Strengthening opportunities for expression, participation, personal development, and positive connections within communities."], outcomes: ["Stronger preservation and appreciation of heritage.","Improved opportunities for creativity and expression.","Greater social inclusion and belonging.","Stronger cultural and community engagement."], image: "program-heritage-culture", icon: "landmark" },
+      { n: "09", slug: "scientific-research", name: "Scientific Research & Research Ecosystem", short: "Advancing Knowledge. Enabling Innovation. Creating Meaningful Impact.", summary: "Advancing applied research, strengthening research capabilities, and connecting scientific evidence with practical solutions to development challenges.", mandate: "Complex development challenges require more than established responses, they require reliable evidence, scientific inquiry, innovation, and the ability to translate knowledge into practical solutions.\n\nThis program harnesses MEKI’s massive outreach and ensures sustainability, evidence and scientific method application in all its projects, while bolstering scientific knowledge, applied research, and innovation to address Egypt's priority social, economic, and development challenges.", themes: ["Advancing Applied and Development-Oriented Research","Strengthening Research Capabilities and Collaboration","Connecting Evidence with Practical Solutions"], areaTexts: ["Supporting the generation of knowledge and evidence relevant to priority scientific, social, economic, and development challenges.","Enhancing the capabilities of researchers and institutions while encouraging collaboration and knowledge exchange across the research ecosystem.","Promoting the translation of research findings into improved practices, informed decisions, innovation, and responses to societal needs."], outcomes: ["Stronger research capabilities and collaboration.","Increased generation of relevant scientific and development evidence.","Greater application of research in addressing real-world challenges.","Improved evidence-informed decision-making.","Stronger connections between research, innovation, and societal needs."], image: "program-scientific-research", icon: "flask" },
     ] as Programme[],
   },
   enabling: {
     eyebrow: "Enabling functions",
     title: "The capabilities behind every program.",
-    intro: "Three functions support all nine programs. They are capabilities, not programs.",
+    // [C] "Intro copy — Enabling functions" (item 10): "They are capabilities, not programs." removed.
+    intro: "Three capabilities support all nine programs.",
     items: [
-      { name: "NGO Development", text: "Strengthen partner NGO quality, governance, capability and delivery readiness across the portfolio.", icon: "handshake" as IconName },
-      { name: "Field Offices", text: "Frontline assessment, outreach, household follow-up, recertification, referral coordination and local insight.", icon: "map" as IconName },
-      { name: "Business Intelligence", text: "Integrate observatory, historical, field and geo-mapping data to guide planning, targeting and fundraising.", icon: "chart" as IconName },
+      { name: "NGO Engagement & Development", tagline: "Stronger Local Partners. Greater Community Impact.", text: "Strengthening the governance and capabilities of local nonprofit organizations enables development interventions to reach more communities effectively and sustainably through a network of 4000+ development partners.", icon: "handshake" as IconName },
+      { name: "Field Offices", tagline: "Closer to Communities. More Responsive to Their Needs.", text: "MEKI outreach and field base spans across all governorates, connecting development programs with the individuals, households, and communities they serve.", icon: "map" as IconName },
+      { name: "Business Intelligence", tagline: "Turning Evidence into Meaningful Action.", text: "Reliable information enables better decisions about where support is needed, which interventions are most relevant, and how progress should be measured, by connecting community insights, program information, and development data.", icon: "chart" as IconName },
     ],
   },
   campaigns: {
@@ -195,7 +226,7 @@ export const en = {
     items: [
       { slug: "hospitals", title: "Support hospital care", programme: "Health Access, Coverage & Quality", programmeSlug: "health", text: "Helping hospitals offer equipped wards and continuous care for patients who need it.", image: "doctor-patient" },
       { slug: "neonatal", title: "Neonatal incubator units", programme: "Health Access, Coverage & Quality", programmeSlug: "health", text: "Supporting hospital neonatal units that care for newborns needing incubator support.", image: "incubator" },
-      { slug: "water", title: "Water for families", programme: "WASH, Environment & Climate Resilience", programmeSlug: "wash", text: "Bringing safe water from station to home, with trenching and pipe connections in Luxor.", image: "water-pipe" },
+      { slug: "water", title: "Water for families", programme: "WASH, Environment & Climate Resilience", programmeSlug: "wash", text: "Bringing safe water from station to home, with trenching and pipe connections in Luxor.", image: "water-pipeline" },
       { slug: "shelter-warmth", title: "Shelter & warmth", programme: "Housing & Safe Living Conditions", programmeSlug: "housing", text: "Making homes safer and more dignified for families living in unsafe conditions.", image: "housing-site" },
       { slug: "community-schools", title: "Community schools", programme: "Education", programmeSlug: "education", text: "Helping learners in underserved communities access school and keep progressing.", image: "student-reading" },
       { slug: "workshops", title: "Skills & workshops", programme: "Economic Empowerment & Labor Market Activation", programmeSlug: "economic-empowerment", text: "Workshops where people build practical skills that lead to decent work and income.", image: "carpentry" },
@@ -208,7 +239,7 @@ export const en = {
     quote: "Every gift, accounted for.",
     lead: "We explain how gifts are handled and how results are reported. No claims we cannot show.",
     items: [
-      { title: "Held for its purpose", text: "Every gift is held for the purpose you chose and released against milestones." },
+      { title: "Held for its purpose", text: "Every gift is held for the purpose you chose. Results are reported back to supporters." }, // [C] item 11
       { title: "Evidence-led", text: "Programs are built on evidence, and every figure we share has a source and a period." },
       { title: "People lead their own change", text: "We fund programs that help people, communities and local institutions lead their own change." },
       { title: "A proven legacy", text: "We draw on 20 years of Misr El-Kheir's experience in development across Egypt." },
@@ -236,16 +267,21 @@ export const en = {
     eyebrow: "Our work in action",
     title: "Real people, real places.",
     intro: "Program photography from the field. Photos show the work of Misr El-Kheir in Egypt.",
+    // [C] Item 12 + feedback 23 Nov: one caption format, "Title – Place", with the program underneath. Title and place come only from the
+    // photo's source folder (public/images/work/manifest.json); "Egypt" where the folder names no city. Program = the program whose work
+    // the folder documents (slug → the program's own name, so it always matches the Programs section). MEKI to confirm.
     items: [
-      { image: "weavers-loom" as MediaRef, caption: "Hand-weaving workshop – Alexandria" },
-      { image: "water-station" as MediaRef, caption: "Water desalination station – Luxor" },
-      { image: "greenhouse-harvest" as MediaRef, caption: "Greenhouses – Beni Suef" },
-      { image: "housing-site" as MediaRef, caption: "Shelter & Warmth housing works – Egypt" },
-      { image: "mobile-clinic" as MediaRef, caption: "Mobile medical unit – Egypt" },
-      { image: "farmer-portrait" as MediaRef, caption: "Water-connection project – Luxor" },
-      { image: "operating-room" as MediaRef, caption: "Hospital support – Egypt" },
-    ],
-    note: "Captions follow “Title – Place”, taken from the source folders; final captions and photographer credits to be confirmed.",
+      { image: "weavers-loom" as MediaRef, title: "Hand-weaving workshop", place: "Alexandria", program: "economic-empowerment" },
+      { image: "water-station" as MediaRef, title: "Water desalination station", place: "Luxor", program: "wash" },
+      { image: "greenhouse-harvest" as MediaRef, title: "Greenhouses", place: "Beni Suef", program: "economic-empowerment" },
+      { image: "housing-site" as MediaRef, title: "Shelter & Warmth housing works", place: "Egypt", program: "housing" },
+      { image: "mobile-clinic" as MediaRef, title: "Mobile medical unit", place: "Egypt", program: "health" },
+      { image: "farmer-portrait" as MediaRef, title: "Water-connection project", place: "Luxor", program: "wash" },
+      { image: "operating-room" as MediaRef, title: "Hospital support", place: "Egypt", program: "health" },
+    ] as GalleryItem[],
+    note: "Captions follow “Title – Place”, with the program, taken from the photos' source folders; photographer credits to be confirmed.",
+    showMore: "Show more photos",
+    showLess: "Show fewer photos",
   },
   faq: {
     eyebrow: "Questions",
@@ -277,14 +313,22 @@ export const en = {
     programmes: "Programs",
     giving: "Giving",
     givingLinks: [
-      { href: "#give", label: "Give today" },
-      { href: "#giving", label: "How giving works" },
-      { href: "#faq", label: "FAQ" },
+      { href: "/give", label: "Give" },
+      { href: "/faq", label: "FAQ" },
     ],
     contactTitle: "Contact",
     contactPending: "Contact details will be published soon.",
+    followUs: "Follow us", // [C] item 14
+    newTab: "(opens in a new tab)",
+    /** [C] item 14 + MEKI confirmation 24 Nov 2026: official accounts. Source of truth = Admin → Site settings → Social links (this list is only the fallback). */
+    social: [
+      { network: "linkedin", url: "https://www.linkedin.com/company/misr-el-kheir-international" },
+      { network: "facebook", url: "https://www.facebook.com/meki.Intr/" },
+      { network: "instagram", url: "https://www.instagram.com/meki.intr/" },
+    ] as SocialLink[],
     legalPending: "Privacy · Terms · Cookies (coming soon)",
-    rights: "MEKI. All rights reserved.",
+    // rights: "MEKI. All rights reserved.",
+    rights: "All Rights Reserved Qeema Tech",
     backToTop: "Back to top",
   },
   dialog: {
@@ -360,4 +404,11 @@ export const en = {
   notFound: { title: "Page not found", text: "The page you are looking for does not exist.", back: "Back to home" },
 };
 
-export type Dict = typeof en;
+/**
+ * Footer fields that come from Site settings (Admin → Site settings): free footer text, footer note (shown only when it is not the
+ * built-in placeholder), contact details. All optional — absent means "nothing published", never a placeholder.
+ */
+export type FooterSiteFields = { text?: string; note?: string; email?: string; phone?: string; address?: string };
+/** Logo files chosen in Site settings (same-origin /brand/ files or Media Library images); absent → the approved built-in artwork. */
+export type BrandLogos = { green?: string; white?: string };
+export type Dict = Omit<typeof en, "footer" | "gallery"> & { brand?: BrandLogos; footer: typeof en.footer & FooterSiteFields; gallery: Omit<typeof en.gallery, "items"> & { items: GalleryItem[]; showMore?: string; showLess?: string } };

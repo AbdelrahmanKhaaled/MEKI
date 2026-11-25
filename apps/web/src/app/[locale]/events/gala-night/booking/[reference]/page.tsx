@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getDict, isLocale } from "@/lib/i18n";
+import { isLocale } from "@/lib/i18n";
 import { getBookingCopy } from "@/content/booking";
+import { Footer } from "@/components/sections/FinalFooter";
+import { getPageContent } from "@/lib/content";
 import { DonateProvider } from "@/components/DonateProvider";
 import { Header } from "@/components/Header";
 import { BookingStatus } from "@/components/booking/BookingStatus";
@@ -19,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function BookingStatusPage({ params }: { params: Promise<{ locale: string; reference: string }> }) {
   const { locale, reference } = await params;
   if (!isLocale(locale)) notFound();
-  const t = getDict(locale);
+  const { t } = await getPageContent(locale);
   return (
     <DonateProvider t={t} locale={locale}>
       <Header t={t} locale={locale} current="gala" />
@@ -29,6 +31,7 @@ export default async function BookingStatusPage({ params }: { params: Promise<{ 
           <BookingStatus locale={locale} reference={reference} />
         </div>
       </main>
+      <Footer t={t} />
     </DonateProvider>
   );
 }

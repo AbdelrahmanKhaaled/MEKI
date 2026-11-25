@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { trackConfirmedDonation } from "@/lib/donation-tracking";
 import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Clock, XCircle, Ban, ShieldQuestion, FileText, RotateCcw } from "lucide-react";
 import type { PaymentSessionResponse, PublicDonationStatus } from "@meki/api-client";
@@ -40,7 +41,10 @@ export function DonationReturn({ t, locale, reference, cancelled }: { t: Dict; l
         const d = await clientApi<PublicDonationStatus>(`/public/donations/${reference}/status?locale=${locale}`, { token: token.current });
         if (stopped) return;
         setData(d);
-        if (d.confirmed) return setView("success");
+        if (d.confirmed) {
+          if (d.reference === reference && d.isTest === false && d.status === "COMPLETED" && d.paymentStatus === "PAID") trackConfirmedDonation(d.reference);
+          return setView("success");
+        }
         if (d.status === "FAILED") return setView("failed");
         if (cancelled && d.status === "PENDING") return setView("cancelled");
         if (d.status === "PENDING") {

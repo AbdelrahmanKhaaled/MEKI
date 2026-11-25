@@ -6,6 +6,7 @@ type S = Record<string, string>;
 
 export const cmsEn = {
   common: {
+    noProgram: "No program", programHint: "Shown under the caption with the program’s published name.", captionPreview: "Caption on the website: {caption}",
     publishAll: "Publish all changes", publishSection: "Publish section", unpublishSection: "Unpublish section", published: "Published", notPublished: "Not published",
     unpublishedChanges: "Unpublished changes", upToDate: "Live version is up to date", visible: "Visible on the website", hidden: "Hidden on the website",
     preview: "Preview", previewDraft: "Working copy (not public yet)", previewLive: "Live version (what the website shows)", noLive: "Nothing published yet.", openSite: "Open the public website",
@@ -19,18 +20,18 @@ export const cmsEn = {
     unpublishBody: "The section is removed from the website (the homepage then shows its built-in text).", publishAllTitle: "Publish {n} sections?", publishAllBody: "Each section with unpublished changes is published one by one; DEMO content is refused by the server.",
     publishAllResult: "{ok} published, {failed} refused.", itemsKept: "{n} list items stored on this block are kept unchanged (this page type does not show them).", demoItem: "A visible item is DEMO content.",
   },
-  fields: { eyebrow: "Eyebrow", title: "Title", subtitle: "Subtitle", body: "Text", ctaPrimaryLabel: "Primary button label", ctaSecondaryLabel: "Secondary button label", media: "Image", itemTitle: "Title", itemText: "Text", itemMedia: "Photo", href: "Link" } as S,
+  fields: { eyebrow: "Eyebrow", title: "Title", subtitle: "Subtitle", body: "Text", ctaPrimaryLabel: "Primary button label", ctaSecondaryLabel: "Secondary button label", media: "Image", itemTitle: "Title", itemText: "Text", itemMedia: "Photo", itemProgram: "Program", href: "Link" } as S,
   /** website meaning of a field in a given section (overrides the generic name) */
   fieldOverrides: {
     "HERO.subtitle": "Title, second line", "QUICK_DONATE.body": "Note", "VISION_MISSION.subtitle": "Tagline", "WHY.title": "Quote", "WHY.body": "Lead text",
-    "FINAL_CTA.subtitle": "Title, second line", "FOOTER.title": "Tagline", "FOOTER.subtitle": "Legacy line", "GALLERY.itemTitle": "Caption", "PROCESS.itemText": "Text",
+    "FINAL_CTA.subtitle": "Title, second line", "FOOTER.title": "Tagline", "FOOTER.subtitle": "Legacy line", "GALLERY.itemTitle": "Title (e.g. Hand-weaving workshop)", "GALLERY.itemText": "Place (e.g. Alexandria)", "GALLERY.itemProgram": "Program", "PROGRAMMES.itemTitle": "Step", "PROGRAMMES.itemText": "Step text", "PROCESS.itemText": "Text",
   } as S,
   sections: {
     HERO: "Hero", QUICK_DONATE: "Quick donate", TRUST: "Trust strip", ABOUT: "About MEKI", VISION_MISSION: "Vision & mission", HOW_WE_WORK: "How we work", IMPACT: "Impact statistics",
     PROGRAMMES: "Programs", ENABLING: "Enabling functions", CAMPAIGNS: "Featured campaigns", WHY: "Why support MEKI", PROCESS: "How giving works", GALLERY: "Gallery", FAQ: "FAQ",
     FINAL_CTA: "Call to action", FOOTER: "Footer",
   } as S,
-  lists: { trust: "Trust points", visionMission: "Vision and mission", verbs: "How-we-work verbs", reasons: "Reasons", steps: "Steps", never: "“We never…” promises", photos: "Photos", headerMenu: "Header menu", givingMenu: "Footer giving links" } as S,
+  lists: { legacy: "MEKI Legacy — paragraphs (About page)", trust: "Trust points", visionMission: "Vision and mission", verbs: "How-we-work verbs", reasons: "Reasons", steps: "Steps", never: "“We never…” promises", photos: "Photos", howSteps: "How it works — five steps", headerMenu: "Header menu", givingMenu: "Footer giving links" } as S,
   modules: { statistics: "Statistics (published and verified only)", programmes: "Programs (published, kind Program)", enabling: "Programs (published, enabling functions)", campaigns: "Campaigns (approved AND published only — never bypassed)", faqs: "FAQs (published)" } as S,
   gate: {
     title: "Why this action is unavailable", permission: "Your role does not include this permission.", demo: "DEMO content cannot be published.", demoItem: "A visible item is DEMO content.",
@@ -100,6 +101,7 @@ export const cmsEn = {
   menus: {
     title: "Menus", subtitle: "Header and footer navigation of the public website. Gala Night and Give are fixed entries and are always shown.",
     header: "Header menu (and footer “Explore”)", giving: "Footer “Giving” links", label: "Label", target: "Link", page: "Website page", external: "External address (https)", externalUrl: "https://…",
+    resetToSite: "Use the website's current menu", resetHint: "Replaces these entries with the pages the public website really shows. Nothing is deleted: extra entries are hidden. Publish afterwards.",
     visible: "Shown", add: "Add entry", used: "The website uses this menu.", notUsed: "The website keeps its built-in menu: {n} entries are not valid (see below). Fix them and publish.",
     builtIn: "Built-in website menu (used until a valid menu is published): Home · About MEKI · Programs · Give · FAQ · Contact. Footer giving: Give · FAQ.",
     fixed: "Fixed entries (not editable): Gala Night (header and footer), Give button, legal links in the footer bottom.", publishNote: "Menus are part of the homepage “Footer” section: publish it to update the website.",
@@ -115,6 +117,7 @@ export type CmsDict = typeof cmsEn;
 
 export const cmsAr: CmsDict = {
   common: {
+    noProgram: "بدون برنامج", programHint: "يظهر تحت التعليق باسم البرنامج المنشور.", captionPreview: "التعليق على الموقع: {caption}",
     publishAll: "نشر كل التغييرات", publishSection: "نشر القسم", unpublishSection: "إلغاء نشر القسم", published: "منشور", notPublished: "غير منشور",
     unpublishedChanges: "تغييرات غير منشورة", upToDate: "النسخة المنشورة محدّثة", visible: "ظاهر على الموقع", hidden: "مخفي على الموقع",
     preview: "معاينة", previewDraft: "نسخة العمل (غير منشورة بعد)", previewLive: "النسخة المنشورة (ما يعرضه الموقع)", noLive: "لا يوجد محتوى منشور بعد.", openSite: "فتح الموقع العام",
@@ -128,17 +131,17 @@ export const cmsAr: CmsDict = {
     unpublishBody: "يُزال القسم من الموقع (تعرض الصفحة الرئيسية نصها المدمج حينها).", publishAllTitle: "نشر {n} أقسام؟", publishAllBody: "يُنشر كل قسم فيه تغييرات غير منشورة واحداً تلو الآخر؛ ويرفض الخادم المحتوى التجريبي.",
     publishAllResult: "نُشر {ok}، ورُفض {failed}.", itemsKept: "{n} عناصر مخزنة في هذه الكتلة تبقى دون تغيير (لا يعرضها هذا النوع من الصفحات).", demoItem: "يوجد عنصر ظاهر من محتوى تجريبي.",
   },
-  fields: { eyebrow: "العنوان التمهيدي", title: "العنوان", subtitle: "العنوان الفرعي", body: "النص", ctaPrimaryLabel: "نص الزر الرئيسي", ctaSecondaryLabel: "نص الزر الثانوي", media: "الصورة", itemTitle: "العنوان", itemText: "النص", itemMedia: "الصورة", href: "الرابط" },
+  fields: { eyebrow: "العنوان التمهيدي", title: "العنوان", subtitle: "العنوان الفرعي", body: "النص", ctaPrimaryLabel: "نص الزر الرئيسي", ctaSecondaryLabel: "نص الزر الثانوي", media: "الصورة", itemTitle: "العنوان", itemText: "النص", itemMedia: "الصورة", itemProgram: "البرنامج", href: "الرابط" },
   fieldOverrides: {
     "HERO.subtitle": "العنوان، السطر الثاني", "QUICK_DONATE.body": "ملاحظة", "VISION_MISSION.subtitle": "الشعار", "WHY.title": "الاقتباس", "WHY.body": "النص التمهيدي",
-    "FINAL_CTA.subtitle": "العنوان، السطر الثاني", "FOOTER.title": "الشعار", "FOOTER.subtitle": "سطر الإرث", "GALLERY.itemTitle": "التعليق", "PROCESS.itemText": "النص",
+    "FINAL_CTA.subtitle": "العنوان، السطر الثاني", "FOOTER.title": "الشعار", "FOOTER.subtitle": "سطر الإرث", "GALLERY.itemTitle": "العنوان (مثل ورشة السجاد اليدوي)", "GALLERY.itemText": "المكان (مثل الإسكندرية)", "GALLERY.itemProgram": "البرنامج", "PROGRAMMES.itemTitle": "الخطوة", "PROGRAMMES.itemText": "نص الخطوة", "PROCESS.itemText": "النص",
   },
   sections: {
     HERO: "الواجهة", QUICK_DONATE: "التبرع السريع", TRUST: "شريط الثقة", ABOUT: "عن MEKI", VISION_MISSION: "الرؤية والرسالة", HOW_WE_WORK: "كيف نعمل", IMPACT: "إحصاءات الأثر",
     PROGRAMMES: "البرامج", ENABLING: "الوظائف التمكينية", CAMPAIGNS: "الحملات المميزة", WHY: "لماذا تدعم MEKI", PROCESS: "كيف يتم التبرع", GALLERY: "المعرض", FAQ: "الأسئلة الشائعة",
     FINAL_CTA: "دعوة لاتخاذ إجراء", FOOTER: "التذييل",
   },
-  lists: { trust: "نقاط الثقة", visionMission: "الرؤية والرسالة", verbs: "أفعال كيف نعمل", reasons: "الأسباب", steps: "الخطوات", never: "وعود «لن نقوم أبداً…»", photos: "الصور", headerMenu: "قائمة الترويسة", givingMenu: "روابط التبرع في التذييل" },
+  lists: { legacy: "إرث MEKI — الفقرات (صفحة عن MEKI)", trust: "نقاط الثقة", visionMission: "الرؤية والرسالة", verbs: "أفعال كيف نعمل", reasons: "الأسباب", steps: "الخطوات", never: "وعود «لن نقوم أبداً…»", photos: "الصور", howSteps: "آلية العمل — خمس خطوات", headerMenu: "قائمة الترويسة", givingMenu: "روابط التبرع في التذييل" },
   modules: { statistics: "الإحصاءات (المنشورة والموثّقة فقط)", programmes: "البرامج (المنشورة من نوع برنامج)", enabling: "البرامج (المنشورة، الوظائف التمكينية)", campaigns: "الحملات (المعتمدة والمنشورة فقط — دون تجاوز)", faqs: "الأسئلة الشائعة (المنشورة)" },
   gate: {
     title: "لماذا هذا الإجراء غير متاح", permission: "دورك لا يتضمن هذه الصلاحية.", demo: "لا يمكن نشر المحتوى التجريبي.", demoItem: "يوجد عنصر ظاهر من محتوى تجريبي.",
@@ -208,6 +211,7 @@ export const cmsAr: CmsDict = {
   menus: {
     title: "القوائم", subtitle: "قوائم التنقل في ترويسة الموقع العام وتذييله. ليلة الحفل وزر التبرع عنصران ثابتان يظهران دائماً.",
     header: "قائمة الترويسة (و«استكشف» في التذييل)", giving: "روابط «التبرع» في التذييل", label: "التسمية", target: "الرابط", page: "صفحة من الموقع", external: "عنوان خارجي (https)", externalUrl: "https://…",
+    resetToSite: "استخدام قائمة الموقع الحالية", resetHint: "يستبدل هذه العناصر بالصفحات التي يعرضها الموقع العام فعلاً. لا يُحذف شيء: العناصر الزائدة تُخفى. انشر بعد ذلك.",
     visible: "ظاهر", add: "إضافة عنصر", used: "يستخدم الموقع هذه القائمة.", notUsed: "يُبقي الموقع قائمته المدمجة: {n} عناصر غير صالحة (انظر أدناه). صحّحها ثم انشر.",
     builtIn: "قائمة الموقع المدمجة (تُستخدم حتى تُنشر قائمة صالحة): الرئيسية · عن MEKI · البرامج · تبرّع · الأسئلة الشائعة · تواصل. روابط التبرع: تبرّع · الأسئلة الشائعة.",
     fixed: "عناصر ثابتة (غير قابلة للتعديل): ليلة الحفل (الترويسة والتذييل)، زر التبرع، الروابط القانونية أسفل التذييل.", publishNote: "القوائم جزء من قسم «التذييل» في الصفحة الرئيسية: انشره لتحديث الموقع.",

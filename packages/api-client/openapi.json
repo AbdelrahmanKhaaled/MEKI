@@ -649,7 +649,7 @@
                   "file": {
                     "type": "string",
                     "format": "binary",
-                    "description": "JPEG/PNG/WebP, max MEDIA_MAX_UPLOAD_MB (default 10 MB). SVG rejected."
+                    "description": "JPEG/PNG/WebP image or PDF document, max MEDIA_MAX_UPLOAD_MB (default 10 MB). SVG rejected."
                   },
                   "altEn": {
                     "type": "string"
@@ -778,6 +778,18 @@
                 "VERIFIED_SOURCE",
                 "PROPOSED",
                 "DEMO"
+              ]
+            }
+          },
+          {
+            "name": "kind",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "image",
+                "document"
               ]
             }
           }
@@ -11166,6 +11178,42 @@
               "type": "string"
             }
           },
+          "summaryEn": {
+            "type": "string"
+          },
+          "summaryAr": {
+            "type": "string"
+          },
+          "outcomesEn": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "outcomesAr": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "focusAreaDetailsEn": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "focusAreaDetailsAr": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pageTitleEn": {
+            "type": "string"
+          },
+          "pageTitleAr": {
+            "type": "string"
+          },
           "icon": {
             "type": "string"
           },
@@ -11281,6 +11329,42 @@
             "items": {
               "type": "string"
             }
+          },
+          "summaryEn": {
+            "type": "string"
+          },
+          "summaryAr": {
+            "type": "string"
+          },
+          "outcomesEn": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "outcomesAr": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "focusAreaDetailsEn": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "focusAreaDetailsAr": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pageTitleEn": {
+            "type": "string"
+          },
+          "pageTitleAr": {
+            "type": "string"
           },
           "icon": {
             "type": "string"

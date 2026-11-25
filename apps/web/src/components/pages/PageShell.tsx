@@ -83,9 +83,11 @@ export function PageHero({
           </h1>
           <div data-hero-item className="mb-7 h-px w-24 bg-gradient-to-r from-harvest-gold to-glow/30 rtl:bg-gradient-to-l" />
           {lead && (
-            <p data-hero-item className="max-w-2xl text-lg leading-relaxed text-mint-line sm:text-xl">
-              {lead}
-            </p>
+            <div data-hero-item className="max-w-2xl space-y-4 text-lg leading-relaxed text-mint-line sm:text-xl">
+              {lead.split(/\n\s*\n/).map((para) => (
+                <p key={para.slice(0, 40)}>{para}</p>
+              ))}
+            </div>
           )}
           {children && (
             <div data-hero-item className="mt-8 flex flex-wrap gap-3">

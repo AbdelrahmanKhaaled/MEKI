@@ -131,7 +131,8 @@ export function MediaPicker({ open, mode, initial, onClose, onConfirm, defaultCa
   const [tab, setTab] = useState<"browse" | "upload">(initialTab);
   const [selected, setSelected] = useState<Media[]>(initial);
   const [q, setQ] = useState({ search: "", category: "", provenance: "", page: 1 });
-  const list = useMediaList({ search: q.search || undefined, category: q.category || undefined, provenance: q.provenance || undefined, page: q.page, pageSize: 24, sort: "createdAt:desc" }, open);
+  // image slots never list documents (24 Nov 2026: PDFs share the library)
+  const list = useMediaList({ kind: "image", search: q.search || undefined, category: q.category || undefined, provenance: q.provenance || undefined, page: q.page, pageSize: 24, sort: "createdAt:desc" }, open);
   const isSel = (id: string) => selected.some((m) => m.id === id);
   const toggle = (m: Media) => setSelected((s) => (mode === "single" ? (isSel(m.id) ? [] : [m]) : isSel(m.id) ? s.filter((x2) => x2.id !== m.id) : [...s, m]));
   const add = (m: Media) => setSelected((s) => (mode === "single" ? [m] : isSel(m.id) ? s : [...s, m]));

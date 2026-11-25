@@ -1,6 +1,6 @@
 /**
  * Phase 14 — copy for the hosted giving flows (general / programme / Gala donation) and the donor status page.
- * [P] proposed microcopy by the development team — needs MEKI approval. Arabic is a DRAFT translation pending MEKI review.
+ * [P] proposed microcopy by the development team — needs MEKI approval. Arabic translations approved by MEKI.
  * Zakat wording never states a religious ruling: Zakat is offered only where MEKI's designated authority approved it and SDI accepted
  * the accounting restriction (server-side), and donors are pointed to their own scholar.
  */

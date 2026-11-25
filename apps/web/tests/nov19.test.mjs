@@ -18,8 +18,9 @@ test("price: USD 500 everywhere on the Gala page (supersedes USD 750)", () => {
 test("hours: 3:30 – 8:30 PM New York time in hero and agenda header (EN/AR)", () => {
   assert.equal(galaEn.hero.time, "3:30 – 8:30 PM (New York time)");
   assert.match(galaAr.hero.time, /3:30 – 8:30/);
-  assert.match(galaEn.timeline.hours, /3:30 – 8:30 PM, New York time \(America\/New_York\)/);
-  assert.match(galaAr.timeline.hours, /America\/New_York/);
+  // MEKI client edits (22 Nov 2026, Gala item 20): "(America/New_York)" removed from the agenda header.
+  assert.match(galaEn.timeline.hours, /3:30 – 8:30 PM, New York time$/);
+  for (const g of [galaEn, galaAr]) assert.doesNotMatch(g.timeline.hours, /America\/New_York/);
 });
 
 test("agenda 'The Evening in a Glimpse': four acts, exact times, ends 8:15 PM — nothing invented after it", () => {
@@ -31,7 +32,8 @@ test("agenda 'The Evening in a Glimpse': four acts, exact times, ends 8:15 PM �
     ["Act IV", "A Shared Celebration", "7:00 – 8:15 PM"],
   ]);
   assert.deepEqual(acts.flatMap((a) => a.items.map((i) => `${i.time} ${i.title}`)), [
-    "3:30 PM Where Connections Begin", "4:30 PM The First Spark", "4:45 PM A Vision Beyond Borders",
+    // MEKI client edits (22 Nov 2026, item 20): "Welcome reception" and "Opening with our host, Raya Abirached".
+    "3:30 PM Welcome reception", "4:30 PM Opening with our host, Raya Abirached", "4:45 PM A Vision Beyond Borders",
     "5:00 PM Every Light Has a Story", "5:10 PM Voices That Illuminate", "6:00 PM A Legacy of Giving",
     "6:15 PM The Moment to Make It Count",
     "7:00 PM A Celebration of Shared Light", "7:30 PM A Table of Shared Purpose", "8:15 PM The Light Carries On",
@@ -41,13 +43,15 @@ test("agenda 'The Evening in a Glimpse': four acts, exact times, ends 8:15 PM �
   assert.deepEqual(galaAr.timeline.acts.map((a) => a.items.length), acts.map((a) => a.items.length));
 });
 
-test("speakers are not named (roles only) until MEKI confirms them", () => {
+test("only names confirmed in writing are shown: the host (22 Nov 2026); other speakers stay roles only", () => {
   for (const g of [galaEn, galaAr]) {
-    assert.doesNotMatch(JSON.stringify(g.timeline), /Raya|Abirached|Shousha|Ahmed Amin|رايا|شوشة|أحمد أمين/);
+    assert.doesNotMatch(JSON.stringify(g.timeline), /Shousha|Ahmed Amin|شوشة|أحمد أمين/);
   }
+  assert.match(JSON.stringify(galaEn.timeline), /Raya Abirached/); // confirmed in writing in MEKI's 22 Nov 2026 edits
   assert.match(galaEn.timeline.note, /Speakers to be confirmed/);
   const roles = galaEn.timeline.acts.flatMap((a) => a.items.map((i) => i.note));
-  assert.ok(roles.includes("Keynote Speaker") && roles.includes("Master of Ceremonies") && roles.includes("Guest of Honor Panel"));
+  assert.ok(roles.includes("Keynote Speaker") && roles.includes("Guest of Honor Panel"));
+  assert.ok(!roles.includes("Master of Ceremonies") && !roles.includes("Pre-event"));
 });
 
 test("timeline renders acts as headed sections with <time> elements; disclosures only from the API", () => {

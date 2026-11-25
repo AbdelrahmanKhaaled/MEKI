@@ -100,10 +100,14 @@ export async function runSeed(prisma: PrismaClient, log: (msg: string) => void =
 
   // ───────── media (curated web images; files already in apps/web/public) ─────────
   const manifestPath = resolve(WEB_PUBLIC, 'images/work/manifest.json');
-  const manifest: { key: string; sourceFolder?: string; sourceFile?: string }[] = existsSync(manifestPath)
-    ? JSON.parse(readFileSync(manifestPath, 'utf8'))
-    : [];
-  const galleryCaptions = new Map(en.gallery.items.map((g, i) => [g.image as string, { en: g.caption, ar: ar.gallery.items[i]?.caption }]));
+  // + the 24 Nov 2026 client delivery (hero photos, program covers, water photo): apps/web/scripts/build-client-delivery.mjs
+  const deliveryPath = resolve(WEB_PUBLIC, 'images/work/client-delivery.json');
+  const manifest: { key: string; sourceFolder?: string; sourceFile?: string }[] = [
+    ...(existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : []),
+    ...(existsSync(deliveryPath) ? JSON.parse(readFileSync(deliveryPath, 'utf8')) : []),
+  ];
+  const cap = (g?: { title: string; place?: string }) => (g ? (g.place ? `${g.title} – ${g.place}` : g.title) : undefined);
+  const galleryCaptions = new Map(en.gallery.items.map((g, i) => [g.image as string, { en: cap(g), ar: cap(ar.gallery.items[i]) }]));
   const mediaIds = new Map<string, string>();
   for (const [key, meta] of Object.entries(webMedia)) {
     const file = resolve(WEB_PUBLIC, `.${meta.src}`);
@@ -152,12 +156,13 @@ export async function runSeed(prisma: PrismaClient, log: (msg: string) => void =
           taglineAr: ar.footer.tagline,
           legacyLineEn: en.footer.legacy,
           legacyLineAr: ar.footer.legacy,
-          logoPrimaryUrl: '/brand/MEKI_Primary_Green.svg',
-          logoInverseUrl: '/brand/MEKI_Primary_White.svg',
-          logoIconUrl: '/brand/MEKI_Icon_Green.svg',
+          // Approved logo files (MEKI client edits, 23 Nov 2026 — apps/web/scripts/build-brand.mjs)
+          logoPrimaryUrl: '/brand/MEKI_Secondary_Green.png',
+          logoInverseUrl: '/brand/MEKI_Secondary_White.png',
+          logoIconUrl: '/brand/MEKI_Icon_Approved_512.png',
           contactEmail: null, // not supplied by MEKI yet — never invented
           contactPhone: null,
-          socialLinks: [],
+          socialLinks: en.footer.social, // Instagram @meki.intr confirmed by MEKI (22 Nov 2026); other accounts to be sent
           defaultLocale: 'en',
           supportedLocales: ['en', 'ar'],
           footerNoteEn: en.footer.contactPending,
@@ -218,6 +223,14 @@ export async function runSeed(prisma: PrismaClient, log: (msg: string) => void =
             mandateAr: pa.mandate,
             focusAreasEn: p.themes,
             focusAreasAr: pa.themes,
+            focusAreaDetailsEn: p.areaTexts,
+            focusAreaDetailsAr: pa.areaTexts,
+            pageTitleEn: p.pageTitle ?? null,
+            pageTitleAr: pa.pageTitle ?? null,
+            summaryEn: p.summary,
+            summaryAr: pa.summary,
+            outcomesEn: p.outcomes,
+            outcomesAr: pa.outcomes,
             icon: p.icon,
             coverMediaId: mediaId(p.image),
             sortOrder: (i + 1) * 10,
@@ -244,8 +257,10 @@ export async function runSeed(prisma: PrismaClient, log: (msg: string) => void =
             kind: 'ENABLING_FUNCTION', // capabilities, not programmes — never donation campaigns by default
             nameEn: f.name,
             nameAr: fa.name,
-            shortDescEn: f.text,
-            shortDescAr: fa.text,
+            shortDescEn: f.tagline,
+            shortDescAr: fa.tagline,
+            summaryEn: f.text,
+            summaryAr: fa.text,
             icon: f.icon,
             sortOrder: (i + 1) * 10,
             status: 'PUBLISHED',
@@ -419,8 +434,10 @@ export async function runSeed(prisma: PrismaClient, log: (msg: string) => void =
     {
       key: 'ABOUT', anchor: 'who-we-are', provenance: 'VERIFIED_SOURCE', sourceRef: SOURCES.brand4,
       eyebrowEn: en.about.eyebrow, eyebrowAr: ar.about.eyebrow, titleEn: en.about.title, titleAr: ar.about.title, bodyEn: en.about.body, bodyAr: ar.about.body,
-      labelsEn: { legacy: en.about.legacy, captionA: en.about.captionA, captionB: en.about.captionB },
-      labelsAr: { legacy: ar.about.legacy, captionA: ar.about.captionA, captionB: ar.about.captionB },
+      labelsEn: { legacy: en.about.legacy, captionA: en.about.captionA, captionB: en.about.captionB, legacyTitle: en.about.legacyTitle, legacyTagline: en.about.legacyTagline },
+      labelsAr: { legacy: ar.about.legacy, captionA: ar.about.captionA, captionB: ar.about.captionB, legacyTitle: ar.about.legacyTitle, legacyTagline: ar.about.legacyTagline },
+      // MEKI Legacy (Programs Word document, 25 Nov 2026): the three paragraphs of the About page section
+      items: pairItems(en.about.legacyParas, ar.about.legacyParas, (x, y, i) => ({ code: `legacy-${i + 1}`, textEn: x, textAr: y })),
     },
     {
       key: 'VISION_MISSION', provenance: 'VERIFIED_SOURCE', sourceRef: `${SOURCES.brand4} (vision & mission verbatim; headings proposed)`,
@@ -443,8 +460,10 @@ export async function runSeed(prisma: PrismaClient, log: (msg: string) => void =
     {
       key: 'PROGRAMMES', anchor: 'programmes', provenance: 'PROPOSED', sourceRef: `${SOURCES.landing} (programme data served from Programme)`,
       eyebrowEn: en.programmes.eyebrow, eyebrowAr: ar.programmes.eyebrow, titleEn: en.programmes.title, titleAr: ar.programmes.title, bodyEn: en.programmes.intro, bodyAr: ar.programmes.intro,
-      labelsEn: { mandateLabel: en.programmes.mandateLabel, themesLabel: en.programmes.themesLabel, give: en.programmes.give },
-      labelsAr: { mandateLabel: ar.programmes.mandateLabel, themesLabel: ar.programmes.themesLabel, give: ar.programmes.give },
+      labelsEn: { mandateLabel: en.programmes.mandateLabel, themesLabel: en.programmes.themesLabel, outcomesLabel: en.programmes.outcomesLabel, give: en.programmes.give, howTitle: en.programmes.howTitle },
+      labelsAr: { mandateLabel: ar.programmes.mandateLabel, themesLabel: ar.programmes.themesLabel, outcomesLabel: ar.programmes.outcomesLabel, give: ar.programmes.give, howTitle: ar.programmes.howTitle },
+      // "How it works" — five numbered steps (MEKI client edits, 22 Nov 2026)
+      items: pairItems(en.programmes.how, ar.programmes.how, (x, y, i) => ({ code: `how-${i + 1}`, titleEn: x.title, titleAr: y.title, textEn: x.text, textAr: y.text, provenance: 'VERIFIED_SOURCE' })),
     },
     {
       key: 'ENABLING', provenance: 'VERIFIED_SOURCE', sourceRef: `${SOURCES.brand24}; ${SOURCES.portfolio} (functions served from Programme kind=ENABLING_FUNCTION)`,
@@ -474,7 +493,8 @@ export async function runSeed(prisma: PrismaClient, log: (msg: string) => void =
       key: 'GALLERY', anchor: 'our-work', provenance: 'PROPOSED', sourceRef: `${SOURCES.landing}; captions are working labels from source folders`,
       eyebrowEn: en.gallery.eyebrow, eyebrowAr: ar.gallery.eyebrow, titleEn: en.gallery.title, titleAr: ar.gallery.title, bodyEn: en.gallery.intro, bodyAr: ar.gallery.intro,
       labelsEn: { note: en.gallery.note }, labelsAr: { note: ar.gallery.note },
-      items: pairItems(en.gallery.items, ar.gallery.items, (x, y, i) => ({ code: `photo-${i + 1}`, titleEn: x.caption, titleAr: y.caption, media: x.image })),
+      // Title = item title, Place = item text, Program = item href "/programs/<slug>" (MEKI client edits, 22–23 Nov 2026).
+      items: pairItems(en.gallery.items, ar.gallery.items, (x, y, i) => ({ code: `photo-${i + 1}`, titleEn: x.title, titleAr: y.title, textEn: x.place, textAr: y.place, href: x.program ? `/programs/${x.program}` : undefined, media: x.image })),
     },
     {
       key: 'FAQ', anchor: 'faq', provenance: 'PROPOSED', sourceRef: `${SOURCES.landing} (questions served from Faq)`,

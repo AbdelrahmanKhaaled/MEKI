@@ -18,15 +18,16 @@ test("donation section: the 'Luxor · WASH program' badge is no longer rendered 
   assert.match(en.quick.note, /No payment is taken/);
 });
 
-test("refreshments: exact client wording replaces the alcohol-free card; other five cards unchanged", () => {
+test("refreshments: exact client text kept on card 3, now titled 'Virgin Drinks' (24 Nov 2026); Craft display removed", () => {
   const items = galaEn.experience.items;
-  assert.equal(items.length, 6);
+  assert.equal(items.length, 5);
   assert.deepEqual(items[2], {
-    title: "Refined Refreshments",
+    code: "bar",
+    title: "Virgin Drinks", // MEKI confirmation 24 Nov 2026 (supersedes "Virgin bar")
     text: "A curated selection of fresh juices, premium teas, coffee, and sparkling beverages, thoughtfully served throughout the evening",
   });
-  assert.deepEqual(items.map((i) => i.title), ["Black-tie evening", "Plated halal dinner", "Refined Refreshments", "Lamp-lighting moment", "Craft display", "Live auction"]);
-  assert.equal(galaAr.experience.items.length, 6);
+  assert.deepEqual(items.map((i) => i.title), ["Black-tie evening", "Set-menu dinner", "Virgin Drinks", "Lamp-lighting moment", "Live auction"]);
+  assert.equal(galaAr.experience.items.length, 5);
   for (const g of [galaEn, galaAr]) assert.doesNotMatch(JSON.stringify(g.experience), /alcohol|كحول/i);
 });
 
@@ -53,14 +54,14 @@ test("dietary: the five client options are listed (EN/AR); no claim that SDI's f
 
 test("captions: unified 'Title – Place' on the gallery and About photos (EN/AR, same count, no '·' separators)", () => {
   for (const t of [en, ar]) {
-    for (const c of [...t.gallery.items.map((i) => i.caption), t.about.captionA, t.about.captionB]) {
+    for (const c of [...t.gallery.items.map((i) => photoCaption(i.title, i.place)), t.about.captionA, t.about.captionB]) {
       assert.match(c, /^\S.* – \S.*$/, c);
       assert.doesNotMatch(c, /·/);
     }
   }
   assert.equal(en.gallery.items.length, ar.gallery.items.length);
   // places are the ones in the source folders — nothing new invented
-  assert.deepEqual(en.gallery.items.map((i) => i.caption.split(" – ")[1]), ["Alexandria", "Luxor", "Beni Suef", "Egypt", "Egypt", "Luxor", "Egypt"]);
+  assert.deepEqual(en.gallery.items.map((i) => i.place), ["Alexandria", "Luxor", "Beni Suef", "Egypt", "Egypt", "Luxor", "Egypt"]);
 });
 
 test("venue photos: only from the published EVENT_VENUE section; none -> nothing rendered; caption 'Title – Place'", () => {
@@ -95,5 +96,6 @@ test("agenda and price remain the Nov 19 / 21 Nov values (no regression)", () =>
   assert.equal(galaEn.attendance.price, "USD 500");
   assert.equal(galaEn.timeline.acts.flatMap((a) => a.items).length, 10);
   assert.equal(galaEn.timeline.acts.at(-1).items.at(-1).time, "8:15 PM");
-  for (const g of [galaEn, galaAr]) assert.doesNotMatch(JSON.stringify(g), /750|Raya|Shousha|Abirached/);
+  // The host's name is published since MEKI's 22 Nov 2026 edits; other speaker names are still not.
+  for (const g of [galaEn, galaAr]) assert.doesNotMatch(JSON.stringify(g), /750|Shousha/);
 });

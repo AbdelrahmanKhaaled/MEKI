@@ -45,7 +45,7 @@ const apiMedia = (() => {
 
 const config: NextConfig = {
   poweredByHeader: false,
-  images: { formats: ["image/avif", "image/webp"], qualities: [70, 75, 80], remotePatterns: apiMedia },
+  images: { formats: ["image/avif", "image/webp"], qualities: [70, 75, 80, 85], remotePatterns: apiMedia },
   // Workspace package with TypeScript sources (types + helpers).
   transpilePackages: ["@meki/api-client"],
   async redirects() {

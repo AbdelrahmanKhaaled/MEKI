@@ -1,3 +1,4 @@
+import { approvedGalaAssets } from "@/content/gala-assets";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { isLocale, locales } from "@/lib/i18n";
@@ -5,7 +6,8 @@ import { getPageContent } from "@/lib/content";
 import { fetchPublicContent } from "@/lib/api";
 import type { PublicEventFundraising, PublicGalaGivingOptions, PublicTicketing } from "@meki/api-client";
 import { isTrustedHostedFormUrl } from "@/lib/booking";
-import { venuePhotosFrom, type PublicEventPage } from "@/lib/venue-photos";
+import type { PublicEventPage } from "@/lib/venue-photos";
+import { EMPTY_GALA_CMS, experienceCards, galaCmsFrom } from "@/lib/gala-cms";
 import { getBookingCopy } from "@/content/booking";
 import { publicRobots, siteOrigin, socialMeta } from "@/lib/site";
 import { getGala, PROPOSED_SPONSORSHIP } from "@/content/gala";
@@ -18,6 +20,8 @@ import {
   GalaHero,
   GalaPurpose,
   GalaExperience,
+  GalaHost,
+  GalaFollow,
   GalaTimeline,
   GalaVenue,
   GalaAttendance,
@@ -52,20 +56,25 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 const DEFAULT_MAP = "https://www.google.com/maps/search/?api=1&query=583+Park+Avenue+New+York";
 
 /** Minimal slice of GET /public/events/:slug (localized). Only returned once the event is approved AND published. */
-type PublicEvent = { status?: string; mapUrl?: string | null };
+type PublicEvent = { status?: string; mapUrl?: string | null; address?: string | null };
 
 export default async function GalaNightPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const base = getGala(locale);
-  const { t, liveCampaigns } = await getPageContent(locale);
+  const { t, liveCampaigns, site } = await getPageContent(locale);
 
   // Draft/unapproved events return 404 from the API, so nothing unpublished can ever surface here.
   // The page shell shows client-confirmed details either way; a published record may only refine the map link.
   const event = await fetchPublicContent<PublicEvent>(`/public/events/gala-night?locale=${locale}`);
   const mapUrl = event?.mapUrl && /^https:\/\//.test(event.mapUrl) ? event.mapUrl : DEFAULT_MAP;
-  // Phase 13B: authentic venue photos, only from the published event's published EVENT_VENUE section (none rendered otherwise).
-  const venuePhotos = event ? venuePhotosFrom(await fetchPublicContent<PublicEventPage>(`/public/events/gala-night/page?locale=${locale}`)) : [];
+  // Photos, host photo, sponsorship link, partner logos and contact email: ONLY from the published event's published landing-page
+  // sections (Admin → Gala → Settings → Gala page). Nothing is rendered for a value MEKI has not published (lib/gala-cms.ts).
+  const published = event ? galaCmsFrom(await fetchPublicContent<PublicEventPage>(`/public/events/gala-night/page?locale=${locale}`)) : EMPTY_GALA_CMS;
+  const cms = approvedGalaAssets(published, locale);
+  const venuePhotos = cms.venuePhotos;
+  const address = base.venue.address;
+  const contactEmail = cms.contactEmail ?? (site?.contactEmail && /^[^\s@<>"]+@[^\s@<>"]+\.[a-z]{2,}$/i.test(site.contactEmail) ? site.contactEmail : t.footer.email);
 
   // Booking opens only when the API says so (sales switch AND checkout available — or, in SDI-hosted mode, the hosted form
   // switch). Unpublished events return 404 -> closed.
@@ -108,17 +117,19 @@ export default async function GalaNightPage({ params }: { params: Promise<{ loca
       <Header t={t} locale={locale} current="gala" />
       <MotionRoot>
         <main id="main">
-          <GalaHero g={g} />
-          <GalaPurpose g={g} />
-          <GalaExperience g={g} />
+          <GalaHero g={g} image={cms.heroImage} />
+          <GalaPurpose g={g} photos={cms.purposePhotos} />
+          <GalaExperience g={g} cards={experienceCards(g, cms)} />
+          <GalaHost g={g} host={cms.host} />
           <GalaTimeline g={g} />
-          <GalaVenue g={g} mapUrl={mapUrl} photos={venuePhotos} />
-          <GalaAttendance g={g} price={apiPrice} />
-          <SponsorshipSection g={g} tiers={sponsorPreview ? PROPOSED_SPONSORSHIP : undefined} />
+          <GalaVenue g={g} mapUrl={mapUrl} photos={venuePhotos} address={address} logo={cms.venueLogo} />
+          <GalaAttendance g={g} price={apiPrice} contactEmail={contactEmail} />
+          <SponsorshipSection g={g} tiers={sponsorPreview ? PROPOSED_SPONSORSHIP : undefined} sponsor={cms.sponsorship} partners={cms.partners} />
           {/* Six approved causes not yet supplied: renders nothing until approved, event-linked data exists. */}
           <GalaCauses g={g} causes={[]} />
           <GalaFaq g={g} />
           <GalaBooking g={g} bookHref={`/${locale}/events/gala-night/book`} bookStatus={bookingOpen ? (hostedMode ? getBookingCopy(locale).hosted.intro : getBookingCopy(locale).tickets.rule) : base.booking.book.status} give={give} disclosure={fr?.disclosures?.website ?? null} />
+          <GalaFollow g={g} links={t.footer.social} newTab={t.footer.newTab} />
           <p className="bg-deep-green-3 pb-10 text-center">
             <a href={back} className="text-sm font-bold text-mint-line underline-offset-4 hover:text-white hover:underline">
               {g.back}

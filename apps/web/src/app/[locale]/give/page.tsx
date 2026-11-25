@@ -33,7 +33,7 @@ export default async function GivePage({ params }: { params: Promise<{ locale: s
   if (!isLocale(locale)) notFound();
   const { t, site } = await getPageContent(locale);
   const p = getPages(locale).give;
-  const email = site?.contactEmail && EMAIL.test(site.contactEmail) ? site.contactEmail : null;
+  const email = site?.contactEmail && EMAIL.test(site.contactEmail) ? site.contactEmail : t.footer.email;
   // Phase 14: the giving form. Programmes are listed for information; what is payable comes ONLY from the API (all closed today).
   const giving = await fetchPublicContent<PublicGivingOptions>(`/public/giving/options?locale=${locale}`);
   const g = getGivingCopy(locale).form;
@@ -41,7 +41,7 @@ export default async function GivePage({ params }: { params: Promise<{ locale: s
   return (
     <PageShell locale={locale} current="give">
       {/* Campaign photography from MEKI's own programs: hospital incubators, water lines, workshops. */}
-      <PageHero eyebrow={p.eyebrow} title={p.title} lead={p.intro} layout="mosaic" images={["incubator", "water-pipe", "carpentry"]} />
+      <PageHero eyebrow={p.eyebrow} title={p.title} lead={p.intro} layout="mosaic" images={["incubator", "water-pipeline", "carpentry"]} />
 
       {/* How giving works: vertical numbered path, content from the shared dictionary / CMS. */}
       <section aria-labelledby="steps-title" className="section-y bg-paper">

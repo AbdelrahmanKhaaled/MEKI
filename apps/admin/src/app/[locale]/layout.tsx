@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   title: "MEKI Admin",
   robots: { index: false, follow: false },
   referrer: "no-referrer",
-  icons: { icon: "/brand/MEKI_Icon_Green.svg" },
+  icons: { icon: "/brand/MEKI_Icon_Approved_32.png" },
 };
 
 export default async function LocaleLayout({ children, params }: { children: React.ReactNode; params: Promise<{ locale: string }> }) {

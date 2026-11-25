@@ -1,0 +1,134 @@
+[
+  {
+    "key": "hero-family",
+    "width": 2200,
+    "height": 1237,
+    "kb": 271,
+    "sourceFolder": "home p",
+    "sourceFile": "DSC06120.JPG",
+    "sha256": "1fcb1e08071c3c3eac1abbcabae041836d4a8e0a1779e5aa1bade44148ced7f3",
+    "provenance": "client delivery 24 Nov 2026 (TransferNow)",
+    "consent": "UNCONFIRMED"
+  },
+  {
+    "key": "hero-school",
+    "width": 1500,
+    "height": 844,
+    "kb": 155,
+    "sourceFolder": "home p",
+    "sourceFile": "2026-11-18 at 2.23.11 PM.jpeg",
+    "sha256": "55a07453a82fc040e0ba8359cb6f456ad41645c4c8272150f04386a7f6eb1a4e",
+    "provenance": "client delivery 24 Nov 2026 (TransferNow)",
+    "consent": "UNCONFIRMED"
+  },
+  {
+    "key": "program-social-solidarity",
+    "width": 2200,
+    "height": 1236,
+    "kb": 794,
+    "sourceFolder": "Household aid and resiliance",
+    "sourceFile": "6R6A4043.JPG",
+    "sha256": "bbb0813febe1c16df87d011b66aa671a0171c0d18174d7982f7696fc79b3597f",
+    "provenance": "client delivery 24 Nov 2026 (TransferNow)",
+    "consent": "UNCONFIRMED"
+  },
+  {
+    "key": "program-health",
+    "width": 2200,
+    "height": 1467,
+    "kb": 234,
+    "sourceFolder": "Health",
+    "sourceFile": "DSC05616.JPG",
+    "sha256": "96cfb17a2a324064bb0d12be15c56b826d32b46717d8716e6561d501d3ff1ea8",
+    "provenance": "client delivery 24 Nov 2026 (TransferNow)",
+    "consent": "UNCONFIRMED"
+  },
+  {
+    "key": "program-education",
+    "width": 2200,
+    "height": 1467,
+    "kb": 481,
+    "sourceFolder": "Education",
+    "sourceFile": "khairy (46 of 191).jpg",
+    "sha256": "01315ea4b6dcc1a0efa73082dbb87d786cb016f1811f55ae15d15dafd0418a46",
+    "provenance": "client delivery 24 Nov 2026 (TransferNow)",
+    "consent": "UNCONFIRMED"
+  },
+  {
+    "key": "program-economic-empowerment",
+    "width": 2200,
+    "height": 1467,
+    "kb": 183,
+    "sourceFolder": "Economic Empowerment",
+    "sourceFile": "khairy (50 of 183).jpg",
+    "sha256": "c46de0d0dd340b566a3a41c831db9b16dce456f75a0d872753712f5f101d9809",
+    "provenance": "client delivery 24 Nov 2026 (TransferNow)",
+    "consent": "UNCONFIRMED"
+  },
+  {
+    "key": "program-housing",
+    "width": 2200,
+    "height": 1467,
+    "kb": 544,
+    "sourceFolder": "Housing",
+    "sourceFile": "6R6A0542.JPG",
+    "sha256": "9813b66a2d4a2e967e01a75b3e34869dba3914d4520a1c12b4a205ee605710ff",
+    "provenance": "client delivery 24 Nov 2026 (TransferNow)",
+    "consent": "UNCONFIRMED"
+  },
+  {
+    "key": "program-wash",
+    "width": 2200,
+    "height": 1467,
+    "kb": 755,
+    "sourceFolder": "Wash",
+    "sourceFile": "khairy (63 of 155).jpg",
+    "sha256": "1018f4a18115cb4e0ae4851ed530446e35c48e6e8da3f9280662bf6bd0eafc74",
+    "provenance": "client delivery 24 Nov 2026 (TransferNow)",
+    "consent": "UNCONFIRMED"
+  },
+  {
+    "key": "water-pipeline",
+    "width": 1467,
+    "height": 2200,
+    "kb": 225,
+    "sourceFolder": "Wash",
+    "sourceFile": "EE1A4743.jpg",
+    "sha256": "3f6821e65446e9094ad7eed1983a82783dae243d8c8469c459e57b1a8ab78f77",
+    "provenance": "client delivery 24 Nov 2026 (TransferNow)",
+    "consent": "UNCONFIRMED"
+  },
+  {
+    "key": "program-emergency-response",
+    "width": 2200,
+    "height": 1231,
+    "kb": 213,
+    "sourceFolder": "emergency response",
+    "sourceFile": "10.png",
+    "sha256": "97ba6da154ead7f64fbb003d94dec21269702e688e0bad21d905f4efebec539b",
+    "provenance": "client delivery 24 Nov 2026 (TransferNow)",
+    "consent": "UNCONFIRMED"
+  },
+  {
+    "key": "program-heritage-culture",
+    "width": 2200,
+    "height": 1467,
+    "kb": 658,
+    "sourceFolder": "Culture and Heritage",
+    "sourceFile": "khairy (13 of 64).jpg",
+    "sha256": "cb324f770a01ad58e82791b2e4b9b58a6ede033591b02b22bdad3249ff8f0fd0",
+    "provenance": "client delivery 24 Nov 2026 (TransferNow)",
+    "consent": "UNCONFIRMED"
+  },
+  {
+    "key": "program-scientific-research",
+    "width": 2200,
+    "height": 1467,
+    "kb": 215,
+    "sourceFolder": "Scientific research",
+    "sourceFile": "DSC00190.jpg",
+    "sha256": "48f552df3fba5fd1a24b4da99f69082150573a47b8c8a610824e9a1cfd2be407",
+    "provenance": "client delivery 24 Nov 2026 (TransferNow)",
+    "consent": "UNCONFIRMED"
+  }
+]

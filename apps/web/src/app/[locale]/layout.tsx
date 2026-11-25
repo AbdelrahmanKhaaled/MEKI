@@ -1,3 +1,4 @@
+import { PublicTracking } from "@/components/PublicTracking";
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import "../globals.css";
@@ -22,7 +23,8 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     description: t.meta.description,
     alternates: { canonical: `/${locale}`, languages: { en: "/en", ar: "/ar", "x-default": "/en" } },
     ...socialMeta({ title: t.meta.title, description: t.meta.description, locale, path: `/${locale}`, alt: "MEKI — Lasting Change, Built Together." }),
-    icons: { icon: "/brand/MEKI_Icon_Green.svg", apple: "/brand/MEKI_AppIcon_Green_180.png" },
+    // Approved logo files (client edits, 23 Nov 2026): browser icon = the symbol only, cropped from the approved green artwork.
+    icons: { icon: [{ url: "/brand/MEKI_Icon_Approved_32.png", sizes: "32x32", type: "image/png" }, { url: "/brand/MEKI_Icon_Approved_192.png", sizes: "192x192", type: "image/png" }], apple: "/brand/MEKI_Icon_Approved_Apple_180.png" },
     // Preview build: keep out of search indexes until MEKI approves content and launch.
     robots: publicRobots, // indexing waits for MEKI's launch approval (lib/site.ts PUBLIC_INDEXING)
   };
@@ -44,7 +46,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
           }}
         />
       </head>
-      <body>{children}</body>
+      <body>{children}<PublicTracking /></body>
     </html>
   );
 }

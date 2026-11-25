@@ -40,8 +40,8 @@ export function Sidebar({ collapsed, onToggle, mobileOpen, onClose }: { collapse
     <nav aria-label={t.brand} className="flex h-full flex-col">
       <div className={`flex h-16 shrink-0 items-center ${narrow ? "justify-center" : "justify-between px-5"}`}>
         <Link href={`/${locale}/dashboard`} aria-label={t.brand} className="flex items-center">
-          {/* eslint-disable-next-line @next/next/no-img-element -- official brand SVG, never re-drawn */}
-          <img src={narrow ? "/brand/MEKI_Icon_White.svg" : "/brand/MEKI_Primary_White.svg"} alt="MEKI" className={narrow ? "h-8 w-8" : "h-8 w-auto"} />
+          {/* eslint-disable-next-line @next/next/no-img-element -- approved MEKI logo files (23 Nov 2026), never re-drawn */}
+          <img src={narrow ? "/brand/MEKI_Icon_Approved_White_128.png" : "/brand/MEKI_Secondary_White.png"} alt="MEKI" width={narrow ? 32 : 1200} height={narrow ? 32 : 365} className={narrow ? "h-8 w-8" : "h-auto w-[150px]"} />
         </Link>
       </div>
       <div className="flex-1 overflow-y-auto px-3 pb-6">

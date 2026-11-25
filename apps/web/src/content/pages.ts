@@ -4,7 +4,7 @@ import type { Locale } from "@/lib/i18n";
  * Copy for the Phase 6 pages (About, Programs, Give, FAQ, Contact, legal shells).
  * Approved wording (mission, vision, tagline, nine program names, process, FAQ answers) is NOT duplicated here:
  * pages read it from the shared dictionary / published CMS content. This file holds only page chrome.
- * Arabic = draft translation pending MEKI approval. Nothing here states payment, receipt, tax or legal terms.
+ * Arabic translations approved by MEKI. Nothing here states payment, receipt, tax or legal terms.
  */
 
 export type PageKey = "home" | "about" | "programs" | "gala" | "give" | "faq" | "contact" | "privacy" | "terms" | "cookies";
@@ -148,7 +148,7 @@ export const pagesEn: PagesDict = {
   },
   about: {
     title: "About MEKI",
-    cta: "Explore Our Programs",
+    cta: "Explore our programs",
     ctaLabel: "Ready to see the work?",
     legacyNote: "The figures below describe the work of Misr El-Kheir in Egypt. They are not results achieved by MEKI.",
   },
@@ -173,7 +173,7 @@ export const pagesEn: PagesDict = {
     availabilityText: "Under MEKI's current arrangement with its fiscal sponsor, gifts are accepted only through the MEKI Gala Night campaign, which supports one approved project. No payment is taken on this site. To hear about other ways to give, get in touch with us.",
     notifyEmail: "Email us to be notified",
     notifyContact: "Contact us",
-    explore: "Explore Our Programs",
+    explore: "Explore our programs",
     galaLink: "About the Gala campaign",
   },
   faq: {
@@ -213,7 +213,7 @@ export const pagesEn: PagesDict = {
     formUnavailable: "Our contact channel is being set up, so messages cannot be sent from this page yet. Please check back soon.",
     ctaTitle: "Learn more about MEKI",
     ctaAbout: "About MEKI",
-    ctaPrograms: "Explore Our Programs",
+    ctaPrograms: "Explore our programs",
   },
   legal: {
     eyebrow: "Legal",

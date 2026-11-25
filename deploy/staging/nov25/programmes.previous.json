@@ -1,0 +1,383 @@
+{
+ "note": "Dictionary values as of 24 Nov 2026 (the Nov-23 approved copy). A database value equal to one of these was never edited by an admin.",
+ "en": {
+  "programmes": [
+   {
+    "slug": "social-solidarity",
+    "name": "Social Solidarity & Household Resilience",
+    "short": "Meeting basic needs today. Building resilience for tomorrow.",
+    "summary": "When money runs out, families face impossible choices between food, rent and debt. This program protects families from severe hardship and helps them regain stability, with dignity.",
+    "mandate": "Protect and stabilize vulnerable households, reduce repeated dependence, and connect households to progression pathways where appropriate.",
+    "themes": [
+     "Safety-net support",
+     "Household stabilization",
+     "Protecting the vulnerable"
+    ],
+    "outcomes": [
+     "More stable households",
+     "Essential needs met",
+     "Less financial and social distress",
+     "Stronger family resilience"
+    ]
+   },
+   {
+    "slug": "health",
+    "name": "Health Access, Coverage & Quality",
+    "short": "Making good healthcare affordable and reachable.",
+    "summary": "When a family cannot afford or reach care, illness worsens and children miss school. MEKI funds surgeries, medicines and outreach to remote areas, and strengthens the hospitals communities rely on.",
+    "mandate": "Secure affordable, quality-assured healthcare through coverage, strategic purchasing, patient navigation, provider support and system stewardship.",
+    "themes": [
+     "Access to care",
+     "Continuity of treatment",
+     "Better health services"
+    ],
+    "outcomes": [
+     "Better access to care",
+     "Less hardship from medical costs",
+     "More patients completing treatment",
+     "Higher-quality services"
+    ]
+   },
+   {
+    "slug": "education",
+    "name": "Education",
+    "short": "Expanding opportunity at every step of a learner's journey.",
+    "summary": "Cost, distance, disability and family pressure keep too many learners out of school. This program helps children and young people enroll, stay in school, learn and progress.",
+    "mandate": "Ensure access, retention, learning, completion and progression across the learner journey.",
+    "themes": [
+     "Community education",
+     "Access & scholarships",
+     "Learner progression"
+    ],
+    "outcomes": [
+     "More underserved learners in school",
+     "Fewer dropouts",
+     "More inclusive classrooms",
+     "Stronger results and progression"
+    ]
+   },
+   {
+    "slug": "economic-empowerment",
+    "name": "Economic Empowerment & Labor Market Activation",
+    "short": "Turning potential into opportunity, and opportunity into a livelihood.",
+    "summary": "For most people facing hardship, the problem is not motivation but a lack of skills, resources or real opportunities. This program helps young people, women and working-age adults earn a stable income.",
+    "mandate": "Move people toward sustainable income, employability, decent work and enterprise opportunities.",
+    "themes": [
+     "Employability",
+     "Technical education",
+     "Enterprise & livelihoods"
+    ],
+    "outcomes": [
+     "More people in decent work",
+     "More income-generating opportunities",
+     "Livelihoods that last",
+     "Stronger household finances"
+    ]
+   },
+   {
+    "slug": "housing",
+    "name": "Housing & Safe Living Conditions",
+    "short": "Safer homes. Stable households. More secure futures.",
+    "summary": "A home is where a family looks for safety and dignity. This program repairs unsafe homes, restores essential facilities and provides temporary shelter when needed.",
+    "mandate": "Improve the safety, adequacy and dignity of living conditions and provide temporary accommodation when required.",
+    "themes": [
+     "Safer housing",
+     "Temporary shelter",
+     "Rehabilitation & co-financing"
+    ],
+    "outcomes": [
+     "Safer, adequate homes",
+     "Fewer housing risks",
+     "More secure households",
+     "Greater dignity and wellbeing"
+    ]
+   },
+   {
+    "slug": "wash",
+    "name": "WASH, Environment & Climate Resilience",
+    "short": "Safer water. Healthier communities. A more resilient future.",
+    "summary": "Without safe water and sanitation, families face illness, extra costs and lost time. This program brings water networks, wells and sanitation to underserved communities, and helps them prepare for climate risks.",
+    "mandate": "Reduce water, sanitation, environmental and climate-related vulnerability.",
+    "themes": [
+     "Water & sanitation access",
+     "Environmental protection",
+     "Climate-risk reduction"
+    ],
+    "outcomes": [
+     "Better access to safe water",
+     "Healthier, safer communities",
+     "Fewer infrastructure gaps",
+     "Communities ready for climate risks"
+    ]
+   },
+   {
+    "slug": "emergency-response",
+    "name": "Emergency Response",
+    "short": "Immediate relief in a crisis. Support that lasts beyond it.",
+    "summary": "Crises strike with little warning and hit vulnerable families hardest. This program delivers timely aid, essential supplies and temporary shelter, then helps families recover.",
+    "mandate": "Provide rapid, coordinated support in crises and shocks and support early recovery.",
+    "themes": [
+     "Readiness",
+     "Humanitarian response",
+     "Transition & recovery"
+    ],
+    "outcomes": [
+     "Faster access to aid",
+     "Less immediate distress",
+     "Better protection for the vulnerable",
+     "Better-coordinated response"
+    ]
+   },
+   {
+    "slug": "heritage-culture",
+    "name": "Heritage, Culture & Identity",
+    "short": "Preserving heritage. Enriching lives. Strengthening communities.",
+    "summary": "Wellbeing also depends on identity, belonging and taking part in community life. This program opens culture, the arts, sport and heritage to children and young people in underserved communities.",
+    "mandate": "Strengthen participation, identity, culture, heritage and constructive community engagement.",
+    "themes": [
+     "Participation",
+     "Cultural engagement",
+     "Identity-building opportunities"
+    ],
+    "outcomes": [
+     "Heritage preserved and valued",
+     "More creativity and expression",
+     "Greater inclusion and belonging",
+     "Stronger community engagement"
+    ]
+   },
+   {
+    "slug": "scientific-research",
+    "name": "Scientific Research & Research Ecosystem",
+    "short": "Advancing knowledge. Enabling innovation. Creating real-world impact.",
+    "summary": "Complex challenges need evidence, not assumptions. This program funds research, supports researchers and turns findings into practical solutions to Egypt's development challenges.",
+    "mandate": "Advance a research agenda, sponsor high-value studies, support researchers and strengthen the research ecosystem in Egypt.",
+    "themes": [
+     "Sponsored research",
+     "Grants & fellowships",
+     "Research capacity building"
+    ],
+    "outcomes": [
+     "Stronger research capability",
+     "More relevant evidence",
+     "Research applied to real problems",
+     "Better-informed decisions"
+    ]
+   }
+  ],
+  "enabling": [
+   {
+    "name": "NGO Development",
+    "tagline": "Stronger local partners.",
+    "text": "We strengthen the governance and services of local nonprofits, so support reaches more communities."
+   },
+   {
+    "name": "Field Offices",
+    "tagline": "Close to communities.",
+    "text": "Field teams in every governorate assess needs, follow up with families and connect them to the right support."
+   },
+   {
+    "name": "Business Intelligence",
+    "tagline": "Evidence into action.",
+    "text": "Field, program and mapping data guide where support goes and how progress is measured."
+   }
+  ],
+  "programmesSection": {
+   "title": "Nine programs. One commitment.",
+   "intro": "Hardship rarely comes alone. A family facing illness may also face debt, unsafe housing or a child leaving school. That is why our nine programs work together around each household's needs."
+  },
+  "enablingSection": {
+   "intro": "Three capabilities support all nine programs."
+  }
+ },
+ "ar": {
+  "programmes": [
+   {
+    "slug": "social-solidarity",
+    "name": "التكافل الاجتماعي وصمود الأسرة",
+    "short": "تلبية الاحتياجات الأساسية اليوم، وبناء الصمود للغد.",
+    "summary": "حين ينفد المال، تواجه الأسر خيارات مستحيلة بين الطعام والإيجار والديون. يحمي هذا البرنامج الأسر من الشدائد القاسية ويساعدها على استعادة استقرارها بكرامة.",
+    "mandate": "حماية الأسر الأكثر احتياجًا وتحقيق استقرارها، والحد من الاعتماد المتكرر، وربطها بمسارات للتقدم حيثما أمكن.",
+    "themes": [
+     "دعم شبكات الأمان",
+     "استقرار الأسرة",
+     "حماية الأكثر احتياجًا"
+    ],
+    "outcomes": [
+     "أسر أكثر استقرارًا",
+     "تلبية الاحتياجات الأساسية",
+     "ضائقة مالية واجتماعية أقل",
+     "صمود أقوى للأسرة"
+    ]
+   },
+   {
+    "slug": "health",
+    "name": "الوصول إلى الرعاية الصحية وتغطيتها وجودتها",
+    "short": "رعاية صحية جيدة وميسورة وفي المتناول.",
+    "summary": "حين تعجز الأسرة عن تحمّل تكلفة الرعاية أو الوصول إليها، يتفاقم المرض ويتغيّب الأطفال عن المدرسة. تموّل MEKI العمليات الجراحية والأدوية والقوافل إلى المناطق النائية، وتدعم المستشفيات التي تعتمد عليها المجتمعات.",
+    "mandate": "تأمين رعاية صحية ميسورة ومضمونة الجودة من خلال التغطية، والشراء الاستراتيجي، وتوجيه المرضى، ودعم مقدمي الخدمة، وحوكمة المنظومة.",
+    "themes": [
+     "الوصول إلى الرعاية",
+     "استمرارية العلاج",
+     "خدمات صحية أفضل"
+    ],
+    "outcomes": [
+     "وصول أفضل إلى الرعاية",
+     "أعباء أقل من تكاليف العلاج",
+     "مزيد من المرضى يُكملون علاجهم",
+     "خدمات أعلى جودة"
+    ]
+   },
+   {
+    "slug": "education",
+    "name": "التعليم",
+    "short": "توسيع الفرص في كل مرحلة من رحلة المتعلّم.",
+    "summary": "التكلفة والمسافة والإعاقة وضغوط الأسرة تُبقي كثيرًا من المتعلمين خارج المدرسة. يساعد هذا البرنامج الأطفال والشباب على الالتحاق بالتعليم والاستمرار فيه والتعلّم والتقدّم.",
+    "mandate": "ضمان الوصول والاستمرار والتعلّم والإتمام والتقدم عبر رحلة المتعلم.",
+    "themes": [
+     "التعليم المجتمعي",
+     "الإتاحة والمنح الدراسية",
+     "تقدّم المتعلمين"
+    ],
+    "outcomes": [
+     "مزيد من المتعلمين الأقل حظًا في المدارس",
+     "تسرّب أقل",
+     "فصول دراسية أكثر شمولًا",
+     "نتائج وتقدّم أقوى"
+    ]
+   },
+   {
+    "slug": "economic-empowerment",
+    "name": "التمكين الاقتصادي وتنشيط سوق العمل",
+    "short": "تحويل الإمكانات إلى فرص، والفرص إلى مصدر رزق.",
+    "summary": "بالنسبة لمعظم من يواجهون الشدائد، لا تكمن المشكلة في الدافع بل في نقص المهارات أو الموارد أو الفرص الحقيقية. يساعد هذا البرنامج الشباب والنساء والبالغين في سن العمل على تحقيق دخل مستقر.",
+    "mandate": "مساعدة الأفراد على الوصول إلى دخل مستدام وقابلية التوظيف والعمل اللائق وفرص ريادة الأعمال.",
+    "themes": [
+     "قابلية التوظيف",
+     "التعليم الفني",
+     "المشروعات وسبل العيش"
+    ],
+    "outcomes": [
+     "مزيد من الناس في عمل لائق",
+     "مزيد من فرص توليد الدخل",
+     "سبل عيش تدوم",
+     "أوضاع مالية أقوى للأسر"
+    ]
+   },
+   {
+    "slug": "housing",
+    "name": "الإسكان وظروف المعيشة الآمنة",
+    "short": "منازل أكثر أمانًا. أسر مستقرة. مستقبل أكثر أمانًا.",
+    "summary": "المنزل هو المكان الذي تبحث فيه الأسرة عن الأمان والكرامة. يُصلح هذا البرنامج المنازل غير الآمنة، ويعيد تأهيل المرافق الأساسية، ويوفّر مأوى مؤقتًا عند الحاجة.",
+    "mandate": "تحسين أمان ظروف المعيشة وملاءمتها وكرامتها، وتوفير سكن مؤقت عند الحاجة.",
+    "themes": [
+     "مساكن أكثر أمانًا",
+     "مأوى مؤقت",
+     "إعادة التأهيل والتمويل المشترك"
+    ],
+    "outcomes": [
+     "منازل أكثر أمانًا ولائقة",
+     "مخاطر سكنية أقل",
+     "أسر أكثر أمانًا",
+     "كرامة ورفاه أكبر"
+    ]
+   },
+   {
+    "slug": "wash",
+    "name": "المياه والصرف الصحي والنظافة، والبيئة، والصمود المناخي",
+    "short": "مياه أكثر أمانًا. مجتمعات أكثر صحة. مستقبل أكثر صمودًا.",
+    "summary": "بدون مياه آمنة وصرف صحي، تواجه الأسر المرض وتكاليف إضافية ووقتًا ضائعًا. يوفّر هذا البرنامج شبكات المياه والآبار والصرف الصحي للمجتمعات الأقل خدمة، ويساعدها على الاستعداد للمخاطر المناخية.",
+    "mandate": "الحد من الهشاشة المرتبطة بالمياه والصرف الصحي والبيئة والمناخ.",
+    "themes": [
+     "الوصول إلى المياه والصرف الصحي",
+     "حماية البيئة",
+     "الحد من المخاطر المناخية"
+    ],
+    "outcomes": [
+     "وصول أفضل إلى المياه الآمنة",
+     "مجتمعات أكثر صحة وأمانًا",
+     "فجوات أقل في البنية التحتية",
+     "مجتمعات مستعدة للمخاطر المناخية"
+    ]
+   },
+   {
+    "slug": "emergency-response",
+    "name": "الاستجابة للطوارئ",
+    "short": "إغاثة فورية في الأزمة، ودعم يمتد إلى ما بعدها.",
+    "summary": "تقع الأزمات دون إنذار يُذكر وتصيب الأسر الأكثر هشاشة بأشد الضرر. يقدّم هذا البرنامج المساعدات في الوقت المناسب والإمدادات الأساسية والمأوى المؤقت، ثم يساعد الأسر على التعافي.",
+    "mandate": "تقديم دعم سريع ومنسّق في الأزمات والصدمات، ودعم التعافي المبكر.",
+    "themes": [
+     "الجاهزية",
+     "الاستجابة الإنسانية",
+     "الانتقال والتعافي"
+    ],
+    "outcomes": [
+     "وصول أسرع إلى المساعدات",
+     "ضائقة فورية أقل",
+     "حماية أفضل للأكثر هشاشة",
+     "استجابة أفضل تنسيقًا"
+    ]
+   },
+   {
+    "slug": "heritage-culture",
+    "name": "التراث والثقافة والهوية",
+    "short": "صون التراث. إثراء الحياة. تقوية المجتمعات.",
+    "summary": "يعتمد الرفاه أيضًا على الهوية والانتماء والمشاركة في الحياة المجتمعية. يفتح هذا البرنامج أبواب الثقافة والفنون والرياضة والتراث أمام الأطفال والشباب في المجتمعات الأقل خدمة.",
+    "mandate": "تعزيز المشاركة والهوية والثقافة والتراث والانخراط المجتمعي البنّاء.",
+    "themes": [
+     "المشاركة",
+     "الانخراط الثقافي",
+     "فرص بناء الهوية"
+    ],
+    "outcomes": [
+     "تراث مصون ومُقدَّر",
+     "مزيد من الإبداع والتعبير",
+     "شمول وانتماء أكبر",
+     "انخراط مجتمعي أقوى"
+    ]
+   },
+   {
+    "slug": "scientific-research",
+    "name": "البحث العلمي ومنظومة البحث",
+    "short": "تطوير المعرفة. تمكين الابتكار. صنع أثر حقيقي.",
+    "summary": "تحتاج التحديات المعقدة إلى أدلة لا إلى افتراضات. يموّل هذا البرنامج البحث العلمي، ويدعم الباحثين، ويحوّل النتائج إلى حلول عملية لتحديات التنمية في مصر.",
+    "mandate": "دفع أجندة بحثية، ورعاية دراسات عالية القيمة، ودعم الباحثين، وتقوية منظومة البحث العلمي في مصر.",
+    "themes": [
+     "أبحاث مدعومة",
+     "منح وزمالات",
+     "بناء القدرات البحثية"
+    ],
+    "outcomes": [
+     "قدرات بحثية أقوى",
+     "أدلة أكثر ملاءمة",
+     "أبحاث تُطبَّق على مشكلات حقيقية",
+     "قرارات أفضل استنارة"
+    ]
+   }
+  ],
+  "enabling": [
+   {
+    "name": "تنمية الجمعيات الأهلية",
+    "tagline": "شركاء محليون أقوى.",
+    "text": "نعزّز حوكمة الجمعيات الأهلية المحلية وخدماتها، ليصل الدعم إلى مجتمعات أكثر."
+   },
+   {
+    "name": "المكاتب الميدانية",
+    "tagline": "قريبون من المجتمعات.",
+    "text": "تقيّم الفرق الميدانية في كل محافظة الاحتياجات، وتتابع الأسر، وتربطها بالدعم المناسب."
+   },
+   {
+    "name": "ذكاء الأعمال",
+    "tagline": "الأدلة إلى أفعال.",
+    "text": "توجّه البيانات الميدانية والبرامجية وبيانات الخرائط أين يذهب الدعم وكيف يُقاس التقدم."
+   }
+  ],
+  "programmesSection": {
+   "title": "تسعة برامج. التزام واحد.",
+   "intro": "نادرًا ما تأتي الشدائد منفردة. فالأسرة التي تواجه المرض قد تواجه أيضًا الديون أو السكن غير الآمن أو انقطاع طفل عن الدراسة. لذلك تعمل برامجنا التسعة معًا حول احتياجات كل أسرة."
+  },
+  "enablingSection": {
+   "intro": "ثلاث قدرات تدعم البرامج التسعة جميعها."
+  }
+ }
+}

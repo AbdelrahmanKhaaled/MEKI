@@ -12,6 +12,8 @@
 # never ship secrets or local overrides
 **/.env
 **/.env.*
+**/*.env
+.aws
 !**/.env.example
 !**/.env.*.example
 **/*.pem
@@ -21,6 +23,10 @@ apps/api/storage
 deploy/**/data
 # proprietary client material and docs are not needed by any image
 client-resources
+references
+.tmp
+tmp
+deploy/**/backups
 docs
 apps/web/verification
 # API generated client is regenerated in the image

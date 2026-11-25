@@ -12,13 +12,18 @@
  *      (exact client text); Arrival and Transfers content removed; dietary options Gluten-free, Vegan, Vegetarian, Nut allergy,
  *      Dairy-free; Gala venue pictures requested (authentic photos not yet supplied — rendered only from the published
  *      EVENT_VENUE CMS section, never stock or unrelated images). Captions follow "Title – Place".
+ *  [C] "MEKI-US Website Edits for the IT Team" (22 Nov 2026, Gala items 14–23): photos instead of graphics, "Set-menu dinner",
+ *      "Virgin bar", no "Craft display" (no sales or merchandise table), "The evening at a glance", "Welcome reception",
+ *      "Opening with our host, Raya Abirached" (name confirmed in writing in that document), host section, venue cross street
+ *      and ZIP, one ticket per guest with no plus-one, "Sponsor now" once the packages are supplied. Photos, the sponsorship
+ *      packages, partner logos and a contact email come ONLY from the Gala CMS sections (Admin → Gala → Settings → Gala page).
  *  [P] proposed microcopy by the development team — needs MEKI approval.
  *  [T] TO BE CONFIRMED — shown to visitors only as an honest "to be confirmed" state; never invented.
  *
  * Not published here (kept out of the public page until approved): sponsorship tiers/prices/benefits (see
  * PROPOSED_SPONSORSHIP, development preview only), the six supported causes, payment,
  * refund and tax answers (fiscal sponsor), any booking/checkout flow.
- * Arabic is a DRAFT translation pending approval (flagged on the page).
+ * The Arabic translation is approved.
  */
 
 /** One agenda moment: local time (America/New_York), title, optional role/description (never an unconfirmed speaker name). */
@@ -33,12 +38,22 @@ export type GalaDict = {
   draftNote: string;
   hero: { eyebrow: string; title: string; line: string; date: string; time: string; venue: string; cta: string; ctaNote: string };
   purpose: { eyebrow: string; title: string; body: string[] };
-  experience: { eyebrow: string; title: string; intro: string; items: { title: string; text: string }[]; pendingNote: string };
+  /** `code` links a card to its CMS item (EVENT_HIGHLIGHTS) for the card photo and any edited wording. */
+  experience: { eyebrow: string; title: string; intro: string; items: { code: string; title: string; text: string }[]; pendingNote: string };
+  /** Host section (item 17). The photo comes only from the published EVENT_SPEAKERS section (code "host"). */
+  host: { eyebrow: string; name: string; line: string };
   timeline: { eyebrow: string; title: string; hours: string; acts: TimelineAct[]; note: string };
   /** Phase 13B: arrival/transport removed at MEKI's request. `photos` labels the venue-photo gallery (photos come from the CMS). */
   venue: { eyebrow: string; title: string; name: string; address: string; mapLabel: string; photos: string };
-  attendance: { eyebrow: string; title: string; ticket: string; price: string; rules: string[]; note: string };
-  sponsorship: { eyebrow: string; title: string; body: string; pending: string; previewLabel: string };
+  /** `contact` is shown only with a contact email published by MEKI (EVENT_CONTACT section or Site settings). */
+  attendance: { eyebrow: string; title: string; ticket: string; price: string; rules: string[]; note: string; contact: string };
+  /** `cta` appears only with the official sponsorship packages URL published in the EVENT_SPONSORSHIP section. */
+  sponsorship: { eyebrow: string; title: string; body: string; pending: string; previewLabel: string; cta: string; partners: string; newTab: string; pdf: string; docNote: string };
+  /** Alt text of the venue logo (venue area only). */
+  venueLogoAlt: string;
+  /** "Why we gather" photo gallery label (photos only from the published EVENT_ABOUT section). */
+  purposePhotos: string;
+  follow: { title: string; text: string };
   causes: { eyebrow: string; title: string; intro: string };
   /** Phase 12B: `donationRefund` is shown only once MEKI approved publishing SDI's policy; `cancellationsQ` identifies the item
    *  whose answer is replaced by the separately approved ticket refund policy. */
@@ -65,7 +80,7 @@ export const galaEn: GalaDict = {
     date: "Saturday, December 12, 2026",
     time: "3:30 – 8:30 PM (New York time)",
     venue: "583 Park Avenue, New York",
-    cta: "Book Your Place",
+    cta: "Book your place",
     ctaNote: "Booking details are being confirmed.",
   },
   purpose: {
@@ -81,27 +96,28 @@ export const galaEn: GalaDict = {
     title: "An evening designed with care.",
     intro: "What to expect on the night.",
     items: [
-      { title: "Black-tie evening", text: "An elegant, formal setting in the heart of New York." },
-      { title: "Plated halal dinner", text: "A seated dinner, prepared halal." },
-      { title: "Refined Refreshments", text: "A curated selection of fresh juices, premium teas, coffee, and sparkling beverages, thoughtfully served throughout the evening" }, // [C] exact text, 21 Nov 2026
-      { title: "Lamp-lighting moment", text: "Every guest's light joins the shared illumination." },
-      { title: "Craft display", text: "Handmade work on display." },
-      { title: "Live auction", text: "A live auction during the evening." },
+      { code: "black-tie", title: "Black-tie evening", text: "An elegant, formal setting in the heart of New York." },
+      { code: "dinner", title: "Set-menu dinner", text: "A plated, halal set menu." }, // [C] item 19
+      { code: "bar", title: "Virgin Drinks", text: "A curated selection of fresh juices, premium teas, coffee, and sparkling beverages, thoughtfully served throughout the evening" }, // [C] title: MEKI confirmation 24 Nov 2026 (supersedes "Virgin bar"); text: exact client text, 21 Nov 2026
+      { code: "lamps", title: "Lamp-lighting moment", text: "Every guest's light joins the shared illumination." },
+      // [C] item 19: "Craft display" removed — there is no sales or merchandise table.
+      { code: "auction", title: "Live auction", text: "A live auction during the evening." }, // brands not named (confirmed 22 Nov)
     ],
     pendingNote: "Evening details are being finalized with the events team.",
   },
+  host: { eyebrow: "Your host", name: "Raya Abirached", line: "Your host for the evening." }, // [C] item 17
   timeline: {
     eyebrow: "The program",
-    title: "The Evening in a Glimpse",
-    hours: "Saturday, December 12, 2026 · 3:30 – 8:30 PM, New York time (America/New_York)",
+    title: "The evening at a glance", // [C] item 20
+    hours: "Saturday, December 12, 2026 · 3:30 – 8:30 PM, New York time",
     acts: [
       {
         label: "Act I",
         title: "The Spark",
         time: "3:30 – 5:00 PM",
         items: [
-          { time: "3:30 PM", title: "Where Connections Begin", note: "Pre-event" },
-          { time: "4:30 PM", title: "The First Spark", note: "Master of Ceremonies" },
+          { time: "3:30 PM", title: "Welcome reception" }, // [C] item 20
+          { time: "4:30 PM", title: "Opening with our host, Raya Abirached" }, // [C] item 20 (name confirmed in writing)
           { time: "4:45 PM", title: "A Vision Beyond Borders", note: "Keynote Speaker" },
         ],
       },
@@ -138,7 +154,8 @@ export const galaEn: GalaDict = {
     eyebrow: "The venue",
     title: "583 Park Avenue, New York",
     name: "Park Avenue, New York",
-    address: "583 Park Avenue, New York",
+    // [C] item 21: cross street and ZIP code (583 Park Avenue is at East 63rd Street, New York, NY 10065 — public venue listings).
+    address: "583 Park Avenue (at East 63rd Street), New York, NY 10065", // [C] MEKI confirmation, 24 Nov 2026
     mapLabel: "View on map",
     photos: "Venue photographs",
   },
@@ -147,8 +164,9 @@ export const galaEn: GalaDict = {
     title: "Join us for the evening.",
     ticket: "Individual ticket",
     price: "USD 500",
-    rules: ["One ticket per guest", "Each ticket carries the guest's own name"],
+    rules: ["One ticket per guest", "Each ticket carries the guest's own name", "No plus-one"], // [C] item 22
     note: "Booking and payment arrangements will be handled by our fiscal sponsor and are being confirmed. Nothing can be purchased on this page yet.",
+    contact: "Questions? Email {email}",
   },
   sponsorship: {
     eyebrow: "Sponsorship",
@@ -156,7 +174,16 @@ export const galaEn: GalaDict = {
     body: "MEKI welcomes partners who share its commitment to lasting change.",
     pending: "Sponsorship opportunities are being finalized. Details will be shared once they are confirmed.",
     previewLabel: "Development preview · proposed, not validated · not public",
+    cta: "Sponsor now", // [C] item 23 — shown only with the official packages file/page
+    partners: "Partners",
+    newTab: "(opens in a new tab)",
+    pdf: "Sponsorship packages, PDF, opens in a new tab",
+    // Wording from the PDF itself (p. 10): informational only — no checkout, no acceptance implied.
+    docNote: "Sponsorship packages (PDF). All amounts are proposed contributions; benefits are subject to final agreement and availability.",
   },
+  venueLogoAlt: "583 Park Avenue, New York",
+  purposePhotos: "Photographs of the evening",
+  follow: { title: "Follow us", text: "Follow MEKI for news about the Gala and our programs." },
   causes: {
     eyebrow: "Supported causes",
     title: "What your light supports.",
@@ -182,15 +209,15 @@ export const galaEn: GalaDict = {
     eyebrow: "Booking & giving",
     title: "Two ways to take part.",
     book: {
-      title: "Book Your Place",
+      title: "Book your place",
       text: "Reserve an individual ticket in your own name.",
-      cta: "Book Your Place",
+      cta: "Book your place",
       status: "Booking is not open yet. We will share the booking details as soon as they are confirmed.",
     },
     give: {
-      title: "Donate Without Attending",
+      title: "Donate without attending",
       text: "Support the Gala campaign even if you cannot join us.",
-      cta: "Donate Without Attending",
+      cta: "Donate without attending",
       status: "Online giving is not open yet. No payment is taken on this page.",
       projectText: "Gala gifts support {project}, the single project approved with our fiscal sponsor, Spring of Dignity International (SDI).",
       openStatus: "Opens SDI's secure donation form on Zeffy. SDI receives the gift and issues your receipt.",
@@ -206,7 +233,7 @@ export const galaAr: GalaDict = {
     title: "كل نور له أثر — أمسية MEKI الخيرية",
     description: "انضموا إلى MEKI في أمسية بنيويورك يوم السبت 12 ديسمبر 2026، يلتقي فيها نور كل ضيف في إضاءة مشتركة.",
   },
-  draftNote: "ترجمة عربية مبدئية بانتظار اعتماد MEKI. التفاصيل المعلنة هنا قابلة للتغيير.",
+  draftNote: "",
   hero: {
     eyebrow: "أمسية MEKI الخيرية",
     title: "كل نور له أثر",
@@ -230,27 +257,27 @@ export const galaAr: GalaDict = {
     title: "أمسية صُمّمت بعناية.",
     intro: "ما ينتظركم في الأمسية.",
     items: [
-      { title: "أمسية رسمية", text: "أجواء أنيقة ورسمية في قلب نيويورك." },
-      { title: "عشاء حلال مُقدَّم على المائدة", text: "عشاء جلوس بإعداد حلال." },
-      { title: "ضيافة راقية", text: "تشكيلة مختارة من العصائر الطازجة والشاي الفاخر والقهوة والمشروبات الفوّارة، تُقدَّم بعناية طوال الأمسية" },
-      { title: "لحظة إضاءة المصابيح", text: "يلتقي نور كل ضيف في الإضاءة المشتركة." },
-      { title: "معرض الحِرف", text: "أعمال يدوية معروضة." },
-      { title: "مزاد حي", text: "مزاد حي خلال الأمسية." },
+      { code: "black-tie", title: "أمسية رسمية", text: "أجواء أنيقة ورسمية في قلب نيويورك." },
+      { code: "dinner", title: "عشاء بقائمة محددة", text: "قائمة طعام حلال محددة تُقدَّم على المائدة." },
+      { code: "bar", title: "مشروبات منعشة", text: "تشكيلة مختارة من العصائر الطازجة والشاي الفاخر والقهوة والمشروبات الفوّارة، تُقدَّم بعناية طوال الأمسية" },
+      { code: "lamps", title: "لحظة إضاءة المصابيح", text: "يلتقي نور كل ضيف في الإضاءة المشتركة." },
+      { code: "auction", title: "مزاد حي", text: "مزاد حي خلال الأمسية." },
     ],
     pendingNote: "تفاصيل الأمسية قيد الاستكمال مع فريق الفعاليات.",
   },
+  host: { eyebrow: "مقدّمة الأمسية", name: "رايا أبي راشد", line: "مقدّمة أمسيتكم." },
   timeline: {
     eyebrow: "البرنامج",
     title: "الأمسية في لمحة",
-    hours: "السبت 12 ديسمبر 2026 · ‏3:30 – 8:30 مساءً بتوقيت نيويورك (America/New_York)",
+    hours: "السبت 12 ديسمبر 2026 · ‏3:30 – 8:30 مساءً بتوقيت نيويورك",
     acts: [
       {
         label: "الفصل الأول",
         title: "الشرارة",
         time: "3:30 – 5:00 مساءً",
         items: [
-          { time: "3:30 م", title: "حيث تبدأ الروابط", note: "ما قبل الحفل" },
-          { time: "4:30 م", title: "الشرارة الأولى", note: "عريف الحفل" },
+          { time: "3:30 م", title: "حفل الاستقبال" },
+          { time: "4:30 م", title: "الافتتاح مع مقدّمة الأمسية رايا أبي راشد" },
           { time: "4:45 م", title: "رؤية تتجاوز الحدود", note: "المتحدث الرئيسي" },
         ],
       },
@@ -287,7 +314,7 @@ export const galaAr: GalaDict = {
     eyebrow: "المكان",
     title: "583 بارك أفينيو، نيويورك",
     name: "بارك أفينيو، نيويورك",
-    address: "583 بارك أفينيو، نيويورك",
+    address: "583 بارك أفينيو (عند الشارع 63 الشرقي)، نيويورك، NY 10065",
     mapLabel: "عرض على الخريطة",
     photos: "صور المكان",
   },
@@ -296,8 +323,9 @@ export const galaAr: GalaDict = {
     title: "انضموا إلينا في الأمسية.",
     ticket: "تذكرة فردية",
     price: "500 دولار أمريكي",
-    rules: ["تذكرة واحدة لكل ضيف", "تحمل كل تذكرة اسم الضيف نفسه"],
+    rules: ["تذكرة واحدة لكل ضيف", "تحمل كل تذكرة اسم الضيف نفسه", "لا يُسمح بمرافق"],
     note: "ستتولى الجهة الراعية مالياً ترتيبات الحجز والدفع وهي قيد التأكيد. لا يمكن شراء أي شيء من هذه الصفحة بعد.",
+    contact: "لديك سؤال؟ راسلنا على {email}",
   },
   sponsorship: {
     eyebrow: "الرعاية",
@@ -305,7 +333,15 @@ export const galaAr: GalaDict = {
     body: "ترحب MEKI بالشركاء الذين يشاركونها التزامها بتغيير دائم.",
     pending: "فرص الرعاية قيد الاستكمال، وستُعلن تفاصيلها بعد تأكيدها.",
     previewLabel: "معاينة للتطوير · مقترح وغير معتمد · غير منشور",
+    cta: "كن راعيًا الآن",
+    partners: "الشركاء",
+    newTab: "(يفتح في علامة تبويب جديدة)",
+    pdf: "باقات الرعاية، ملف PDF، يفتح في علامة تبويب جديدة",
+    docNote: "باقات الرعاية (PDF). جميع المبالغ مساهمات مقترحة، والمزايا رهن الاتفاق النهائي والتوافر.",
   },
+  venueLogoAlt: "583 بارك أفينيو، نيويورك",
+  purposePhotos: "صور من الأمسية",
+  follow: { title: "تابعونا", text: "تابعوا MEKI للاطلاع على أخبار الأمسية وبرامجنا." },
   causes: { eyebrow: "القضايا المدعومة", title: "ما يدعمه نورك.", intro: "" },
   faq: {
     eyebrow: "أسئلة",

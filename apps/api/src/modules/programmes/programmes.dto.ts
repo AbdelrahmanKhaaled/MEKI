@@ -35,6 +35,18 @@ export class CreateProgrammeDto {
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(20000) descriptionAr?: string;
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @ArrayMaxSize(12) @IsString({ each: true }) @MaxLength(200, { each: true }) focusAreasEn?: string[];
   @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @ArrayMaxSize(12) @IsString({ each: true }) @MaxLength(200, { each: true }) focusAreasAr?: string[];
+  /** MEKI client edits (22 Nov 2026): two short sentences shown under the italic line (shortDesc). */
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) summaryEn?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(2000) summaryAr?: string;
+  /** "The change we aim for" — short lines shown with check marks. */
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @ArrayMaxSize(8) @IsString({ each: true }) @MaxLength(200, { each: true }) outcomesEn?: string[];
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @ArrayMaxSize(8) @IsString({ each: true }) @MaxLength(200, { each: true }) outcomesAr?: string[];
+  /** MEKI client edits (25 Nov 2026): description of each focus area (same order as focusAreas) — "Areas of work". */
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @ArrayMaxSize(12) @IsString({ each: true }) @MaxLength(600, { each: true }) focusAreaDetailsEn?: string[];
+  @ApiPropertyOptional({ type: [String] }) @IsOptional() @IsArray() @ArrayMaxSize(12) @IsString({ each: true }) @MaxLength(600, { each: true }) focusAreaDetailsAr?: string[];
+  /** Page title when it differs from the card name. */
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(255) pageTitleEn?: string;
+  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(255) pageTitleAr?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(40) @Matches(/^[a-z0-9-]+$/) icon?: string;
   @ApiPropertyOptional({ nullable: true }) @IsOptional() @IsString() coverMediaId?: string | null;
   /** Phase 11A: MEKI-approved programme fundraising goal (decimal string, e.g. "250000.00"). Set together with targetCurrency, or both null. Never derived. */

@@ -1,6 +1,5 @@
 /**
- * Gala booking interface copy (English + Arabic). The Arabic text is a TECHNICAL INTERFACE translation drafted by the
- * development team for review — it is not approved promotional wording. Event facts (name, date, venue, price) always
+ * Gala booking interface copy (English + Arabic). Arabic interface copy approved by MEKI. Event facts (name, date, venue, price) always
  * come from the API / approved Gala content, never from here.
  */
 export const bookingEn = {

@@ -45,10 +45,10 @@ export function Header({ t, locale, current = "home" }: { t: Dict; locale: Local
         <div className="container-x flex items-center justify-between gap-6">
           <a href={pageHref(locale, "home")} aria-label={t.nav.home} className="relative shrink-0">
             <span className={`block transition-opacity duration-500 ${solid ? "opacity-0" : "opacity-100"}`}>
-              <Logo variant="white" alt="" />
+              <Logo variant="white" alt="" brand={t.brand} />
             </span>
             <span className={`absolute inset-0 transition-opacity duration-500 ${solid ? "opacity-100" : "opacity-0"}`}>
-              <Logo variant="green" alt="MEKI" />
+              <Logo variant="green" alt="MEKI" brand={t.brand} />
             </span>
           </a>
 

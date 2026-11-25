@@ -2,15 +2,16 @@ import Image from "next/image";
 import { ArrowRight, ArrowDown } from "lucide-react";
 import type { Dict } from "@/content/en";
 import type { Locale } from "@/lib/i18n";
-import { slotImage } from "@/content/media";
+import { coverSizes, slotImage } from "@/content/media";
 import { Pattern, PointsOfLight, GoldArc } from "../Decor";
 import { QuickDonate } from "../QuickDonate";
+import { NoBreak } from "../NoBreak";
 
 export function Hero({ t, locale }: { t: Dict; locale: Locale }) {
   const h = t.hero;
   // CMS-managed images (Homepage → Hero) with the curated photos as fallback; only allowed origins reach next/image.
-  const mainImage = slotImage(h.image, "hero-field");
-  const secondaryImage = slotImage(h.secondaryImage, "water-pier");
+  const mainImage = slotImage(h.image, "hero-family");
+  const secondaryImage = slotImage(h.secondaryImage, "hero-school");
   return (
     <section id="top" className="relative isolate overflow-hidden bg-deep-green text-white">
       {/* Layered background: gradient + Nile pattern + points of light */}
@@ -22,7 +23,10 @@ export function Hero({ t, locale }: { t: Dict; locale: Locale }) {
         {/* Copy */}
         <div className="relative z-10 xl:col-span-5">
           <p data-hero-item className="eyebrow eyebrow-dark mb-7">
-            {h.eyebrow}
+            {/* one flex item: .eyebrow is inline-flex, so the no-wrap name must stay inside a single span */}
+            <span>
+              <NoBreak text={h.eyebrow} />
+            </span>
           </p>
           <h1 className="mb-8 text-[clamp(2.75rem,7vw,5.25rem)] xl:text-[clamp(3.5rem,5.3vw,5.25rem)]">
             <span data-hero-item className="block">
@@ -34,7 +38,7 @@ export function Hero({ t, locale }: { t: Dict; locale: Locale }) {
           </h1>
           <div data-hero-item className="mb-8 h-px w-24 bg-harvest-gold" />
           <p data-hero-item className="mb-10 max-w-xl text-lg leading-relaxed text-mint-line sm:text-[1.2rem]">
-            {h.lead}
+            <NoBreak text={h.lead} />
           </p>
           <div data-hero-item className="flex flex-wrap gap-3">
             <a href={h.ctaPrimaryHref} className="btn btn-gold">
@@ -59,8 +63,9 @@ export function Hero({ t, locale }: { t: Dict; locale: Locale }) {
                     alt={h.imageAlt}
                     fill
                     priority
-                    sizes="(min-width: 1280px) 26vw, (min-width: 768px) 45vw, 75vw"
-                    className="object-cover object-[50%_30%]"
+                    sizes={coverSizes("(min-width: 1280px) 26vw, (min-width: 768px) 45vw, 75vw", mainImage, 0.75)}
+                    quality={85}
+                    className="object-cover object-[44%_30%]"
                   />
                 </div>
               </div>

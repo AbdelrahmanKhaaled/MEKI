@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Info, X } from "lucide-react";
 
-/** Honest preview notice: payments inactive (and, for Arabic, draft translation). Dismissible. */
+/** Honest preview notice: payments inactive. Dismissible. */
 export function PreviewNote({ text, extra, closeLabel }: { text: string; extra?: string; closeLabel: string }) {
   const [past, setPast] = useState(false);
   const [dismissed, setDismissed] = useState(false);

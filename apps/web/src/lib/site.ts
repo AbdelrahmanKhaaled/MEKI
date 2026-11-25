@@ -22,8 +22,8 @@ export function siteOrigin(): URL | undefined {
 export const PUBLIC_INDEXING = false;
 export const publicRobots = { index: PUBLIC_INDEXING, follow: PUBLIC_INDEXING } as const;
 
-/** Shared social preview image: 1200×630 JPEG generated from curated MEKI photography (public/og). */
-export const OG_IMAGE = { url: "/og/meki-og.jpg", width: 1200, height: 630, type: "image/jpeg" } as const;
+/** Shared link-sharing image: 1200×630, the approved white MEKI logo on Deep Green (client edits 23 Nov 2026; scripts/build-brand.mjs). */
+export const OG_IMAGE = { url: "/og/meki-og-approved-logo.jpg", width: 1200, height: 630, type: "image/jpeg" } as const;
 
 /** Open Graph + Twitter blocks. Images are included only when an absolute origin is known. */
 export function socialMeta(opts: { title: string; description: string; locale: string; path: string; alt: string; image?: { url: string; width: number; height: number } }): Pick<Metadata, "openGraph" | "twitter"> {

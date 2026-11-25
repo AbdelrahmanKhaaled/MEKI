@@ -11,8 +11,9 @@ import { publicRobots, siteOrigin, socialMeta } from "@/lib/site";
 import { PageShell } from "@/components/pages/PageShell";
 import { PageCta } from "@/components/pages/PageCta";
 import { ProgrammeDonate } from "@/components/programme/ProgrammeDonate";
+import { deliveryPhotos } from "@/content/delivery";
 import { ProgrammeGallery } from "@/components/programme/ProgrammeGallery";
-import { ProgrammeCauses, ProgrammeFundraising, ProgrammeHelps, ProgrammeHero, ProgrammeImpact, ProgrammeOverview, SectionNav } from "@/components/programme/ProgrammeSections";
+import { ProgrammeAreas, ProgrammeCauses, ProgrammeFundraising, ProgrammeHelps, ProgrammeHero, ProgrammeImpact, ProgrammeOverview, SectionNav } from "@/components/programme/ProgrammeSections";
 
 export const revalidate = 300;
 /** Only the nine programmes of the approved structure have pages; any other slug is a 404. */
@@ -67,18 +68,22 @@ export default async function ProgrammePage({ params }: { params: Promise<{ loca
   const hosted = forms?.programmes.find((f) => f.slug === slug) ?? null;
 
   // API media URLs are absolute; map them like every other API image (curated photos → local files, uploads → API origin).
-  const gallery = (d?.programme.gallery ?? []).flatMap((m) => {
+  const publishedGallery = (d?.programme.gallery ?? []).flatMap((m) => {
     const ref = toMediaRef(m);
     return ref ? [{ ...m, url: resolveMedia(ref).src }] : [];
   });
+  const gallery = d ? [...new Map(publishedGallery.map((m) => [m.url, m])).values()] : deliveryPhotos(locale, slug).map((photo) => ({
+    url: photo.image, alt: photo.title, caption: photo.title + " – " + photo.place, width: photo.width, height: photo.height,
+  }));
   const causes = d?.causes ?? [];
   const otherCampaigns = d?.otherCampaigns ?? [];
   const stats = d?.statistics ?? [];
   const nav = [
     { id: "overview", label: p.nav.overview },
+    { id: "areas", label: t.programmes.themesLabel },
     { id: "fundraising", label: p.nav.fundraising },
     { id: "causes", label: p.nav.causes },
-    { id: "impact", label: p.nav.impact },
+    ...(stats.length > 0 ? [{ id: "impact", label: p.nav.impact }] : []),
     ...(gallery.length > 0 ? [{ id: "gallery", label: p.nav.gallery }] : []),
     { id: "support", label: p.nav.support },
   ];
@@ -88,9 +93,10 @@ export default async function ProgrammePage({ params }: { params: Promise<{ loca
       <ProgrammeHero item={item} p={p} programsHref={pageHref(locale, "programs")} stat={stats[0]} locale={locale} />
       <SectionNav items={nav} label={item.name} />
       <ProgrammeOverview item={item} t={t} p={p} description={d?.programme.description ?? null} image={gallery[0] ? { url: gallery[0].url, alt: gallery[0].alt ?? null } : undefined} />
+      <ProgrammeAreas item={item} t={t} />
       <ProgrammeFundraising p={p} locale={locale} fundraising={d?.fundraising ?? null} unavailable={!d} />
       <ProgrammeCauses p={p} causes={causes} otherCampaigns={otherCampaigns} locale={locale} />
-      <ProgrammeImpact item={item} p={p} t={t} stats={stats} locale={locale} />
+      <ProgrammeImpact p={p} stats={stats} locale={locale} />
       {gallery.length > 0 && (
         <section id="gallery" aria-labelledby="gallery-title" className="section-y scroll-mt-32 bg-paper">
           <div className="container-x">

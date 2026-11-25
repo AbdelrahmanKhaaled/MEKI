@@ -3,6 +3,7 @@ import { ShieldCheck, Milestone, ChartNoAxesColumn, Sprout, Eye, Compass, Quote 
 import type { Dict } from "@/content/en";
 import { media } from "@/content/media";
 import { Curve, GoldArc, Pattern, PointsOfLight } from "../Decor";
+import { NoBreak } from "../NoBreak";
 
 const trustIcons = [ShieldCheck, Milestone, ChartNoAxesColumn, Sprout];
 
@@ -25,7 +26,7 @@ export function TrustStrip({ t }: { t: Dict }) {
                   </span>
                   <span>
                     <span className="block font-bold leading-snug text-ink">{item.title}</span>
-                    <span className="block text-sm text-body-grey">{item.text}</span>
+                    {item.text && <span className="block text-sm text-body-grey">{item.text}</span>}
                   </span>
                 </li>
               );
@@ -49,12 +50,13 @@ export function About({ t }: { t: Dict }) {
           <h2 id="about-title" data-reveal className="headline mb-8 text-ink">
             {a.title}
           </h2>
-          <p data-reveal className="mb-8 max-w-xl text-lg text-body-grey">
-            {a.body}
-          </p>
-          <p data-reveal className="font-serif text-xl italic text-gold-text">
-            {a.legacy}
-          </p>
+          {/* MEKI client edits (22 Nov 2026, item 6): two paragraphs (blank-line separated in the CMS body); the italic legacy line is no
+              longer shown here because it already appears in the hero. */}
+          {a.body.split(/\n\s*\n/).map((para, i) => (
+            <p key={i} data-reveal className="mb-6 max-w-xl text-lg text-body-grey last:mb-0">
+              <NoBreak text={para.trim()} />
+            </p>
+          ))}
         </div>
 
         <div className="relative lg:col-span-7">
@@ -96,14 +98,14 @@ export function VisionMission({ t }: { t: Dict }) {
           <div aria-hidden="true" className="absolute -inset-5 translate-x-3 translate-y-3 rounded-t-full rounded-b-[3rem] border border-dashed border-harvest-gold/60 rtl:-translate-x-3" />
           <div data-clip className="relative aspect-[4/5] overflow-hidden rounded-t-full rounded-b-[2.5rem] shadow-[var(--shadow-lift)]">
             <div data-parallax="0.1" className="absolute inset-[-12%]">
-              <Image src={media["water-pier"].src} alt="" fill sizes="(min-width:1024px) 38vw, 90vw" className="object-cover" />
+              <Image src={media["water-pipeline"].src} alt="" fill sizes="(min-width:1024px) 38vw, 90vw" className="object-cover" />
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-deep-green-3/80 via-deep-green-3/10 to-transparent" />
             <p className="absolute inset-x-0 bottom-0 p-8 text-center font-serif text-2xl font-light italic text-white">{a.vmTagline}</p>
           </div>
           <span aria-hidden="true" className="float-y absolute -end-4 top-[18%] grid size-20 place-items-center rounded-full bg-paper shadow-[var(--shadow-lift)]">
             <span className="spin-slow absolute -inset-2.5 rounded-full border border-dashed border-harvest-gold/70" />
-            <img src="/brand/MEKI_Icon_Green.svg" alt="" className="size-10" />
+            <Image width={40} height={40} src="/brand/MEKI_Icon_Approved_Green_128.png" alt="" className="size-10" />
           </span>
         </div>
 

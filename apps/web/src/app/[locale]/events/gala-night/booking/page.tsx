@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getDict, isLocale } from "@/lib/i18n";
+import { isLocale } from "@/lib/i18n";
 import { getBookingCopy } from "@/content/booking";
+import { Footer } from "@/components/sections/FinalFooter";
+import { getPageContent } from "@/lib/content";
 import { DonateProvider } from "@/components/DonateProvider";
 import { Header } from "@/components/Header";
 import { BookingStatus } from "@/components/booking/BookingStatus";
@@ -23,7 +25,7 @@ export default async function BookingReturnPage({ params, searchParams }: { para
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const { reference } = await searchParams;
-  const t = getDict(locale);
+  const { t } = await getPageContent(locale);
   return (
     <DonateProvider t={t} locale={locale}>
       <Header t={t} locale={locale} current="gala" />
@@ -33,6 +35,7 @@ export default async function BookingReturnPage({ params, searchParams }: { para
           <BookingStatus locale={locale} reference={reference ?? null} />
         </div>
       </main>
+      <Footer t={t} />
     </DonateProvider>
   );
 }

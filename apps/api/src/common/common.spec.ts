@@ -1,4 +1,4 @@
-import { detectImageMime, sanitizeFilename } from '../modules/media/media.validation';
+import { detectDocumentMime, detectImageMime, isDocumentMime, sanitizeFilename } from '../modules/media/media.validation';
 import { SYSTEM_ROLES, ALL_PERMISSIONS } from '../modules/users/permissions.catalog';
 import { SAFE_HREF } from './dto/shared.dto';
 import { parseSort, slugify } from './utils';
@@ -11,6 +11,17 @@ describe('media validation', () => {
     expect(detectImageMime(Buffer.from('RIFF\0\0\0\0WEBPVP8 '))).toBe('image/webp');
     expect(detectImageMime(Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>'))).toBeNull();
     expect(detectImageMime(Buffer.from('GIF89a........'))).toBeNull();
+  });
+
+  it('accepts a PDF only with a PDF header AND an end-of-file marker (24 Nov 2026 sponsorship packages)', () => {
+    const body = 'x'.repeat(200);
+    expect(detectDocumentMime(Buffer.from(`%PDF-1.7\n${body}\n%%EOF\n`))).toBe('application/pdf');
+    expect(detectDocumentMime(Buffer.from(`%PDF-1.7\n${body}`))).toBeNull(); // truncated upload
+    expect(detectDocumentMime(Buffer.from(`<html>%PDF-1.7 ${body} %%EOF`))).toBeNull(); // header must come first
+    expect(detectDocumentMime(Buffer.from(`PK\u0003\u0004${body}%%EOF`))).toBeNull(); // e.g. a .docx renamed .pdf
+    expect(detectImageMime(Buffer.from(`%PDF-1.7\n${body}\n%%EOF\n`))).toBeNull(); // never treated as an image
+    expect(isDocumentMime('application/pdf')).toBe(true);
+    expect(isDocumentMime('image/png')).toBe(false);
   });
 
   it('sanitises display filenames', () => {

@@ -55,10 +55,10 @@ test('Hero images are data-driven with the curated photos as fallback and only a
   assert.equal(slotImage('weaver', 'hero-field').src, media.weaver.src);
   assert.equal(slotImage('https://evil.example/media/x.webp', 'water-pier').src, media['water-pier'].src); // blocked host → default
   const hero = read('../src/components/sections/Hero.tsx');
-  assert.match(hero, /const mainImage = slotImage\(h\.image, "hero-field"\)/);
-  assert.match(hero, /const secondaryImage = slotImage\(h\.secondaryImage, "water-pier"\)/);
+  assert.match(hero, /const mainImage = slotImage\(h\.image, "hero-family"\)/); // 24 Nov 2026 delivery: approved family photo
+  assert.match(hero, /const secondaryImage = slotImage\(h\.secondaryImage, "hero-school"\)/);
   // design preserved: same frame, sizes, priority, object position, parallax and animation attributes
-  for (const kept of ['data-hero-image', 'data-parallax="0.06"', 'priority', 'sizes="(min-width: 1280px) 26vw, (min-width: 768px) 45vw, 75vw"', 'object-cover object-[50%_30%]', 'sizes="144px"', 'rounded-t-full rounded-b-[2.5rem]', '<GoldArc', 'data-hero-card'])
+  for (const kept of ['data-hero-image', 'data-parallax="0.06"', 'priority', 'coverSizes("(min-width: 1280px) 26vw, (min-width: 768px) 45vw, 75vw", mainImage, 0.75)', 'object-cover object-[44%_30%]', 'sizes="144px"', 'rounded-t-full rounded-b-[2.5rem]', '<GoldArc', 'data-hero-card'])
     assert.ok(hero.includes(kept), kept);
   const content = read('../src/lib/content.ts');
   assert.match(content, /const main = toMediaRef\(hero\.media\)/);

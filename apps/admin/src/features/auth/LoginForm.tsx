@@ -43,7 +43,7 @@ export function LoginForm() {
     <form onSubmit={submit} noValidate className="w-full max-w-md space-y-5 rounded-2xl border border-line bg-white p-8 shadow-[var(--shadow-pop)]">
       <div className="text-center">
         {/* eslint-disable-next-line @next/next/no-img-element -- official brand mark */}
-        <img src="/brand/MEKI_Icon_Green.svg" alt="MEKI" className="mx-auto mb-4 h-12 w-12" />
+        <img src="/brand/MEKI_Secondary_Green.png" alt="MEKI" width={1200} height={365} className="mx-auto mb-4 h-auto w-[180px]" />
         <h1 className="text-3xl text-deep-green">{l.title}</h1>
         <p className="mt-1 text-sm text-muted">{l.subtitle}</p>
       </div>

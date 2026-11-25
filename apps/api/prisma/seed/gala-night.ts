@@ -26,6 +26,20 @@ const SECTION_SKELETON: SectionKey[] = [
   'EVENT_CONTACT',
 ];
 
+/**
+ * Items of the skeleton sections (25 Nov 2026). Partners: Bokra and The Waterway are named by MEKI but the partnerships are NOT
+ * officially signed → entries exist HIDDEN with NO logo (the website needs a published, visible item with a logo to show one).
+ * Contact: the confirmed Gala inquiries address (MEKI, 25 Nov 2026).
+ */
+export const GALA_INQUIRIES_EMAIL = 'Inquiries@meki-us.org';
+const SKELETON_ITEMS: Partial<Record<SectionKey, { code: string; titleEn?: string; href?: string; provenance: 'PROPOSED' | 'VERIFIED_SOURCE'; isVisible: boolean; sortOrder: number }[]>> = {
+  EVENT_SPONSORSHIP: [
+    { code: 'partner-bokra', titleEn: 'Bokra', provenance: 'PROPOSED', isVisible: false, sortOrder: 10 },
+    { code: 'partner-waterway', titleEn: 'The Waterway', provenance: 'PROPOSED', isVisible: false, sortOrder: 20 },
+  ],
+  EVENT_CONTACT: [{ code: 'email', href: `mailto:${GALA_INQUIRIES_EMAIL}`, provenance: 'VERIFIED_SOURCE', isVisible: true, sortOrder: 10 }],
+};
+
 /** Returns true when created, false when it already existed (never modified). */
 export async function seedGalaNightDraft(prisma: PrismaClient): Promise<boolean> {
   if (await prisma.event.findUnique({ where: { code: GALA_CODE } })) return false;
@@ -71,6 +85,7 @@ export async function seedGalaNightDraft(prisma: PrismaClient): Promise<boolean>
           provenance: 'PROPOSED',
           titleEn: key === 'EVENT_HERO' ? 'MEKI Gala Night' : null,
           sourceRef: 'Skeleton — content pending client confirmation',
+          ...(SKELETON_ITEMS[key] ? { items: { create: SKELETON_ITEMS[key] } } : {}),
         },
       });
     }

@@ -62,7 +62,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <Footer t={t} />
       </MotionRoot>
 
-      {/* Persistent, honest preview notice (payments inactive; Arabic is a draft translation). */}
+      {/* Persistent, honest preview notice (payment availability). */}
       <PreviewNote text={t.previewBar} extra={t.draftTranslation || undefined} closeLabel={t.dialog.close} />
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />

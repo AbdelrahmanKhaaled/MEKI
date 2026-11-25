@@ -24,4 +24,6 @@ export class MediaQueryDto extends ListQueryDto {
   @ApiPropertyOptional() @IsOptional() @IsIn(['true', 'false']) includeDeleted?: string;
   /** Phase 6C (additive): filter by provenance. */
   @ApiPropertyOptional({ enum: Provenance }) @IsOptional() @IsEnum(Provenance) provenance?: Provenance;
+  /** 24 Nov 2026 (additive): image (JPEG/PNG/WebP) or document (PDF). Omitted = all. */
+  @ApiPropertyOptional({ enum: ['image', 'document'] }) @IsOptional() @IsIn(['image', 'document']) kind?: 'image' | 'document';
 }

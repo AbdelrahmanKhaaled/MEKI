@@ -432,6 +432,18 @@ model Programme {
   /// string[] of focus areas, max 12
   focusAreasEn     Json?
   focusAreasAr     Json?
+  /// MEKI client edits (22 Nov 2026, additive): two short sentences under the italic line (shortDesc).
+  summaryEn        String?           @db.Text
+  summaryAr        String?           @db.Text
+  /// string[] — "The change we aim for" lines, max 8
+  outcomesEn       Json?
+  outcomesAr       Json?
+  /// MEKI client edits (25 Nov 2026, additive): one description per focus area (parallel to focusAreas; "Areas of work")
+  focusAreaDetailsEn Json?
+  focusAreaDetailsAr Json?
+  /// MEKI client edits (25 Nov 2026, additive): programme page title when it differs from the card name (e.g. "Emergency Response & Gaza Relief")
+  pageTitleEn      String?           @db.VarChar(255)
+  pageTitleAr      String?           @db.VarChar(255)
   icon             String?           @db.VarChar(40)
   coverMediaId     String?           @db.VarChar(30)
   coverMedia       MediaAsset?       @relation("ProgrammeCover", fields: [coverMediaId], references: [id], onDelete: SetNull)

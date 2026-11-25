@@ -42,7 +42,11 @@ function Existing({ id }: { id: string }) {
 type Form = {
   code: string; slug: string; kind: string; number: string; icon: string; sortOrder: string; isFeatured: boolean; provenance: string; sourceRef: string;
   nameEn: string; nameAr: string; altNameEn: string; altNameAr: string; shortDescEn: string; shortDescAr: string; mandateEn: string; mandateAr: string;
-  descriptionEn: string; descriptionAr: string; focusAreasEn: string; focusAreasAr: string; seoTitleEn: string; seoTitleAr: string; seoDescriptionEn: string; seoDescriptionAr: string;
+  descriptionEn: string; descriptionAr: string; focusAreasEn: string; focusAreasAr: string;
+  /** MEKI client edits (25 Nov 2026): description of each area of work (one per line, same order) + page title */
+  focusAreaDetailsEn: string; focusAreaDetailsAr: string; pageTitleEn: string; pageTitleAr: string;
+  /** MEKI client edits (22 Nov 2026): two short sentences + "The change we aim for" lines */
+  summaryEn: string; summaryAr: string; outcomesEn: string; outcomesAr: string; seoTitleEn: string; seoTitleAr: string; seoDescriptionEn: string; seoDescriptionAr: string;
   cover: Media | null;
   /** Phase 11A: approved programme goal (sent as a pair) */
   targetAmount: string; targetCurrency: string;
@@ -52,7 +56,9 @@ const toForm = (p: Programme | null): Form => ({
   code: p?.code ?? "", slug: p?.slug ?? "", kind: p?.kind ?? "PROGRAMME", number: p?.number?.toString() ?? "", icon: p?.icon ?? "", sortOrder: String(p?.sortOrder ?? 0), isFeatured: p?.isFeatured ?? false,
   provenance: p?.provenance ?? "PROPOSED", sourceRef: p?.sourceRef ?? "", nameEn: p?.nameEn ?? "", nameAr: p?.nameAr ?? "", altNameEn: p?.altNameEn ?? "", altNameAr: p?.altNameAr ?? "",
   shortDescEn: p?.shortDescEn ?? "", shortDescAr: p?.shortDescAr ?? "", mandateEn: p?.mandateEn ?? "", mandateAr: p?.mandateAr ?? "", descriptionEn: p?.descriptionEn ?? "", descriptionAr: p?.descriptionAr ?? "",
-  focusAreasEn: (p?.focusAreasEn ?? []).join("\n"), focusAreasAr: (p?.focusAreasAr ?? []).join("\n"), seoTitleEn: p?.seoTitleEn ?? "", seoTitleAr: p?.seoTitleAr ?? "",
+  focusAreasEn: (p?.focusAreasEn ?? []).join("\n"), focusAreasAr: (p?.focusAreasAr ?? []).join("\n"),
+  focusAreaDetailsEn: (p?.focusAreaDetailsEn ?? []).join("\n"), focusAreaDetailsAr: (p?.focusAreaDetailsAr ?? []).join("\n"), pageTitleEn: p?.pageTitleEn ?? "", pageTitleAr: p?.pageTitleAr ?? "",
+  summaryEn: p?.summaryEn ?? "", summaryAr: p?.summaryAr ?? "", outcomesEn: (p?.outcomesEn ?? []).join("\n"), outcomesAr: (p?.outcomesAr ?? []).join("\n"), seoTitleEn: p?.seoTitleEn ?? "", seoTitleAr: p?.seoTitleAr ?? "",
   seoDescriptionEn: p?.seoDescriptionEn ?? "", seoDescriptionAr: p?.seoDescriptionAr ?? "", cover: p?.coverMedia ?? null,
   targetAmount: p?.targetAmount ?? "", targetCurrency: p?.targetCurrency ?? "",
 });
@@ -68,7 +74,11 @@ function toApi(k: keyof Form, f: Form): unknown {
     case "targetAmount": return f.targetAmount.trim() || null;
     case "targetCurrency": return f.targetCurrency.trim().toUpperCase() || null;
     case "focusAreasEn":
-    case "focusAreasAr": {
+    case "focusAreasAr":
+    case "focusAreaDetailsEn":
+    case "focusAreaDetailsAr":
+    case "outcomesEn":
+    case "outcomesAr": {
       const lines = (v as string).split("\n").map((s) => s.trim()).filter(Boolean);
       return lines.length ? lines : null;
     }
@@ -162,10 +172,15 @@ function Editor({ programme }: { programme: Programme | null }) {
             <div className="space-y-5">
               <Bilingual label={x.fields.name} en={v.nameEn} ar={v.nameAr} onEn={(s) => form.set("nameEn", s)} onAr={(s) => form.set("nameAr", s)} requiredEn errorEn={show(errors.nameEn)} disabled={readOnly} maxLength={255} />
               <Bilingual label={x.fields.altName} en={v.altNameEn} ar={v.altNameAr} onEn={(s) => form.set("altNameEn", s)} onAr={(s) => form.set("altNameAr", s)} disabled={readOnly} maxLength={255} />
+              <Bilingual label={x.fields.pageTitle} en={v.pageTitleEn} ar={v.pageTitleAr} onEn={(s) => form.set("pageTitleEn", s)} onAr={(s) => form.set("pageTitleAr", s)} disabled={readOnly} maxLength={255} />
               <Bilingual label={x.fields.shortDesc} en={v.shortDescEn} ar={v.shortDescAr} onEn={(s) => form.set("shortDescEn", s)} onAr={(s) => form.set("shortDescAr", s)} multiline rows={3} disabled={readOnly} maxLength={2000} />
+              <Bilingual label={x.fields.summary} en={v.summaryEn} ar={v.summaryAr} onEn={(s) => form.set("summaryEn", s)} onAr={(s) => form.set("summaryAr", s)} multiline rows={3} disabled={readOnly} maxLength={2000} />
               <Bilingual label={x.fields.mandate} en={v.mandateEn} ar={v.mandateAr} onEn={(s) => form.set("mandateEn", s)} onAr={(s) => form.set("mandateAr", s)} multiline rows={3} disabled={readOnly} maxLength={5000} />
               <Bilingual label={x.fields.description} en={v.descriptionEn} ar={v.descriptionAr} onEn={(s) => form.set("descriptionEn", s)} onAr={(s) => form.set("descriptionAr", s)} multiline rows={6} disabled={readOnly} maxLength={20000} />
               <Bilingual label={x.fields.focusAreas} en={v.focusAreasEn} ar={v.focusAreasAr} onEn={(s) => form.set("focusAreasEn", s)} onAr={(s) => form.set("focusAreasAr", s)} multiline rows={4} disabled={readOnly} />
+              <Bilingual label={x.fields.focusAreaDetails} en={v.focusAreaDetailsEn} ar={v.focusAreaDetailsAr} onEn={(s) => form.set("focusAreaDetailsEn", s)} onAr={(s) => form.set("focusAreaDetailsAr", s)} multiline rows={4} disabled={readOnly} />
+              <Bilingual label={x.fields.outcomes} en={v.outcomesEn} ar={v.outcomesAr} onEn={(s) => form.set("outcomesEn", s)} onAr={(s) => form.set("outcomesAr", s)} multiline rows={4} disabled={readOnly} />
+              <p className="text-xs text-muted">{x.fields.layoutHint}</p>
             </div>
           </Card>
 

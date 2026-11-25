@@ -1,0 +1,41 @@
+{
+  "note": "Gala final content, 25 Nov 2026. Assets live in 06-gala-assets (same files and checksums as apply-nov23-client-edits.data.json). Host: MEKI granted written approval to publish Raya Abirached's photo (25 Nov 2026). Partners (Bokra, The Waterway): named by MEKI, partnerships NOT officially signed, so entries are hidden, have no logo and are never published by the script. Contact: Inquiries@meki-us.org confirmed 25 Nov 2026.",
+  "eventSlug": "gala-night",
+  "contactEmail": "Inquiries@meki-us.org",
+  "assets": {
+    "host": {
+      "key": "host-raya-abirached",
+      "file": "Raya Abirached.png",
+      "sha256": "c8baaea550ed2550932b70583d5ce44c38bd7db8222f5e69b65715d06355f357",
+      "sourceFolder": "client-edits-2026-11-23/06-gala-assets",
+      "provenance": "VERIFIED_SOURCE",
+      "category": "OTHER",
+      "consentStatus": "CONFIRMED",
+      "altEn": "Raya Abirached, host of the evening",
+      "altAr": "رايا أبي راشد، مقدّمة الأمسية"
+    },
+    "venueExteriorDay": {
+      "key": "venue-exterior-day",
+      "file": "images.jpeg",
+      "sha256": "f9302424b5d6bf40e98748d3d7450e60e079a85fa5f23f28ed3addaf43f1232f",
+      "sourceFolder": "client-edits-2026-11-23/06-gala-assets",
+      "provenance": "VERIFIED_SOURCE",
+      "category": "GALLERY",
+      "consentStatus": "CONFIRMED",
+      "altEn": "The façade of 583 Park Avenue, New York, with its columns and arched windows",
+      "altAr": "واجهة مبنى 583 بارك أفينيو في نيويورك بأعمدتها ونوافذها المقوّسة",
+      "captionEn": "Building exterior – 583 Park Avenue, New York",
+      "captionAr": "واجهة المبنى – 583 بارك أفينيو، نيويورك"
+    }
+  },
+  "hostItem": { "code": "host" },
+  "partners": [
+    { "code": "partner-bokra", "titleEn": "Bokra", "sortOrder": 10 },
+    { "code": "partner-waterway", "titleEn": "The Waterway", "sortOrder": 20 }
+  ],
+  "cardImage": {
+    "code": "black-tie",
+    "asset": "venueExteriorDay",
+    "why": "Only the building exterior is available; it fits the arrival / black-tie card and is described as an exterior. No dinner, drinks, lamp or auction card receives a venue photo."
+  }
+}

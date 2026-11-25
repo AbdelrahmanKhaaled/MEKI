@@ -15,6 +15,7 @@ import type { Media } from "@/lib/content-schemas";
 import type { GalaEvent } from "@/lib/gala-schemas";
 import { fill } from "@/lib/i18n";
 import * as svc from "@/services/venue-photos";
+import { updateSection } from "@/services/gala-page";
 
 /** Same convention as the website (apps/web/src/lib/venue-photos.ts): "Title – Place". */
 export const venueCaption = (title: string, place: string) => (place.trim() ? `${title.trim()} – ${place.trim()}` : title.trim());
@@ -73,6 +74,7 @@ function VenueSection({ ev, s, onChange }: { ev: GalaEvent; s: Section; onChange
         {fill(x.status, { status: s.status })}
         {s.hasUnpublishedChanges && <> · <span className="text-warn">{x.pending}</span></>}
       </p>
+      <VenueLogo key={s.mediaId ?? "none"} ev={ev} s={s} onChange={onChange} />
       <Notice><p>{x.altHint}</p></Notice>
       {s.items.length === 0 ? <p className="text-sm text-muted">{x.empty}</p> : (
         <ul className="space-y-3">
@@ -135,5 +137,29 @@ function PhotoRow({ ev, item, onChange }: { ev: GalaEvent; item: SectionItem; on
         </ConfirmDialog>
       )}
     </li>
+  );
+}
+
+/**
+ * MEKI, 24 Nov 2026 — the venue's own logo (583 Park Avenue, white artwork), shown only in the Gala venue area on Deep Green.
+ * Stored as the EVENT_VENUE section image (Media Library reference); replace or remove here, then publish the venue section.
+ * Never used in place of the MEKI logo.
+ */
+function VenueLogo({ ev, s, onChange }: { ev: GalaEvent; s: Section; onChange: () => void }) {
+  const { t } = useLocale();
+  const x = t.gala.settings.venuePhotos;
+  const { can } = useAuth();
+  const errText = useContentError();
+  const [media, setMedia] = useState<Media | null>((s.media as Media | null) ?? null);
+  const dirty = (media?.id ?? null) !== (s.mediaId ?? null);
+  const save = useMutation({ mutationFn: () => updateSection(ev.id, s.id, { mediaId: media?.id ?? null }), onSuccess: onChange });
+  return (
+    <div className="space-y-2 rounded-lg bg-bg/60 p-3" data-testid="gala-venue-logo-admin">
+      <p className="text-sm font-bold text-ink">{x.logo}</p>
+      <p className="text-xs text-muted">{x.logoHint}</p>
+      <CoverField media={media} onChange={setMedia} disabled={!can("events.manage") || !can("media.read")} defaultCategory="BRAND" />
+      {can("events.manage") && <button type="button" className="btn-admin btn-primary !min-h-9" disabled={!dirty || save.isPending} onClick={() => save.mutate()}>{x.save}</button>}
+      {save.isError && <p className="text-xs text-danger" role="alert">{errText(save.error)}</p>}
+    </div>
   );
 }

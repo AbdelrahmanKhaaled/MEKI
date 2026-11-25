@@ -1,5 +1,6 @@
 "use client";
 
+import { trackConfirmedDonation } from "@/lib/donation-tracking";
 import { useEffect, useState } from "react";
 import { Hourglass } from "lucide-react";
 import type { PublicDonationIntentStatus } from "@meki/api-client";
@@ -26,7 +27,14 @@ export function IntentStatus({ locale, reference }: { locale: Locale; reference:
     const lookup = token ? clientApi<PublicDonationIntentStatus>(`/public/donation-intents/${reference}/status?locale=${locale}`, { token }).then((data): State => ({ kind: "ok", data })) : Promise.resolve<State>({ kind: "noToken" });
     lookup
       .catch((e): State => ({ kind: e instanceof ApiRequestError && e.status === 404 ? "notFound" : "error" }))
-      .then((s) => alive && setState(s));
+      .then((result) => {
+        if (!alive) return;
+        if (result.kind === "ok") {
+          const { data } = result;
+          if (data.reference === reference && data.verifiedAt && (data.stage === "VERIFIED" || data.stage === "ALLOCATED")) trackConfirmedDonation(data.reference);
+        }
+        setState(result);
+      });
     return () => {
       alive = false;
     };

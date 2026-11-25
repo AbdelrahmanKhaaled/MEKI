@@ -19,6 +19,7 @@ import { GalaPage, useGalaError, GalaGateNotice } from "../shared";
 import { FundraisingCard } from "./FundraisingCard";
 import { LegalCopyCard } from "./LegalCopyCard";
 import { VenuePhotosCard } from "./VenuePhotosCard";
+import { GalaPageCard } from "./GalaPageCard";
 
 export function GalaSettingsPage() {
   const { t } = useLocale();
@@ -57,6 +58,7 @@ function Settings({ ev }: { ev: GalaEvent }) {
       {can("events.read") && <LegalCopyCard ev={ev} />}
       {/* Phase 13B (21 Nov 2026): authentic venue photos for the Gala page, via the event's EVENT_VENUE section */}
       {can("events.read") && <VenuePhotosCard ev={ev} />}
+      {can("events.read") && <GalaPageCard ev={ev} />}
       <Notice tone="gold"><p className="font-bold">{x.approved}</p><p className="mt-1">{x.approvedList}</p></Notice>
       <Notice><p>{x.unsupported}</p></Notice>
     </>

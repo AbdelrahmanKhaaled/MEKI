@@ -48,7 +48,7 @@ export function ProgrammeHero({ item, p, programsHref, stat, locale }: { item: I
               <ChevronRight className="size-4 rtl:-scale-x-100" />
             </li>
             <li aria-current="page" className="text-white">
-              {item.name}
+              {item.pageTitle || item.name}
             </li>
           </ol>
         </nav>
@@ -61,7 +61,7 @@ export function ProgrammeHero({ item, p, programsHref, stat, locale }: { item: I
               {fill(p.label, { n: item.n })}
             </p>
             <h1 data-hero-item className="mb-6 text-[clamp(2.6rem,6.5vw,5.4rem)] leading-[1.02]">
-              {item.name}
+              {item.pageTitle || item.name}
             </h1>
             <p data-hero-item className="mb-9 max-w-2xl text-lg leading-relaxed text-mint-line sm:text-xl">
               {item.short}
@@ -128,8 +128,15 @@ export function ProgrammeOverview({ item, t, p, description, image }: { item: It
         </div>
         <div className="space-y-8 lg:col-span-6 lg:col-start-7">
           <blockquote data-reveal className="relative border-s-2 border-harvest-gold ps-6 font-serif text-[clamp(1.35rem,2.4vw,1.85rem)] leading-snug text-ink">
-            <span className="mb-2 block font-sans text-xs font-bold uppercase tracking-[0.2em] text-gold-text">{t.programmes.mandateLabel}</span>
-            {item.mandate}
+            <span className="mb-3 block font-sans text-xs font-bold uppercase tracking-[0.2em] text-gold-text">{t.programmes.mandateLabel}</span>
+            {/* Programs Word document (25 Nov 2026): the Program Mandate is one or more paragraphs. */}
+            <span className="block space-y-4 text-[clamp(1.1rem,1.9vw,1.45rem)]">
+              {paragraphs(item.mandate).map((para) => (
+                <span key={para.slice(0, 40)} className="block">
+                  {para}
+                </span>
+              ))}
+            </span>
           </blockquote>
           {body.length > 0 && (
             <div data-reveal className="space-y-5 text-lg leading-relaxed text-body-grey">
@@ -139,6 +146,45 @@ export function ProgrammeOverview({ item, t, p, description, image }: { item: It
             </div>
           )}
         </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Programs Word document (25 Nov 2026): "Areas of work" (numbered title + description) and "The change we aim to create".
+ * Both lists come from the programme record (CMS) with the approved built-in copy as the fallback.
+ */
+export function ProgrammeAreas({ item, t }: { item: Item; t: Dict }) {
+  if (item.themes.length === 0 && item.outcomes.length === 0) return null;
+  return (
+    <section id="areas" aria-labelledby="areas-title" className="section-y scroll-mt-32 bg-limestone">
+      <div className="container-x">
+        <h2 id="areas-title" data-reveal className="headline mb-10">
+          {t.programmes.themesLabel}
+        </h2>
+        <ol data-stagger className="grid gap-5 lg:grid-cols-3">
+          {item.themes.map((theme, i) => (
+            <li key={theme} data-stagger-item className="group p10-lift relative overflow-hidden rounded-[1.75rem] border border-stone-line bg-paper p-7">
+              <span className="relative mb-5 grid size-12 place-items-center rounded-2xl bg-limestone font-serif text-xl text-gold-text">{String(i + 1).padStart(2, "0")}</span>
+              <h3 className="relative mb-3 font-serif text-2xl leading-snug text-ink">{theme}</h3>
+              {item.areaTexts?.[i] && <p className="relative text-body-grey">{item.areaTexts[i]}</p>}
+            </li>
+          ))}
+        </ol>
+        {item.outcomes.length > 0 && (
+          <div data-reveal className="mt-14">
+            <h3 className="mb-5 font-sans text-xs font-bold uppercase tracking-[0.2em] text-gold-text">{t.programmes.outcomesLabel}</h3>
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {item.outcomes.map((o) => (
+                <li key={o} className="flex items-start gap-3 text-lg text-ink">
+                  <span aria-hidden="true" className="mt-0.5 font-bold text-meki-green">✓</span>
+                  {o}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -402,7 +448,9 @@ export function ProgrammeCauses({ p, causes, otherCampaigns, locale }: { p: PD; 
   );
 }
 
-export function ProgrammeImpact({ item, p, t, stats, locale }: { item: Item; p: PD; t: Dict; stats: PublicStatistic[]; locale: Locale }) {
+/** Verified statistics only (the areas of work moved to ProgrammeAreas, 25 Nov 2026). Renders nothing without a verified figure. */
+export function ProgrammeImpact({ p, stats, locale }: { p: PD; stats: PublicStatistic[]; locale: Locale }) {
+  if (stats.length === 0) return null;
   return (
     <section id="impact" aria-labelledby="impact-title" className="section-y scroll-mt-32 bg-paper">
       <div className="container-x">
@@ -414,18 +462,8 @@ export function ProgrammeImpact({ item, p, t, stats, locale }: { item: Item; p: 
             {p.impact.title}
           </h2>
         </div>
-        <h3 className="sr-only">{p.impact.areas}</h3>
-        <ol data-stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {item.themes.map((theme, i) => (
-            <li key={theme} data-stagger-item className="group p10-lift relative overflow-hidden rounded-[1.75rem] border border-stone-line bg-paper p-7">
-              <span aria-hidden="true" className="absolute -end-10 -top-10 size-32 rounded-full bg-harvest-gold/10 transition-transform duration-700 group-hover:scale-150" />
-              <span className="p10-icon relative mb-6 grid size-12 place-items-center rounded-2xl bg-limestone font-serif text-xl text-gold-text">{String(i + 1).padStart(2, "0")}</span>
-              <p className="relative font-serif text-2xl leading-snug text-ink">{theme}</p>
-            </li>
-          ))}
-        </ol>
         {stats.length > 0 && (
-          <div className="mt-16">
+          <div>
             <h3 data-reveal className="mb-6 text-2xl">
               {p.impact.statsTitle}
             </h3>
@@ -444,7 +482,6 @@ export function ProgrammeImpact({ item, p, t, stats, locale }: { item: Item; p: 
             </ul>
           </div>
         )}
-        <p className="sr-only">{t.programmes.themesLabel}</p>
       </div>
     </section>
   );

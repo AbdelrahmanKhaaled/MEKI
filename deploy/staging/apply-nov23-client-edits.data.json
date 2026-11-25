@@ -1,0 +1,977 @@
+{
+  "source": "MEKI-US Website Edits for the IT Team (22 Nov 2026) + client feedback (23 Nov 2026). Generated from apps/web/src/content (git HEAD 7507227 = old).",
+  "sections": {
+    "HERO": {
+      "bodyEn": {
+        "old": "MEKI unites partners across the world behind development that lasts, supporting people, communities and institutions through evidence-based programs, with every contribution accounted for from start to finish.",
+        "new": "We partner with people, communities and institutions worldwide to deliver evidence-based development that lasts, with every contribution transparently accounted for and its impact measured."
+      },
+      "bodyAr": {
+        "old": "تجمع MEKI الشركاء حول العالم خلف تنمية تدوم، وتدعم الأفراد والمجتمعات والمؤسسات من خلال برامج قائمة على الأدلة، مع حساب كل مساهمة من البداية إلى النهاية.",
+        "new": "نعمل مع الأفراد والمجتمعات والمؤسسات حول العالم لتحقيق تنمية قائمة على الأدلة تدوم، مع حساب كل مساهمة بشفافية وقياس أثرها."
+      },
+      "ctaSecondaryLabelEn": {
+        "old": "Explore Our Programs",
+        "new": "Explore our programs"
+      }
+    },
+    "ABOUT": {
+      "bodyEn": {
+        "old": "MEKI unites partners across the world behind development that lasts. Drawing on 20 years of Misr El-Kheir's experience, we support people, communities and institutions through evidence-based programs, with every contribution accounted for from start to finish.",
+        "new": "For 20 years, Misr El-Kheir has worked alongside families and communities in all 27 of Egypt's governorates, reaching more than 35 million people. It has built deep community trust and a wide network of local partners.\n\nIt has also learned that lasting change comes from addressing the connected challenges in people's lives, not one need at a time. MEKI brings that experience to partners around the world."
+      },
+      "bodyAr": {
+        "old": "تجمع MEKI الشركاء حول العالم خلف تنمية تدوم. واستنادًا إلى خبرة مصر الخير الممتدة لعشرين عامًا، ندعم الأفراد والمجتمعات والمؤسسات من خلال برامج قائمة على الأدلة، مع حساب كل مساهمة من البداية إلى النهاية.",
+        "new": "على مدى 20 عامًا، عملت مصر الخير جنبًا إلى جنب مع الأسر والمجتمعات في جميع محافظات مصر الـ27، ووصلت إلى أكثر من 35 مليون شخص، وبنت ثقة مجتمعية عميقة وشبكة واسعة من الشركاء المحليين.\n\nكما تعلّمت أن التغيير الدائم يأتي من معالجة التحديات المترابطة في حياة الناس، لا من تلبية احتياج واحد في كل مرة. وتنقل MEKI هذه الخبرة إلى الشركاء حول العالم."
+      },
+      "labels": {
+        "captionA": {
+          "en": {
+            "old": "Alexandria · Economic Empowerment",
+            "new": "Hand-weaving workshop – Alexandria"
+          },
+          "ar": {
+            "old": "الإسكندرية · التمكين الاقتصادي",
+            "new": "ورشة السجاد اليدوي – الإسكندرية"
+          }
+        },
+        "captionB": {
+          "en": {
+            "old": "Luxor",
+            "new": "Water-connection project – Luxor"
+          },
+          "ar": {
+            "old": "الأقصر",
+            "new": "مشروع توصيل المياه – الأقصر"
+          }
+        }
+      }
+    },
+    "PROGRAMMES": {
+      "titleEn": {
+        "old": "Nine programs. One purpose.",
+        "new": "Nine programs. One commitment."
+      },
+      "titleAr": {
+        "old": "تسعة برامج. هدف واحد.",
+        "new": "تسعة برامج. التزام واحد."
+      },
+      "bodyEn": {
+        "old": "Each program tackles a different part of what people and communities need to thrive. Based on assessed needs, a household may enter one or more program pathways.",
+        "new": "Hardship rarely comes alone. A family facing illness may also face debt, unsafe housing or a child leaving school. That is why our nine programs work together around each household's needs."
+      },
+      "bodyAr": {
+        "old": "يتناول كل برنامج جانبًا مختلفًا مما يحتاجه الأفراد والمجتمعات للازدهار. وبناءً على الاحتياجات المُقيَّمة، قد تدخل الأسرة مسارًا واحدًا أو أكثر.",
+        "new": "نادرًا ما تأتي الشدائد منفردة. فالأسرة التي تواجه المرض قد تواجه أيضًا الديون أو السكن غير الآمن أو انقطاع طفل عن الدراسة. لذلك تعمل برامجنا التسعة معًا حول احتياجات كل أسرة."
+      },
+      "labels": {
+        "themesLabel": {
+          "en": {
+            "old": "Focus areas",
+            "new": "What we do"
+          },
+          "ar": {
+            "old": "مجالات التركيز",
+            "new": "ما نقوم به"
+          }
+        }
+      },
+      "addLabels": {
+        "en": {
+          "outcomesLabel": "The change we aim for",
+          "howTitle": "How it works"
+        },
+        "ar": {
+          "outcomesLabel": "التغيير الذي نسعى إليه",
+          "howTitle": "آلية العمل"
+        }
+      },
+      "addItems": [
+        {
+          "code": "how-1",
+          "titleEn": "Understand",
+          "titleAr": "نفهم",
+          "textEn": "One shared assessment of each family's needs and strengths.",
+          "textAr": "تقييم مشترك واحد لاحتياجات كل أسرة ونقاط قوتها."
+        },
+        {
+          "code": "how-2",
+          "titleEn": "Plan",
+          "titleAr": "نخطط",
+          "textEn": "One household plan, with one team following up.",
+          "textAr": "خطة واحدة للأسرة، وفريق واحد يتابعها."
+        },
+        {
+          "code": "how-3",
+          "titleEn": "Connect",
+          "titleAr": "نربط",
+          "textEn": "Programs and local partners deliver the support each family needs.",
+          "textAr": "تقدّم البرامج والشركاء المحليون الدعم الذي تحتاجه كل أسرة."
+        },
+        {
+          "code": "how-4",
+          "titleEn": "Adapt",
+          "titleAr": "نتكيّف",
+          "textEn": "Regular follow-up as circumstances change.",
+          "textAr": "متابعة منتظمة مع تغيّر الظروف."
+        },
+        {
+          "code": "how-5",
+          "titleEn": "Measure",
+          "titleAr": "نقيس",
+          "textEn": "Success is lasting improvement, not aid delivered.",
+          "textAr": "النجاح هو التحسّن الدائم، لا حجم المساعدات المقدَّمة."
+        }
+      ]
+    },
+    "ENABLING": {
+      "bodyEn": {
+        "old": "Three functions support all nine programs. They are capabilities, not programs.",
+        "new": "Three capabilities support all nine programs."
+      },
+      "bodyAr": {
+        "old": "ثلاث وظائف تدعم البرامج التسعة جميعها. إنها قدرات، وليست برامج.",
+        "new": "ثلاث قدرات تدعم البرامج التسعة جميعها."
+      }
+    },
+    "TRUST": {
+      "items": {
+        "trust-2": {
+          "titleEn": {
+            "old": "Released against milestones",
+            "new": "Results are reported back to supporters."
+          },
+          "titleAr": {
+            "old": "صرف مرتبط بمراحل الإنجاز",
+            "new": "تُقدَّم النتائج إلى الداعمين."
+          },
+          "textEn": {
+            "old": "With results reported back.",
+            "new": ""
+          },
+          "textAr": {
+            "old": "مع تقارير عن النتائج.",
+            "new": ""
+          }
+        }
+      }
+    },
+    "WHY": {
+      "items": {
+        "why-1": {
+          "textEn": {
+            "old": "Every gift is held for the purpose you chose and released against milestones.",
+            "new": "Every gift is held for the purpose you chose. Results are reported back to supporters."
+          },
+          "textAr": {
+            "old": "يُحفظ كل تبرع للغرض الذي اخترته، ويُصرف وفق مراحل الإنجاز.",
+            "new": "يُحفظ كل تبرع للغرض الذي اخترته. وتُقدَّم النتائج إلى الداعمين."
+          }
+        }
+      }
+    },
+    "GALLERY": {
+      "items": {
+        "photo-1": {
+          "titleEn": "Hand-weaving workshop",
+          "titleAr": "ورشة السجاد اليدوي",
+          "textEn": "Alexandria",
+          "textAr": "الإسكندرية",
+          "href": "/programs/economic-empowerment",
+          "oldTitlesEn": [
+            "Hand-weaving workshop – Alexandria",
+            "Hand-weaving workshop · Alexandria"
+          ],
+          "oldTitlesAr": [
+            "ورشة السجاد اليدوي – الإسكندرية",
+            "ورشة السجاد اليدوي · الإسكندرية"
+          ]
+        },
+        "photo-2": {
+          "titleEn": "Water desalination station",
+          "titleAr": "محطة تحلية مياه",
+          "textEn": "Luxor",
+          "textAr": "الأقصر",
+          "href": "/programs/wash",
+          "oldTitlesEn": [
+            "Water desalination station – Luxor",
+            "Water desalination station · Luxor"
+          ],
+          "oldTitlesAr": [
+            "محطة تحلية مياه – الأقصر",
+            "محطة تحلية مياه · الأقصر"
+          ]
+        },
+        "photo-3": {
+          "titleEn": "Greenhouses",
+          "titleAr": "الصوب الزراعية",
+          "textEn": "Beni Suef",
+          "textAr": "بني سويف",
+          "href": "/programs/economic-empowerment",
+          "oldTitlesEn": [
+            "Greenhouses – Beni Suef",
+            "Greenhouses · Beni Suef"
+          ],
+          "oldTitlesAr": [
+            "الصوب الزراعية – بني سويف",
+            "الصوب الزراعية · بني سويف"
+          ]
+        },
+        "photo-4": {
+          "titleEn": "Shelter & Warmth housing works",
+          "titleAr": "أعمال إسكان «سكن ودفا»",
+          "textEn": "Egypt",
+          "textAr": "مصر",
+          "href": "/programs/housing",
+          "oldTitlesEn": [
+            "Shelter & Warmth housing works – Egypt",
+            "Housing works · Shelter & warmth"
+          ],
+          "oldTitlesAr": [
+            "أعمال إسكان «سكن ودفا» – مصر",
+            "أعمال إسكان · سكن ودفا"
+          ]
+        },
+        "photo-5": {
+          "titleEn": "Mobile medical unit",
+          "titleAr": "قافلة طبية متنقلة",
+          "textEn": "Egypt",
+          "textAr": "مصر",
+          "href": "/programs/health",
+          "oldTitlesEn": [
+            "Mobile medical unit – Egypt",
+            "Mobile medical unit"
+          ],
+          "oldTitlesAr": [
+            "قافلة طبية متنقلة – مصر",
+            "قافلة طبية متنقلة"
+          ]
+        },
+        "photo-6": {
+          "titleEn": "Water-connection project",
+          "titleAr": "مشروع توصيل المياه",
+          "textEn": "Luxor",
+          "textAr": "الأقصر",
+          "href": "/programs/wash",
+          "oldTitlesEn": [
+            "Water-connection project – Luxor",
+            "Luxor"
+          ],
+          "oldTitlesAr": [
+            "مشروع توصيل المياه – الأقصر",
+            "الأقصر"
+          ]
+        },
+        "photo-7": {
+          "titleEn": "Hospital support",
+          "titleAr": "دعم المستشفيات",
+          "textEn": "Egypt",
+          "textAr": "مصر",
+          "href": "/programs/health",
+          "oldTitlesEn": [
+            "Hospital support – Egypt",
+            "Hospital support"
+          ],
+          "oldTitlesAr": [
+            "دعم المستشفيات – مصر",
+            "دعم المستشفيات"
+          ]
+        }
+      },
+      "labels": {
+        "note": {
+          "en": {
+            "old": "Captions follow “Title – Place”, taken from the source folders; final captions and photographer credits to be confirmed.",
+            "new": "Captions follow “Title – Place”, with the program, taken from the photos' source folders; photographer credits to be confirmed.",
+            "olderVariants": [
+              "Captions are working labels from the source folders; final captions and photographer credits to be confirmed."
+            ]
+          },
+          "ar": {
+            "old": "تتبع التعليقات صيغة «العنوان – المكان» المأخوذة من مجلدات المصدر؛ التعليقات النهائية وحقوق المصورين قيد التأكيد.",
+            "new": "تتبع التعليقات صيغة «العنوان – المكان» مع اسم البرنامج، وهي مأخوذة من مجلدات المصدر؛ حقوق المصورين قيد التأكيد."
+          }
+        }
+      }
+    },
+    "FOOTER": {
+      "addLabels": {
+        "en": {
+          "followUs": "Follow us"
+        },
+        "ar": {
+          "followUs": "تابعونا"
+        }
+      }
+    }
+  },
+  "programmes": [
+    {
+      "code": "PRG-01",
+      "slug": "social-solidarity",
+      "shortDescEn": {
+        "old": "Helping families in hardship become stable and secure.",
+        "new": "Meeting basic needs today. Building resilience for tomorrow."
+      },
+      "shortDescAr": {
+        "old": "مساعدة الأسر التي تمر بظروف صعبة على الاستقرار والأمان.",
+        "new": "تلبية الاحتياجات الأساسية اليوم، وبناء الصمود للغد."
+      },
+      "focusAreasEn": {
+        "old": [
+          "Safety-net support",
+          "Household stabilization",
+          "Protecting the vulnerable"
+        ],
+        "new": [
+          "Safety-net support",
+          "Household stabilization",
+          "Protecting the vulnerable"
+        ]
+      },
+      "focusAreasAr": {
+        "old": [
+          "دعم شبكات الأمان",
+          "استقرار الأسرة",
+          "حماية الأكثر احتياجًا"
+        ],
+        "new": [
+          "دعم شبكات الأمان",
+          "استقرار الأسرة",
+          "حماية الأكثر احتياجًا"
+        ]
+      },
+      "summaryEn": "When money runs out, families face impossible choices between food, rent and debt. This program protects families from severe hardship and helps them regain stability, with dignity.",
+      "summaryAr": "حين ينفد المال، تواجه الأسر خيارات مستحيلة بين الطعام والإيجار والديون. يحمي هذا البرنامج الأسر من الشدائد القاسية ويساعدها على استعادة استقرارها بكرامة.",
+      "outcomesEn": [
+        "More stable households",
+        "Essential needs met",
+        "Less financial and social distress",
+        "Stronger family resilience"
+      ],
+      "outcomesAr": [
+        "أسر أكثر استقرارًا",
+        "تلبية الاحتياجات الأساسية",
+        "ضائقة مالية واجتماعية أقل",
+        "صمود أقوى للأسرة"
+      ]
+    },
+    {
+      "code": "PRG-02",
+      "slug": "health",
+      "shortDescEn": {
+        "old": "Making good healthcare affordable and reachable.",
+        "new": "Making good healthcare affordable and reachable."
+      },
+      "shortDescAr": {
+        "old": "رعاية صحية جيدة وميسورة وفي المتناول.",
+        "new": "رعاية صحية جيدة وميسورة وفي المتناول."
+      },
+      "focusAreasEn": {
+        "old": [
+          "Access to care",
+          "Continuity of treatment",
+          "Patient support & quality"
+        ],
+        "new": [
+          "Access to care",
+          "Continuity of treatment",
+          "Better health services"
+        ]
+      },
+      "focusAreasAr": {
+        "old": [
+          "الوصول إلى الرعاية",
+          "استمرارية العلاج",
+          "دعم المرضى والجودة"
+        ],
+        "new": [
+          "الوصول إلى الرعاية",
+          "استمرارية العلاج",
+          "خدمات صحية أفضل"
+        ]
+      },
+      "summaryEn": "When a family cannot afford or reach care, illness worsens and children miss school. MEKI funds surgeries, medicines and outreach to remote areas, and strengthens the hospitals communities rely on.",
+      "summaryAr": "حين تعجز الأسرة عن تحمّل تكلفة الرعاية أو الوصول إليها، يتفاقم المرض ويتغيّب الأطفال عن المدرسة. تموّل MEKI العمليات الجراحية والأدوية والقوافل إلى المناطق النائية، وتدعم المستشفيات التي تعتمد عليها المجتمعات.",
+      "outcomesEn": [
+        "Better access to care",
+        "Less hardship from medical costs",
+        "More patients completing treatment",
+        "Higher-quality services"
+      ],
+      "outcomesAr": [
+        "وصول أفضل إلى الرعاية",
+        "أعباء أقل من تكاليف العلاج",
+        "مزيد من المرضى يُكملون علاجهم",
+        "خدمات أعلى جودة"
+      ]
+    },
+    {
+      "code": "PRG-03",
+      "slug": "education",
+      "shortDescEn": {
+        "old": "Helping children and young people enrol, stay in school, learn and progress.",
+        "new": "Expanding opportunity at every step of a learner's journey."
+      },
+      "shortDescAr": {
+        "old": "مساعدة الأطفال والشباب على الالتحاق بالتعليم والاستمرار فيه والتعلّم والتقدم.",
+        "new": "توسيع الفرص في كل مرحلة من رحلة المتعلّم."
+      },
+      "focusAreasEn": {
+        "old": [
+          "Community education",
+          "Access & scholarships",
+          "Learner progression"
+        ],
+        "new": [
+          "Community education",
+          "Access & scholarships",
+          "Learner progression"
+        ]
+      },
+      "focusAreasAr": {
+        "old": [
+          "التعليم المجتمعي",
+          "الإتاحة والمنح الدراسية",
+          "تقدّم المتعلمين"
+        ],
+        "new": [
+          "التعليم المجتمعي",
+          "الإتاحة والمنح الدراسية",
+          "تقدّم المتعلمين"
+        ]
+      },
+      "summaryEn": "Cost, distance, disability and family pressure keep too many learners out of school. This program helps children and young people enroll, stay in school, learn and progress.",
+      "summaryAr": "التكلفة والمسافة والإعاقة وضغوط الأسرة تُبقي كثيرًا من المتعلمين خارج المدرسة. يساعد هذا البرنامج الأطفال والشباب على الالتحاق بالتعليم والاستمرار فيه والتعلّم والتقدّم.",
+      "outcomesEn": [
+        "More underserved learners in school",
+        "Fewer dropouts",
+        "More inclusive classrooms",
+        "Stronger results and progression"
+      ],
+      "outcomesAr": [
+        "مزيد من المتعلمين الأقل حظًا في المدارس",
+        "تسرّب أقل",
+        "فصول دراسية أكثر شمولًا",
+        "نتائج وتقدّم أقوى"
+      ]
+    },
+    {
+      "code": "PRG-04",
+      "slug": "economic-empowerment",
+      "shortDescEn": {
+        "old": "Sustainable income through skills, decent work and enterprise.",
+        "new": "Turning potential into opportunity, and opportunity into a livelihood."
+      },
+      "shortDescAr": {
+        "old": "دخل مستدام من خلال المهارات والعمل اللائق وريادة الأعمال.",
+        "new": "تحويل الإمكانات إلى فرص، والفرص إلى مصدر رزق."
+      },
+      "focusAreasEn": {
+        "old": [
+          "Employability",
+          "Technical education",
+          "Enterprise & livelihoods"
+        ],
+        "new": [
+          "Employability",
+          "Technical education",
+          "Enterprise & livelihoods"
+        ]
+      },
+      "focusAreasAr": {
+        "old": [
+          "قابلية التوظيف",
+          "التعليم الفني",
+          "المشروعات وسبل العيش"
+        ],
+        "new": [
+          "قابلية التوظيف",
+          "التعليم الفني",
+          "المشروعات وسبل العيش"
+        ]
+      },
+      "summaryEn": "For most people facing hardship, the problem is not motivation but a lack of skills, resources or real opportunities. This program helps young people, women and working-age adults earn a stable income.",
+      "summaryAr": "بالنسبة لمعظم من يواجهون الشدائد، لا تكمن المشكلة في الدافع بل في نقص المهارات أو الموارد أو الفرص الحقيقية. يساعد هذا البرنامج الشباب والنساء والبالغين في سن العمل على تحقيق دخل مستقر.",
+      "outcomesEn": [
+        "More people in decent work",
+        "More income-generating opportunities",
+        "Livelihoods that last",
+        "Stronger household finances"
+      ],
+      "outcomesAr": [
+        "مزيد من الناس في عمل لائق",
+        "مزيد من فرص توليد الدخل",
+        "سبل عيش تدوم",
+        "أوضاع مالية أقوى للأسر"
+      ]
+    },
+    {
+      "code": "PRG-05",
+      "slug": "housing",
+      "shortDescEn": {
+        "old": "Safe, adequate and dignified homes, and shelter when needed.",
+        "new": "Safer homes. Stable households. More secure futures."
+      },
+      "shortDescAr": {
+        "old": "مساكن آمنة ولائقة وكريمة، ومأوى عند الحاجة.",
+        "new": "منازل أكثر أمانًا. أسر مستقرة. مستقبل أكثر أمانًا."
+      },
+      "focusAreasEn": {
+        "old": [
+          "Safer housing",
+          "Temporary shelter",
+          "Rehabilitation & co-financing"
+        ],
+        "new": [
+          "Safer housing",
+          "Temporary shelter",
+          "Rehabilitation & co-financing"
+        ]
+      },
+      "focusAreasAr": {
+        "old": [
+          "مساكن أكثر أمانًا",
+          "مأوى مؤقت",
+          "إعادة التأهيل والتمويل المشترك"
+        ],
+        "new": [
+          "مساكن أكثر أمانًا",
+          "مأوى مؤقت",
+          "إعادة التأهيل والتمويل المشترك"
+        ]
+      },
+      "summaryEn": "A home is where a family looks for safety and dignity. This program repairs unsafe homes, restores essential facilities and provides temporary shelter when needed.",
+      "summaryAr": "المنزل هو المكان الذي تبحث فيه الأسرة عن الأمان والكرامة. يُصلح هذا البرنامج المنازل غير الآمنة، ويعيد تأهيل المرافق الأساسية، ويوفّر مأوى مؤقتًا عند الحاجة.",
+      "outcomesEn": [
+        "Safer, adequate homes",
+        "Fewer housing risks",
+        "More secure households",
+        "Greater dignity and wellbeing"
+      ],
+      "outcomesAr": [
+        "منازل أكثر أمانًا ولائقة",
+        "مخاطر سكنية أقل",
+        "أسر أكثر أمانًا",
+        "كرامة ورفاه أكبر"
+      ]
+    },
+    {
+      "code": "PRG-06",
+      "slug": "wash",
+      "shortDescEn": {
+        "old": "Water, sanitation and hygiene, and protection from climate risks.",
+        "new": "Safer water. Healthier communities. A more resilient future."
+      },
+      "shortDescAr": {
+        "old": "المياه والصرف الصحي والنظافة، والحماية من المخاطر المناخية.",
+        "new": "مياه أكثر أمانًا. مجتمعات أكثر صحة. مستقبل أكثر صمودًا."
+      },
+      "focusAreasEn": {
+        "old": [
+          "Water & sanitation access",
+          "Environmental protection",
+          "Climate-risk reduction"
+        ],
+        "new": [
+          "Water & sanitation access",
+          "Environmental protection",
+          "Climate-risk reduction"
+        ]
+      },
+      "focusAreasAr": {
+        "old": [
+          "الوصول إلى المياه والصرف الصحي",
+          "حماية البيئة",
+          "الحد من المخاطر المناخية"
+        ],
+        "new": [
+          "الوصول إلى المياه والصرف الصحي",
+          "حماية البيئة",
+          "الحد من المخاطر المناخية"
+        ]
+      },
+      "summaryEn": "Without safe water and sanitation, families face illness, extra costs and lost time. This program brings water networks, wells and sanitation to underserved communities, and helps them prepare for climate risks.",
+      "summaryAr": "بدون مياه آمنة وصرف صحي، تواجه الأسر المرض وتكاليف إضافية ووقتًا ضائعًا. يوفّر هذا البرنامج شبكات المياه والآبار والصرف الصحي للمجتمعات الأقل خدمة، ويساعدها على الاستعداد للمخاطر المناخية.",
+      "outcomesEn": [
+        "Better access to safe water",
+        "Healthier, safer communities",
+        "Fewer infrastructure gaps",
+        "Communities ready for climate risks"
+      ],
+      "outcomesAr": [
+        "وصول أفضل إلى المياه الآمنة",
+        "مجتمعات أكثر صحة وأمانًا",
+        "فجوات أقل في البنية التحتية",
+        "مجتمعات مستعدة للمخاطر المناخية"
+      ]
+    },
+    {
+      "code": "PRG-07",
+      "slug": "emergency-response",
+      "shortDescEn": {
+        "old": "Fast, coordinated help in crises, and early recovery.",
+        "new": "Immediate relief in a crisis. Support that lasts beyond it."
+      },
+      "shortDescAr": {
+        "old": "مساعدة سريعة ومنسّقة في الأزمات، وتعافٍ مبكر.",
+        "new": "إغاثة فورية في الأزمة، ودعم يمتد إلى ما بعدها."
+      },
+      "focusAreasEn": {
+        "old": [
+          "Readiness",
+          "Humanitarian response",
+          "Transition & recovery"
+        ],
+        "new": [
+          "Readiness",
+          "Humanitarian response",
+          "Transition & recovery"
+        ]
+      },
+      "focusAreasAr": {
+        "old": [
+          "الجاهزية",
+          "الاستجابة الإنسانية",
+          "الانتقال والتعافي"
+        ],
+        "new": [
+          "الجاهزية",
+          "الاستجابة الإنسانية",
+          "الانتقال والتعافي"
+        ]
+      },
+      "summaryEn": "Crises strike with little warning and hit vulnerable families hardest. This program delivers timely aid, essential supplies and temporary shelter, then helps families recover.",
+      "summaryAr": "تقع الأزمات دون إنذار يُذكر وتصيب الأسر الأكثر هشاشة بأشد الضرر. يقدّم هذا البرنامج المساعدات في الوقت المناسب والإمدادات الأساسية والمأوى المؤقت، ثم يساعد الأسر على التعافي.",
+      "outcomesEn": [
+        "Faster access to aid",
+        "Less immediate distress",
+        "Better protection for the vulnerable",
+        "Better-coordinated response"
+      ],
+      "outcomesAr": [
+        "وصول أسرع إلى المساعدات",
+        "ضائقة فورية أقل",
+        "حماية أفضل للأكثر هشاشة",
+        "استجابة أفضل تنسيقًا"
+      ]
+    },
+    {
+      "code": "PRG-08",
+      "slug": "heritage-culture",
+      "shortDescEn": {
+        "old": "Participation, culture, heritage and community engagement.",
+        "new": "Preserving heritage. Enriching lives. Strengthening communities."
+      },
+      "shortDescAr": {
+        "old": "المشاركة والثقافة والتراث والانخراط المجتمعي.",
+        "new": "صون التراث. إثراء الحياة. تقوية المجتمعات."
+      },
+      "focusAreasEn": {
+        "old": [
+          "Participation",
+          "Cultural engagement",
+          "Identity-building opportunities"
+        ],
+        "new": [
+          "Participation",
+          "Cultural engagement",
+          "Identity-building opportunities"
+        ]
+      },
+      "focusAreasAr": {
+        "old": [
+          "المشاركة",
+          "الانخراط الثقافي",
+          "فرص بناء الهوية"
+        ],
+        "new": [
+          "المشاركة",
+          "الانخراط الثقافي",
+          "فرص بناء الهوية"
+        ]
+      },
+      "summaryEn": "Wellbeing also depends on identity, belonging and taking part in community life. This program opens culture, the arts, sport and heritage to children and young people in underserved communities.",
+      "summaryAr": "يعتمد الرفاه أيضًا على الهوية والانتماء والمشاركة في الحياة المجتمعية. يفتح هذا البرنامج أبواب الثقافة والفنون والرياضة والتراث أمام الأطفال والشباب في المجتمعات الأقل خدمة.",
+      "outcomesEn": [
+        "Heritage preserved and valued",
+        "More creativity and expression",
+        "Greater inclusion and belonging",
+        "Stronger community engagement"
+      ],
+      "outcomesAr": [
+        "تراث مصون ومُقدَّر",
+        "مزيد من الإبداع والتعبير",
+        "شمول وانتماء أكبر",
+        "انخراط مجتمعي أقوى"
+      ]
+    },
+    {
+      "code": "PRG-09",
+      "slug": "scientific-research",
+      "shortDescEn": {
+        "old": "Funding research and strengthening the research ecosystem.",
+        "new": "Advancing knowledge. Enabling innovation. Creating real-world impact."
+      },
+      "shortDescAr": {
+        "old": "تمويل البحث العلمي وتقوية منظومته.",
+        "new": "تطوير المعرفة. تمكين الابتكار. صنع أثر حقيقي."
+      },
+      "focusAreasEn": {
+        "old": [
+          "Sponsored research",
+          "Grants & fellowships",
+          "Research capacity building"
+        ],
+        "new": [
+          "Sponsored research",
+          "Grants & fellowships",
+          "Research capacity building"
+        ]
+      },
+      "focusAreasAr": {
+        "old": [
+          "أبحاث مدعومة",
+          "منح وزمالات",
+          "بناء القدرات البحثية"
+        ],
+        "new": [
+          "أبحاث مدعومة",
+          "منح وزمالات",
+          "بناء القدرات البحثية"
+        ]
+      },
+      "summaryEn": "Complex challenges need evidence, not assumptions. This program funds research, supports researchers and turns findings into practical solutions to Egypt's development challenges.",
+      "summaryAr": "تحتاج التحديات المعقدة إلى أدلة لا إلى افتراضات. يموّل هذا البرنامج البحث العلمي، ويدعم الباحثين، ويحوّل النتائج إلى حلول عملية لتحديات التنمية في مصر.",
+      "outcomesEn": [
+        "Stronger research capability",
+        "More relevant evidence",
+        "Research applied to real problems",
+        "Better-informed decisions"
+      ],
+      "outcomesAr": [
+        "قدرات بحثية أقوى",
+        "أدلة أكثر ملاءمة",
+        "أبحاث تُطبَّق على مشكلات حقيقية",
+        "قرارات أفضل استنارة"
+      ]
+    }
+  ],
+  "enabling": [
+    {
+      "code": "ENB-01",
+      "shortDescEn": {
+        "old": "Strengthen partner NGO quality, governance, capability and delivery readiness across the portfolio.",
+        "new": "Stronger local partners."
+      },
+      "shortDescAr": {
+        "old": "تعزيز جودة الجمعيات الشريكة وحوكمتها وقدراتها وجاهزيتها للتنفيذ عبر المحفظة.",
+        "new": "شركاء محليون أقوى."
+      },
+      "summaryEn": "We strengthen the governance and services of local nonprofits, so support reaches more communities.",
+      "summaryAr": "نعزّز حوكمة الجمعيات الأهلية المحلية وخدماتها، ليصل الدعم إلى مجتمعات أكثر."
+    },
+    {
+      "code": "ENB-02",
+      "shortDescEn": {
+        "old": "Frontline assessment, outreach, household follow-up, recertification, referral coordination and local insight.",
+        "new": "Close to communities."
+      },
+      "shortDescAr": {
+        "old": "التقييم الميداني، والتواصل، ومتابعة الأسر، وإعادة التحقق، وتنسيق الإحالات، والمعرفة المحلية.",
+        "new": "قريبون من المجتمعات."
+      },
+      "summaryEn": "Field teams in every governorate assess needs, follow up with families and connect them to the right support.",
+      "summaryAr": "تقيّم الفرق الميدانية في كل محافظة الاحتياجات، وتتابع الأسر، وتربطها بالدعم المناسب."
+    },
+    {
+      "code": "ENB-03",
+      "shortDescEn": {
+        "old": "Integrate observatory, historical, field and geo-mapping data to guide planning, targeting and fundraising.",
+        "new": "Evidence into action."
+      },
+      "shortDescAr": {
+        "old": "دمج بيانات المرصد والبيانات التاريخية والميدانية والخرائط الجغرافية لتوجيه التخطيط والاستهداف وجمع التبرعات.",
+        "new": "الأدلة إلى أفعال."
+      },
+      "summaryEn": "Field, program and mapping data guide where support goes and how progress is measured.",
+      "summaryAr": "توجّه البيانات الميدانية والبرامجية وبيانات الخرائط أين يذهب الدعم وكيف يُقاس التقدم."
+    }
+  ],
+  "site": {
+    "logos": {
+      "logoPrimaryUrl": {
+        "old": "/brand/MEKI_Primary_Green.svg",
+        "new": "/brand/MEKI_Secondary_Green.png"
+      },
+      "logoInverseUrl": {
+        "old": "/brand/MEKI_Primary_White.svg",
+        "new": "/brand/MEKI_Secondary_White.png"
+      },
+      "logoIconUrl": {
+        "old": "/brand/MEKI_Icon_Green.svg",
+        "new": "/brand/MEKI_Icon_Approved_512.png"
+      }
+    },
+    "socialLinksConfirmed": [
+      {
+        "network": "linkedin",
+        "url": "https://www.linkedin.com/company/misr-el-kheir-international"
+      },
+      {
+        "network": "facebook",
+        "url": "https://www.facebook.com/meki.Intr/"
+      },
+      {
+        "network": "instagram",
+        "url": "https://www.instagram.com/meki.intr/"
+      }
+    ]
+  },
+  "assets": {
+    "note": "MEKI confirmations 24 Nov 2026. Files are read from ASSET_DIR (default references/client-edits-2026-11-23/06-gala-assets) and uploaded through POST /admin/media; checksums guarantee the exact supplied files. 583_park_avenue_cover.jpeg is the venue LOGO on white (not a photograph) and is intentionally not used: the white PNG is the variant for the dark green venue panel.",
+    "files": [
+      {
+        "key": "venue-exterior-night",
+        "file": "15.jpg.jpeg",
+        "sha256": "ab594d3582399f15837fdaac6bf75e6d100872d804196b854a641203fa6b9b6a",
+        "bytes": 865304,
+        "sourceFolder": "client-edits-2026-11-23/06-gala-assets",
+        "provenance": "VERIFIED_SOURCE",
+        "category": "GALLERY",
+        "consentStatus": "CONFIRMED",
+        "altEn": "583 Park Avenue, New York: the columned façade lit for an evening event",
+        "altAr": "مبنى 583 بارك أفينيو في نيويورك: الواجهة ذات الأعمدة مضاءة لأمسية",
+        "captionEn": "583 Park Avenue at night – New York",
+        "captionAr": "583 بارك أفينيو ليلاً – نيويورك"
+      },
+      {
+        "key": "venue-exterior-day",
+        "file": "images.jpeg",
+        "sha256": "f9302424b5d6bf40e98748d3d7450e60e079a85fa5f23f28ed3addaf43f1232f",
+        "bytes": 47556,
+        "sourceFolder": "client-edits-2026-11-23/06-gala-assets",
+        "provenance": "VERIFIED_SOURCE",
+        "category": "GALLERY",
+        "consentStatus": "CONFIRMED",
+        "altEn": "The façade of 583 Park Avenue, New York, with its columns and arched windows",
+        "altAr": "واجهة مبنى 583 بارك أفينيو في نيويورك بأعمدتها ونوافذها المقوّسة",
+        "captionEn": "Building exterior – 583 Park Avenue, New York",
+        "captionAr": "واجهة المبنى – 583 بارك أفينيو، نيويورك"
+      },
+      {
+        "key": "venue-logo-white",
+        "file": "583-Park-Ave-Logo_1_white.png",
+        "sha256": "5822ba88ae7dbc63740708919051b7d6128c1f6ea62d3e24f517e100e2b0f5fe",
+        "bytes": 13375,
+        "sourceFolder": "client-edits-2026-11-23/06-gala-assets",
+        "provenance": "VERIFIED_SOURCE",
+        "category": "BRAND",
+        "consentStatus": "CONFIRMED",
+        "altEn": "583 Park Avenue, New York",
+        "altAr": "583 بارك أفينيو، نيويورك",
+        "credit": "Logo: 583 Park Avenue (venue)"
+      },
+      {
+        "key": "host-raya-abirached",
+        "file": "Raya Abirached.png",
+        "sha256": "c8baaea550ed2550932b70583d5ce44c38bd7db8222f5e69b65715d06355f357",
+        "bytes": 897622,
+        "sourceFolder": "client-edits-2026-11-23/06-gala-assets",
+        "provenance": "VERIFIED_SOURCE",
+        "category": "OTHER",
+        "consentStatus": "UNKNOWN",
+        "altEn": "Raya Abirached, host of the evening",
+        "altAr": "رايا أبي راشد، مقدّمة الأمسية"
+      },
+      {
+        "key": "sponsorship-packages",
+        "file": "sponsorship-06/Sponsorship Packages.pdf",
+        "sha256": "2de2df2573d53d72a6dc1da249a468965dd02796c62cb8e0ea41c9f8afbae6ab",
+        "bytes": 460606,
+        "sourceFolder": "client-edits-2026-11-23/06-gala-assets",
+        "provenance": "VERIFIED_SOURCE",
+        "category": "OTHER",
+        "consentStatus": "CONFIRMED",
+        "captionEn": "Every Light Counts — Sponsorship & Partnership Opportunities (PDF)",
+        "captionAr": "كل نور له أثر — فرص الرعاية والشراكة (PDF)",
+        "mimeType": "application/pdf"
+      }
+    ]
+  },
+  "gala": {
+    "eventSlug": "gala-night",
+    "hero": {
+      "asset": "venue-exterior-night"
+    },
+    "venue": {
+      "logo": "venue-logo-white",
+      "photos": [
+        {
+          "asset": "venue-exterior-day",
+          "titleEn": "Building exterior",
+          "titleAr": "واجهة المبنى",
+          "textEn": "583 Park Avenue, New York",
+          "textAr": "583 بارك أفينيو، نيويورك"
+        }
+      ]
+    },
+    "host": {
+      "asset": "host-raya-abirached"
+    },
+    "sponsorship": {
+      "asset": "sponsorship-packages"
+    },
+    "experience": {
+      "oldTitles": {
+        "bar": {
+          "en": [
+            "Virgin bar",
+            "Refined Refreshments"
+          ],
+          "ar": [
+            "ركن المشروبات المنعشة",
+            "ضيافة راقية"
+          ]
+        }
+      },
+      "cards": [
+        {
+          "code": "black-tie",
+          "titleEn": "Black-tie evening",
+          "titleAr": "أمسية رسمية",
+          "textEn": "An elegant, formal setting in the heart of New York.",
+          "textAr": "أجواء أنيقة ورسمية في قلب نيويورك."
+        },
+        {
+          "code": "dinner",
+          "titleEn": "Set-menu dinner",
+          "titleAr": "عشاء بقائمة محددة",
+          "textEn": "A plated, halal set menu.",
+          "textAr": "قائمة طعام حلال محددة تُقدَّم على المائدة."
+        },
+        {
+          "code": "bar",
+          "titleEn": "Virgin Drinks",
+          "titleAr": "مشروبات منعشة",
+          "textEn": "A curated selection of fresh juices, premium teas, coffee, and sparkling beverages, thoughtfully served throughout the evening",
+          "textAr": "تشكيلة مختارة من العصائر الطازجة والشاي الفاخر والقهوة والمشروبات الفوّارة، تُقدَّم بعناية طوال الأمسية"
+        },
+        {
+          "code": "lamps",
+          "titleEn": "Lamp-lighting moment",
+          "titleAr": "لحظة إضاءة المصابيح",
+          "textEn": "Every guest's light joins the shared illumination.",
+          "textAr": "يلتقي نور كل ضيف في الإضاءة المشتركة."
+        },
+        {
+          "code": "auction",
+          "titleEn": "Live auction",
+          "titleAr": "مزاد حي",
+          "textEn": "A live auction during the evening.",
+          "textAr": "مزاد حي خلال الأمسية."
+        }
+      ]
+    }
+  }
+}

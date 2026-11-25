@@ -179,6 +179,21 @@ describe('Events & Gala Night foundation', () => {
       await ctx.http().get(`${API}/public/pages/${e.page.slug}`).expect(404);
     });
 
+    it('partner entries (25 Nov 2026): hidden items and unpublished edits are never public; publishing a visible entry exposes it', async () => {
+      const e = await publishable();
+      await editor.post(`/admin/events/${e.id}/publish`).expect(200);
+      const s = (await editor.post(`/admin/events/${e.id}/sections`, { key: 'EVENT_SPONSORSHIP' }).expect(201)).body.data;
+      const bokra = (await editor.post(`/admin/events/${e.id}/sections/${s.id}/items`, { code: 'partner-bokra', titleEn: 'Bokra', isVisible: false }).expect(201)).body.data;
+      await editor.post(`/admin/events/${e.id}/sections/${s.id}/items`, { code: 'partner-waterway', titleEn: 'The Waterway', isVisible: false }).expect(201);
+      await editor.post(`/admin/events/${e.id}/sections/${s.id}/publish`).expect(200);
+      const items = async () => (await ctx.http().get(`${API}/public/events/${e.slug}/page`).expect(200)).body.data.sections.find((x: { key: string }) => x.key === 'EVENT_SPONSORSHIP').items as { title: string }[];
+      expect(await items()).toEqual([]); // hidden → not public
+      await editor.patch(`/admin/events/${e.id}/items/${bokra.id}`, { isVisible: true }).expect(200);
+      expect(await items()).toEqual([]); // saved but not published → still not public
+      await editor.post(`/admin/events/${e.id}/sections/${s.id}/publish`).expect(200);
+      expect((await items()).map((i) => i.title)).toEqual(['Bokra']); // the other partner stays hidden
+    });
+
     it('enforces section families and page scoping', async () => {
       const e = await newEvent();
       await editor.post(`/admin/events/${e.id}/sections`, { key: 'HERO' }).expect(400);
@@ -270,9 +285,10 @@ describe('Events & Gala Night foundation', () => {
         titleEn: 'MEKI Gala Night',
         status: 'DRAFT',
         approvedAt: null,
-        startsAt: null,
-        endsAt: null,
-        timezone: null,
+        // MEKI update, 19 Nov 2026 (seed since 6b37e9c): 3:30–8:30 PM New York time on 12 December 2026 (EST = UTC−5)
+        startsAt: new Date('2026-12-12T20:30:00.000Z'),
+        endsAt: new Date('2026-12-13T01:30:00.000Z'),
+        timezone: 'America/New_York',
         venueNameEn: null,
         descriptionEn: null,
         titleAr: null,

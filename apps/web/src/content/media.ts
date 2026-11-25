@@ -10,7 +10,9 @@ export type MediaKey =
   | "mobile-clinic" | "incubator" | "student-reading" | "student-lab" | "housing-site" | "housing-roof"
   | "painted-house" | "water-pier" | "water-station" | "water-pipe" | "water-pump" | "carpentry"
   | "greenhouse" | "greenhouse-harvest" | "swimmer" | "swimmer-medal" | "relief" | "livestock"
-  | "field-sky" | "farmer-portrait";
+  | "field-sky" | "farmer-portrait"
+  // Client delivery 24 Nov 2026 (apps/web/scripts/build-client-delivery.mjs): approved hero photos, program covers, clear water photo
+  | "hero-family" | "hero-school" | "program-social-solidarity" | "program-health" | "program-education" | "program-economic-empowerment" | "program-housing" | "program-wash" | "water-pipeline" | "program-emergency-response" | "program-heritage-culture" | "program-scientific-research";
 
 export const media: Record<MediaKey, { src: string; w: number; h: number }> = {
   "hero-field": { src: "/images/work/hero-field.webp", w: 1333, h: 2000 },
@@ -39,6 +41,18 @@ export const media: Record<MediaKey, { src: string; w: number; h: number }> = {
   livestock: { src: "/images/work/livestock.webp", w: 2000, h: 1333 },
   "field-sky": { src: "/images/work/field-sky.webp", w: 2000, h: 1333 },
   "farmer-portrait": { src: "/images/work/farmer-portrait.webp", w: 1333, h: 2000 },
+  "hero-family": { src: "/images/work/hero-family.webp", w: 2200, h: 1237 },
+  "hero-school": { src: "/images/work/hero-school.webp", w: 1500, h: 844 },
+  "program-social-solidarity": { src: "/images/work/program-social-solidarity.webp", w: 2200, h: 1236 },
+  "program-health": { src: "/images/work/program-health.webp", w: 2200, h: 1467 },
+  "program-education": { src: "/images/work/program-education.webp", w: 2200, h: 1467 },
+  "program-economic-empowerment": { src: "/images/work/program-economic-empowerment.webp", w: 2200, h: 1467 },
+  "program-housing": { src: "/images/work/program-housing.webp", w: 2200, h: 1467 },
+  "program-wash": { src: "/images/work/program-wash.webp", w: 2200, h: 1467 },
+  "water-pipeline": { src: "/images/work/water-pipeline.webp", w: 1467, h: 2200 },
+  "program-emergency-response": { src: "/images/work/program-emergency-response.webp", w: 2200, h: 1231 },
+  "program-heritage-culture": { src: "/images/work/program-heritage-culture.webp", w: 2200, h: 1467 },
+  "program-scientific-research": { src: "/images/work/program-scientific-research.webp", w: 2200, h: 1467 },
 };
 
 /** A curated image key, or an absolute URL of an image uploaded through the Media Library (API). */
@@ -67,7 +81,8 @@ const API_MEDIA_ORIGIN = (() => {
 export function isAllowedRemoteImage(url: string, origin: string | null = API_MEDIA_ORIGIN): boolean {
   try {
     const u = new URL(url);
-    return !!origin && u.origin === origin && u.pathname.startsWith("/media/") && !u.username && !u.password;
+    // A Media Library PDF (24 Nov 2026) is a document, never an image.
+    return !!origin && u.origin === origin && u.pathname.startsWith("/media/") && !/\.pdf$/i.test(u.pathname) && !u.username && !u.password;
   } catch {
     return false;
   }
@@ -97,5 +112,16 @@ export function toMediaRef(m: { url: string } | null | undefined): MediaRef | un
   }
   const key = /^\/images\/work\/([a-z-]+)\.webp$/.exec(path)?.[1];
   if (key && isKey(key)) return key;
-  return /^https?:\/\//.test(m.url) ? m.url : undefined;
+  return /^https?:\/\//.test(m.url) && !/\.pdf$/i.test(path) ? m.url : undefined;
+}
+
+/**
+ * `sizes` for an object-cover image shown in a frame that is NARROWER than the photo (e.g. a 3:4 arch fed with a 16:9 photo): the
+ * browser must fetch the photo at the width the frame needs divided by the visible fraction of the photo, otherwise it picks a
+ * variant that is too small and the picture is upscaled (the "pictures are still low quality" feedback, 23 Nov 2026).
+ * `frame` = frame width / height. Every number followed by vw or px in `sizes` is scaled; photos already narrower than the frame are not.
+ */
+export function coverSizes(sizes: string, img: { w: number; h: number }, frame: number): string {
+  const k = Math.max(1, img.w / img.h / frame);
+  return k === 1 ? sizes : sizes.replace(/(\d+(?:\.\d+)?)(vw|px)\b(?![^(]*\))/g, (_m, n: string, u: string) => `${Math.round(Number(n) * k)}${u}`);
 }

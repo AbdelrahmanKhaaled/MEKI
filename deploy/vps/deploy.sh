@@ -7,8 +7,9 @@
 # asks for the password (username: the GitHub login). It is cached in memory for 15 minutes by `credential.helper cache`
 # and never written to disk, the repo, the shell history or this script. Set once:  git config --global credential.helper 'cache --timeout=900'
 #
-# What it does NOT do: it never runs migrations, seeds, or touches the database. Migrations are a separate, reviewed step
-# (backup first, migrator account) — see docs/FINAL_PRODUCTION_DEPLOYMENT_RUNBOOK.md §6.
+# What it does NOT do: it never runs migrations, seeds, or writes to the database. Migrations are a separate, reviewed step
+# (backup first, migrator account) — see docs/FINAL_PRODUCTION_DEPLOYMENT_RUNBOOK.md §6. Before switching it runs the READ-ONLY
+# check-migrations.sh and refuses to switch while migrations are pending (then: migrate, and deploy/vps/switch.sh <release>).
 set -euo pipefail
 
 REF="${1:?usage: deploy.sh <tag-or-commit-sha>}"
@@ -40,10 +41,19 @@ DATABASE_URL='mysql://build:placeholder@127.0.0.1:3306/none' pnpm --filter @meki
 ( set -a; . /etc/meki/web.build.env; set +a; pnpm --filter @meki/web build )
 ( set -a; . /etc/meki/admin.build.env; set +a; pnpm --filter @meki/admin build )
 
-# 4. Switch atomically and reload (previous release stays on disk for rollback).
+# 4. Migration-first guard (read-only). A release whose Prisma schema is ahead of the database must never go live: the new
+#    API would query columns that do not exist yet. If migrations are pending, stop here WITHOUT switching; apply them as the
+#    reviewed migrator step (runbook §6 — additive migrations are safe while the current release keeps running), then
+#    activate this already-built release with deploy/vps/switch.sh "$REL".
+if ! bash deploy/vps/check-migrations.sh "$REL"; then
+  echo "Release built at $REL but NOT switched. After the migration step: bash $REL/deploy/vps/switch.sh $REL" >&2
+  exit 4
+fi
+
+# 5. Switch atomically and reload (previous release stays on disk for rollback).
 PREV=$(readlink -f /srv/meki/current 2>/dev/null || true)
 ln -sfn "$REL" /srv/meki/current.next && mv -T /srv/meki/current.next /srv/meki/current
 pm2 startOrReload /srv/meki/current/deploy/vps/ecosystem.config.cjs --update-env
 pm2 save
 echo "deployed $SHA → $REL (previous: ${PREV:-none})"
-echo "next: run the health checks in the runbook §8; rollback = deploy/vps/rollback.sh $PREV"
+echo "next: run the health checks in the runbook §7; rollback = bash $REL/deploy/vps/rollback.sh $PREV"

@@ -4,6 +4,8 @@
 # Secrets and local overrides
 .env
 .env.*
+*.env
+.aws/
 !.env.example
 !.env.*.example
 *.pem
@@ -42,3 +44,6 @@ deploy/**/data/
 
 # Client-supplied proprietary documents (CLAUDE.md: never commit client resources)
 docs/client-requirements/
+# Client edit packages (Word briefs, screenshots, original logos/photos, sponsorship PDF) — reference only, never committed.
+# Packaged site media live in apps/web/public. The CMS sync reads originals from a separate operator delivery.
+/references/

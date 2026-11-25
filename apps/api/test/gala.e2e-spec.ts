@@ -799,11 +799,12 @@ describe('Phase 5B — Gala booking, guests, tickets, QR check-in, export', () =
     await admin.post(`/admin/events/${fresh.id}/ticketing`, { ticketPrice: '750.00', displayNameEn: 'xx', eventDateLabelEn: 'xx', venueLabelEn: 'xx' }).expect(409);
   });
 
-  it('the seeded Gala configuration is USD 750, individual, sales CLOSED, no invented capacity', async () => {
+  // MEKI update, 19 Nov 2026 (seed since 6b37e9c): USD 500 per guest (supersedes USD 750) and capacity 350 — both confirmed values.
+  it('the seeded Gala configuration is USD 500, individual, sales CLOSED, confirmed capacity 350', async () => {
     const gala = await ctx.prisma.event.findUnique({ where: { code: 'EVT-GALA-NIGHT' }, include: { ticketConfig: true } });
     expect(gala?.ticketConfig).toBeTruthy();
-    expect(gala!.ticketConfig!.ticketPrice.toString()).toBe('750');
-    expect(gala!.ticketConfig).toMatchObject({ currency: 'USD', salesEnabled: false, capacity: null, displayNameEn: 'Every Light Counts', eventDateLabelEn: 'Saturday, December 12, 2026', venueLabelEn: '583 Park Avenue, New York, USA' });
+    expect(gala!.ticketConfig!.ticketPrice.toString()).toBe('500');
+    expect(gala!.ticketConfig).toMatchObject({ currency: 'USD', salesEnabled: false, capacity: 350, displayNameEn: 'Every Light Counts', eventDateLabelEn: 'Saturday, December 12, 2026', venueLabelEn: '583 Park Avenue, New York, USA' });
     expect(gala!.status).not.toBe('PUBLISHED'); // the seed never publishes anything
   });
 

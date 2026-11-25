@@ -36,7 +36,8 @@ describe("homepage model matches the public website", () => {
     assert.equal(fixed.reasons, webEn.why.items.length);
     assert.equal(fixed.steps, webEn.process.steps.length);
     assert.equal(fixed.never, webEn.process.never.length);
-    assert.equal(fixed.photos, webEn.gallery.items.length);
+    // the gallery is list-driven (client delivery 24 Nov 2026): any number of photos is published, so it has no fixed size
+    assert.equal(fixed.photos, undefined);
   });
   test("hideable flags equal the website's HIDEABLE_SECTIONS", () => {
     const web = read(join(here, "../../web/src/lib/content.ts")).match(/HIDEABLE_SECTIONS = \[([^\]]*)\]/)[1].match(/"([A-Z_]+)"/g).map((s) => s.slice(1, -1));
@@ -141,11 +142,13 @@ describe("menus: admin rules agree with the website's resolveMenu()", () => {
       assert.equal(menuState(s).used, resolveMenu(published, "en") !== null, JSON.stringify(s));
     }
   });
-  test("the seeded one-page menu (#anchors) is reported as not used", () => {
-    const seeded = webEn.nav.links.map((l) => entry(l.label, l.href));
-    const st = menuState(seeded);
+  test("the OLD one-page menu (#anchors, still stored in databases seeded before 25 Nov 2026) is reported as not used; the seed now holds the real pages", () => {
+    const legacy = [["Who we are", "#who-we-are"], ["Programs", "#programmes"], ["Impact", "#impact"], ["Campaigns", "#campaigns"], ["How giving works", "#giving"], ["FAQ", "#faq"]].map(([l, h]) => entry(l, h));
+    const st = menuState(legacy);
     assert.equal(st.used, false);
     assert.ok(st.invalid > 0);
+    // the current seed source (website dictionary) is valid and used
+    assert.deepEqual(menuState(webEn.nav.links.map((l) => entry(l.label, l.href))), { used: true, invalid: 0 });
   });
 });
 

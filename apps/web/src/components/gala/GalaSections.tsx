@@ -1,57 +1,48 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, CalendarDays, Check, Clock, Flame, Gavel, GlassWater, MapPin, Palette, Plus, Sparkles, UtensilsCrossed, type LucideIcon } from "lucide-react";
+import { ArrowDown, CalendarDays, Check, Clock, FileText, Flame, Gavel, GlassWater, Mail, MapPin, Plus, Sparkles, UtensilsCrossed, type LucideIcon } from "lucide-react";
 import { media } from "@/content/media";
 import { photoCaption, type VenuePhoto } from "@/lib/venue-photos";
+import type { GalaCms, GalaImage } from "@/lib/gala-cms";
+import type { SocialLink } from "@/content/en";
 import { PROPOSED_SPONSORSHIP, type GalaDict, type SponsorTier } from "@/content/gala";
-import { Pattern, PointsOfLight, GoldArc } from "../Decor";
+import { SocialLinks } from "../SocialLinks";
 
-/** Icons for the six client-confirmed experience items, in dictionary order (EN and AR share the order). */
-const EXPERIENCE_ICONS: LucideIcon[] = [Sparkles, UtensilsCrossed, GlassWater, Flame, Palette, Gavel];
-
-/**
- * A field of softly flickering lamps: the evening's own metaphor ("each guest lights a lamp; together they illuminate").
- * Purely decorative (aria-hidden), deterministic positions (no hydration mismatch), CSS-only infinite motion.
- */
-function LampField({ count = 18, className = "" }: { count?: number; className?: string }) {
-  return (
-    <div aria-hidden="true" className={`pointer-events-none absolute inset-0 ${className}`}>
-      {Array.from({ length: count }, (_, i) => {
-        const x = (i * 37 + 11) % 100;
-        const y = (i * 53 + 7) % 100;
-        const size = 10 + ((i * 7) % 4) * 6;
-        const style = { insetInlineStart: `${x}%`, top: `${y}%`, width: size, height: size, "--lamp-delay": `${(i % 7) * 0.7}s`, "--lamp-dur": `${4 + (i % 5)}s` } as React.CSSProperties;
-        return <span key={i} className="p10-lamp absolute" style={style} />;
-      })}
-    </div>
-  );
-}
+/** Icon per experience card (used until MEKI publishes the card's photo). */
+const EXPERIENCE_ICONS: Record<string, LucideIcon> = { "black-tie": Sparkles, dinner: UtensilsCrossed, bar: GlassWater, lamps: Flame, auction: Gavel };
 
 /**
  * Gala page sections. All server components; motion comes from MotionRoot's data-reveal / data-stagger attributes
  * (reduced-motion safe). Nothing here starts a payment or collects personal data.
+ *
+ * MEKI client edits (22 Nov 2026, Gala item 14): "a real evening in New York, told through photos rather than graphics" — the glowing
+ * light dots, floating particles, flickering lamp fields, spinning rings and the abstract "lights" image were removed. Real photos
+ * appear only once MEKI publishes them in the Gala CMS sections (lib/gala-cms.ts); until then the sections keep their text.
  */
 
-export function GalaHero({ g }: { g: GalaDict }) {
+/** Hero (item 15): with a published venue photo it fills the hero under a dark green overlay; otherwise the current background stays. */
+export function GalaHero({ g, image }: { g: GalaDict; image?: GalaImage | null }) {
   const h = g.hero;
   return (
     <section id="top" className="relative isolate overflow-hidden bg-deep-green text-white">
       <div aria-hidden="true" className="absolute inset-0 -z-20 overflow-hidden">
-        <div data-parallax="0.1" className="absolute -inset-[10%]">
-          <Image src={media["field-sky"].src} alt="" fill priority sizes="100vw" className="kenburns object-cover opacity-25" />
-        </div>
+        {image ? (
+          <Image src={image.src} alt="" fill priority sizes="100vw" quality={85} className="object-cover object-[50%_40%]" data-testid="gala-hero-photo" />
+        ) : (
+          <div data-parallax="0.1" className="absolute -inset-[10%]">
+            <Image src={media["field-sky"].src} alt="" fill priority sizes="100vw" className="object-cover opacity-25" />
+          </div>
+        )}
       </div>
-      <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[radial-gradient(110%_80%_at_50%_0%,rgb(20_89_74/0.85)_0%,rgb(11_59_48/0.92)_55%,#072a22_100%)]" />
-      <Pattern opacity={0.06} className="-z-10" />
-      <PointsOfLight className="-z-10" count={26} />
-      <GoldArc className="-end-24 top-10 hidden size-[460px] opacity-60 lg:block" />
-      <LampField count={14} className="-z-10 opacity-70" />
-      <div aria-hidden="true" className="spin-slower-rev pointer-events-none absolute -end-40 top-1/2 -z-10 hidden size-[640px] -translate-y-1/2 rounded-full border border-dashed border-glow/15 lg:block" />
-      <div className="container-x relative flex min-h-[92svh] flex-col justify-center pb-24 pt-36">
+      <div
+        aria-hidden="true"
+        className={`absolute inset-0 -z-10 ${image ? "bg-[linear-gradient(180deg,rgb(7_42_34/0.72)_0%,rgb(11_59_48/0.80)_55%,rgb(7_42_34/0.94)_100%)]" : "bg-[radial-gradient(110%_80%_at_50%_0%,rgb(20_89_74/0.85)_0%,rgb(11_59_48/0.92)_55%,#072a22_100%)]"}`}
+      />
+      <div className="container-x relative flex min-h-[86svh] flex-col justify-center pb-20 pt-32 sm:min-h-[92svh] sm:pb-24 sm:pt-36">
         <p data-hero-item className="eyebrow eyebrow-dark mb-7">
           {h.eyebrow}
         </p>
-        <h1 data-hero-item className="mb-6 max-w-4xl text-[clamp(3rem,9vw,7rem)] leading-[0.98]">
+        <h1 data-hero-item className="mb-6 max-w-4xl text-[clamp(2.6rem,9vw,7rem)] leading-[0.98]">
           {h.title}
         </h1>
         <div data-hero-item className="mb-8 h-px w-24 bg-harvest-gold" />
@@ -84,7 +75,41 @@ export function GalaHero({ g }: { g: GalaDict }) {
   );
 }
 
-export function GalaPurpose({ g }: { g: GalaDict }) {
+/** Photo grid shared by "Why we gather" and the venue (captions "Title – Place"). 1 photo → wide; 2 → two columns; 3+ → lead + mosaic. */
+function PhotoGrid({ photos, label, testId }: { photos: VenuePhoto[]; label: string; testId: string }) {
+  const shown = photos.slice(0, 5);
+  if (shown.length === 0) return null;
+  const mosaic = shown.length >= 3;
+  return (
+    <div className="container-x mt-14 sm:mt-16" data-testid={testId}>
+      <h3 className="sr-only">{label}</h3>
+      <ul data-stagger className={`grid gap-5 sm:grid-cols-2 ${mosaic ? "lg:grid-cols-4" : ""}`}>
+        {shown.map((p, i) => {
+          const lead = mosaic && i === 0;
+          const caption = photoCaption(p.title, p.place);
+          return (
+            <li key={p.src + i} data-stagger-item className={lead ? "sm:col-span-2 lg:row-span-2" : shown.length === 1 ? "sm:col-span-2" : ""}>
+              <figure className="group mx-auto h-full" style={shown.length === 1 && p.w ? { maxWidth: p.w } : undefined}>
+                {shown.length === 1 && p.w && p.h ? (
+                  <Image src={p.src} alt={p.alt || caption} width={p.w} height={p.h} quality={85}
+                    sizes={`(min-width:${p.w}px) ${p.w}px, 100vw`} className="h-auto w-full rounded-[1.75rem]" />
+                ) : (
+                  <div className={`relative overflow-hidden rounded-[1.75rem] bg-limestone ${lead ? "aspect-[4/3] lg:aspect-auto lg:h-[calc(100%-2.25rem)] lg:min-h-[420px]" : shown.length === 1 ? "aspect-[16/9]" : "aspect-[4/3]"}`}>
+                    <Image src={p.src} alt={p.alt || caption} fill quality={85} sizes={lead || shown.length <= 2 ? "(min-width:1024px) 50vw, 100vw" : "(min-width:1024px) 25vw, (min-width:640px) 50vw, 100vw"} className="object-cover transition-transform duration-[1200ms] group-hover:scale-105" />
+                  </div>
+                )}
+                <figcaption className="mt-3 text-sm font-bold text-body-grey">{caption}</figcaption>
+              </figure>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/** "Why we gather": the abstract lights image was removed (item 14); MEKI's published photos of the evening appear here instead. */
+export function GalaPurpose({ g, photos = [] }: { g: GalaDict; photos?: VenuePhoto[] }) {
   const p = g.purpose;
   return (
     <section id="purpose" aria-labelledby="purpose-title" className="section-y bg-paper">
@@ -103,20 +128,19 @@ export function GalaPurpose({ g }: { g: GalaDict }) {
               {b}
             </p>
           ))}
-          {/* "One light is small. Together, they illuminate." Many small lamps around one shared glow. */}
-          <div data-reveal="scale" aria-hidden="true" className="relative isolate mt-10 aspect-[16/9] overflow-hidden rounded-[2rem] bg-deep-green">
-            <div className="absolute inset-0 bg-[radial-gradient(45%_60%_at_50%_55%,rgb(230_195_111/0.35)_0%,transparent_70%)]" />
-            <LampField count={26} />
-            <span className="pulse-soft absolute start-1/2 top-1/2 size-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgb(255_236_179/0.9)_0%,rgb(230_195_111/0.4)_45%,transparent_70%)] rtl:translate-x-1/2" />
-          </div>
         </div>
       </div>
+      <PhotoGrid photos={photos} label={g.purposePhotos} testId="gala-purpose-photos" />
     </section>
   );
 }
 
-export function GalaExperience({ g }: { g: GalaDict }) {
+type ExperienceCard = { code: string; title: string; text: string; image?: GalaImage };
+
+/** Experience (items 18–19): five cards; each shows MEKI's published photo, otherwise its icon. */
+export function GalaExperience({ g, cards }: { g: GalaDict; cards?: ExperienceCard[] }) {
   const e = g.experience;
+  const items: ExperienceCard[] = cards ?? e.items;
   return (
     <section id="experience" aria-labelledby="experience-title" className="section-y bg-limestone">
       <div className="container-x">
@@ -133,21 +157,31 @@ export function GalaExperience({ g }: { g: GalaDict }) {
         </div>
         {/* Editorial list rather than a card grid: numbered lines with generous space. */}
         <ol data-stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {e.items.map((item, i) => {
-            const ExpIcon = EXPERIENCE_ICONS[i % EXPERIENCE_ICONS.length];
+          {items.map((item, i) => {
+            const ExpIcon = EXPERIENCE_ICONS[item.code] ?? Sparkles;
             return (
-              <li key={item.title} data-stagger-item className="group p10-lift relative overflow-hidden rounded-[1.75rem] border border-stone-line bg-paper p-7">
-                <span aria-hidden="true" className="absolute -end-12 -top-12 size-36 rounded-full bg-[radial-gradient(circle,rgb(230_195_111/0.28)_0%,transparent_70%)] transition-transform duration-700 group-hover:scale-150" />
-                <div className="relative mb-6 flex items-center justify-between">
-                  <span className="p10-icon grid size-12 place-items-center rounded-2xl bg-limestone text-meki-green">
-                    <ExpIcon className="size-6" strokeWidth={1.6} aria-hidden="true" />
-                  </span>
-                  <span className="font-serif text-2xl text-gold-text" aria-hidden="true">
-                    0{i + 1}
-                  </span>
+              <li key={item.code} data-stagger-item className="group p10-lift relative flex flex-col overflow-hidden rounded-[1.75rem] border border-stone-line bg-paper">
+                {item.image && (
+                  <div className="relative aspect-[4/3] overflow-hidden bg-limestone" data-testid="gala-experience-photo">
+                    <Image src={item.image.src} alt={item.image.alt} fill quality={85} sizes="(min-width:1024px) 31vw, (min-width:640px) 48vw, 100vw" className="object-cover transition-transform duration-[1200ms] group-hover:scale-105" />
+                  </div>
+                )}
+                <div className="relative flex-1 p-6 sm:p-7">
+                  <div className="mb-5 flex items-center justify-between">
+                    {!item.image ? (
+                      <span className="p10-icon grid size-12 place-items-center rounded-2xl bg-limestone text-meki-green">
+                        <ExpIcon className="size-6" strokeWidth={1.6} aria-hidden="true" />
+                      </span>
+                    ) : (
+                      <span />
+                    )}
+                    <span className="font-serif text-2xl text-gold-text" aria-hidden="true">
+                      0{i + 1}
+                    </span>
+                  </div>
+                  <h3 className="mb-2 font-serif text-2xl text-ink">{item.title}</h3>
+                  <p className="text-body-grey">{item.text}</p>
                 </div>
-                <h3 className="relative mb-2 font-serif text-2xl text-ink">{item.title}</h3>
-                <p className="relative text-body-grey">{item.text}</p>
               </li>
             );
           })}
@@ -160,11 +194,46 @@ export function GalaExperience({ g }: { g: GalaDict }) {
   );
 }
 
+/**
+ * Host (item 17): "Your host for the evening." Name confirmed in writing in MEKI's 22 Nov 2026 document. MEKI granted written approval to publish her
+ * photo (25 Nov 2026); it comes from the published EVENT_SPEAKERS item "host". With no photo the section shows the name and line only.
+ */
+export function GalaHost({ g, host }: { g: GalaDict; host?: GalaCms["host"] }) {
+  const h = g.host;
+  const name = host?.name ?? h.name;
+  const line = host?.line ?? h.line;
+  const photo = host?.image;
+  return (
+    <section id="host" aria-labelledby="host-title" className="bg-paper py-16 sm:py-20" data-testid="gala-host">
+      <div className="container-x">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-8 text-center sm:flex-row sm:text-start">
+          {photo && (
+            <div className="relative size-40 shrink-0 overflow-hidden rounded-full border-4 border-limestone bg-limestone shadow-[var(--shadow-card)] sm:size-48" data-testid="gala-host-photo">
+              {/* square crop of the supplied portrait (never stretched); 192 px slot, below the source resolution */}
+              <Image src={photo.src} alt={photo.alt || name} fill quality={85} sizes="(min-width:640px) 192px, 160px" className="object-cover object-top" />
+            </div>
+          )}
+          <div>
+            <p data-reveal className="eyebrow mb-4 justify-center sm:justify-start">
+              {h.eyebrow}
+            </p>
+            <h2 id="host-title" data-reveal className="mb-2 font-serif text-[clamp(2rem,4vw,3rem)] text-ink">
+              {name}
+            </h2>
+            <p data-reveal className="text-lg text-body-grey">
+              {line}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function GalaTimeline({ g }: { g: GalaDict }) {
   const t = g.timeline;
   return (
     <section id="program" aria-labelledby="program-title" className="section-y relative isolate overflow-hidden bg-deep-green text-white">
-      <PointsOfLight count={14} className="-z-10" />
       <div className="container-x grid gap-14 lg:grid-cols-12">
         <div className="lg:col-span-4">
           <div className="lg:sticky lg:top-32">
@@ -191,14 +260,11 @@ export function GalaTimeline({ g }: { g: GalaDict }) {
                 <ol className="relative">
                   {/* The vertical line of light */}
                   <span aria-hidden="true" className="absolute inset-y-2 start-[7px] w-px bg-gradient-to-b from-harvest-gold/70 via-white/25 to-white/5" />
-                  <span aria-hidden="true" className="p10-travel absolute inset-y-2 start-[6px] w-[3px] rounded-full" />
                   {act.items.map((item) => (
-                    <li key={item.time + item.title} data-reveal className="p10-row relative pb-10 ps-12 last:pb-0">
+                    <li key={item.time + item.title} data-reveal className="p10-row relative pb-8 ps-10 last:pb-0 sm:pb-10 sm:ps-12">
                       <span
                         aria-hidden="true"
-                        className={`absolute start-0 top-1.5 grid size-4 place-items-center rounded-full ${
-                          item.highlight ? "bg-harvest-gold shadow-[0_0_0_6px_rgb(214_161_70/0.18),0_0_24px_4px_rgb(230_195_111/0.55)]" : "bg-deep-green ring-1 ring-glow/70"
-                        }`}
+                        className={`absolute start-0 top-1.5 grid size-4 place-items-center rounded-full ${item.highlight ? "bg-harvest-gold" : "bg-deep-green ring-1 ring-glow/70"}`}
                       >
                         <span className={`size-1.5 rounded-full ${item.highlight ? "bg-deep-green-3" : "bg-glow"}`} />
                       </span>
@@ -226,40 +292,15 @@ export function GalaTimeline({ g }: { g: GalaDict }) {
 }
 
 /**
- * Phase 13B — "pictures of the gala venue to be added". Renders ONLY photos MEKI published for the event (API, published event +
- * published EVENT_VENUE section). With none, nothing is rendered: no placeholder, stock or unrelated location is shown as the venue.
- * Layout: 1 photo → one wide image; 2 → two columns; 3–5 → one large lead image + smaller ones (lg: editorial mosaic).
- * Mobile is always a single column.
+ * Venue (item 21). MEKI's published venue photos (EVENT_VENUE; the supplied photos are building EXTERIORS — never described as interiors) replace the drawn map card. Until they are
+ * published, the existing map card stays — no placeholder, stock or unrelated location is shown as the venue. "View on map" and
+ * the full address (cross street and ZIP code) are always shown.
  */
-function VenuePhotos({ photos, label }: { photos: VenuePhoto[]; label: string }) {
-  const shown = photos.slice(0, 5);
-  if (shown.length === 0) return null;
-  const mosaic = shown.length >= 3;
-  return (
-    <div className="container-x mt-16" data-testid="gala-venue-photos">
-      <h3 className="sr-only">{label}</h3>
-      <ul data-stagger className={`grid gap-5 sm:grid-cols-2 ${mosaic ? "lg:grid-cols-4" : ""}`}>
-        {shown.map((p, i) => {
-          const lead = mosaic && i === 0;
-          const caption = photoCaption(p.title, p.place);
-          return (
-            <li key={p.src + i} data-stagger-item className={lead ? "sm:col-span-2 lg:row-span-2" : shown.length === 1 ? "sm:col-span-2" : ""}>
-              <figure className="group h-full">
-                <div className={`relative overflow-hidden rounded-[1.75rem] bg-limestone ${lead ? "aspect-[4/3] lg:aspect-auto lg:h-[calc(100%-2.25rem)] lg:min-h-[420px]" : "aspect-[4/3]"}`}>
-                  <Image src={p.src} alt={p.alt || caption} fill sizes={lead ? "(min-width:1024px) 50vw, 100vw" : "(min-width:1024px) 25vw, (min-width:640px) 50vw, 100vw"} className="object-cover transition-transform duration-[1200ms] group-hover:scale-105" />
-                </div>
-                <figcaption className="mt-3 text-sm font-bold text-body-grey">{caption}</figcaption>
-              </figure>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-}
-
-export function GalaVenue({ g, mapUrl, photos = [] }: { g: GalaDict; mapUrl: string; photos?: VenuePhoto[] }) {
+export function GalaVenue({ g, mapUrl, photos = [], address, logo }: { g: GalaDict; mapUrl: string; photos?: VenuePhoto[]; address?: string; logo?: GalaImage | null }) {
   const v = g.venue;
+  const addr = address ?? v.address;
+  // 24 Nov 2026: the first published venue photo replaces the drawn map card; any further photos follow below.
+  const [lead, ...more] = photos;
   return (
     <section id="venue" aria-labelledby="venue-title" className="section-y bg-paper">
       <div className="container-x grid items-start gap-12 lg:grid-cols-12">
@@ -267,36 +308,61 @@ export function GalaVenue({ g, mapUrl, photos = [] }: { g: GalaDict; mapUrl: str
           <p data-reveal className="eyebrow mb-6">
             {v.eyebrow}
           </p>
-          <h2 id="venue-title" data-reveal className="headline mb-8">
+          <h2 id="venue-title" data-reveal className="headline mb-5">
             {v.title}
           </h2>
+          <p data-reveal className="mb-8 flex items-start gap-2 text-lg text-body-grey" data-testid="gala-venue-address">
+            <MapPin className="mt-1 size-5 shrink-0 text-meki-green" aria-hidden="true" />
+            <span>{addr}</span>
+          </p>
           <a data-reveal href={mapUrl} target="_blank" rel="noopener noreferrer" className="btn btn-outline min-h-12">
             <MapPin className="size-4" aria-hidden="true" /> {v.mapLabel}
           </a>
+          {/* Venue logo (Gala → Settings → Venue photos → venue logo): the white artwork on Deep Green, original proportions. */}
+          {logo && (
+            <div className="mt-10" data-testid="gala-venue-logo">
+              <span className="inline-grid place-items-center rounded-[1.5rem] bg-deep-green p-4">
+                <Image src={logo.src} alt={logo.alt || g.venueLogoAlt} width={logo.w ?? 1000} height={logo.h ?? 1000} sizes="160px" className="h-auto w-32 sm:w-40" />
+              </span>
+            </div>
+          )}
         </div>
+        {lead && (
+          <figure className="lg:col-span-5 lg:col-start-8" data-testid="gala-venue-lead-photo">
+            {/* Shown at most at its own pixel width, so a small source is never blown up into a blurry image. */}
+            <div className="relative overflow-hidden rounded-[2rem] bg-limestone" style={lead.w ? { maxWidth: lead.w } : undefined}>
+              <Image src={lead.src} alt={lead.alt || photoCaption(lead.title, lead.place)} width={lead.w ?? 1200} height={lead.h ?? 800} quality={85} sizes="(min-width:1024px) 40vw, 100vw" className="h-auto w-full" />
+            </div>
+            <figcaption className="mt-3 text-sm font-bold text-body-grey">{photoCaption(lead.title, lead.place)}</figcaption>
+          </figure>
+        )}
+        {!lead && (
         <div className="space-y-6 lg:col-span-5 lg:col-start-8">
           {/* Stylised location card (a map cue, not a venue photo): a city grid with a pulsing pin. */}
           <a data-reveal href={mapUrl} target="_blank" rel="noopener noreferrer" aria-label={`${v.mapLabel}: ${v.address}`} className="group p10-lift relative isolate block aspect-[16/10] overflow-hidden rounded-[2rem] bg-deep-green text-white">
             <span aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(rgb(255_255_255/0.06)_1px,transparent_1px),linear-gradient(90deg,rgb(255_255_255/0.06)_1px,transparent_1px)] bg-[size:36px_36px] transition-transform duration-[1400ms] group-hover:scale-110" />
             <span aria-hidden="true" className="absolute inset-y-0 start-[58%] -z-10 w-6 -skew-x-12 bg-white/10" />
             <span aria-hidden="true" className="absolute start-1/2 top-[44%] -translate-x-1/2 -translate-y-full rtl:translate-x-1/2">
-              <span className="pulse-soft absolute start-1/2 top-full size-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-harvest-gold/30 rtl:translate-x-1/2" />
               <MapPin className="relative size-10 text-glow drop-shadow-[0_6px_14px_rgb(0_0_0/0.4)] transition-transform duration-500 group-hover:-translate-y-1" />
             </span>
             <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-deep-green-3 to-transparent p-6 pt-14">
-              <span className="block font-serif text-2xl">{v.address}</span>
+              <span className="block font-serif text-2xl">{v.title}</span>
             </span>
           </a>
           {/* Phase 13B: the Arrival / transportation block was removed at MEKI's request (address and map link kept). */}
         </div>
+        )}
       </div>
-      <VenuePhotos photos={photos} label={v.photos} />
+      <PhotoGrid photos={more} label={v.photos} testId="gala-venue-photos" />
     </section>
   );
 }
 
-/** `price`: the published ticketing API value when available (single source with the booking flow); otherwise the brief text. */
-export function GalaAttendance({ g, price }: { g: GalaDict; price?: string }) {
+/**
+ * `price`: the published ticketing API value when available (single source with the booking flow); otherwise the brief text.
+ * `contactEmail`: shown only when MEKI published one (item 22 "Add a contact email for questions").
+ */
+export function GalaAttendance({ g, price, contactEmail }: { g: GalaDict; price?: string; contactEmail?: string | null }) {
   const a = g.attendance;
   return (
     <section id="attendance" aria-labelledby="attendance-title" className="section-y overflow-hidden bg-limestone">
@@ -312,10 +378,7 @@ export function GalaAttendance({ g, price }: { g: GalaDict; price?: string }) {
         {/* Informational panel — deliberately not a ticket card / purchase UI. */}
         <div data-reveal className="lg:col-span-6 lg:col-start-7">
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-gold-text">{a.ticket}</p>
-          <p className="relative mb-6 inline-block font-serif text-[clamp(3rem,7vw,5rem)] leading-none text-deep-green">
-            <span aria-hidden="true" className="p10-lamp absolute -end-8 -top-4 size-8" />
-            {price ?? a.price}
-          </p>
+          <p className="mb-6 inline-block font-serif text-[clamp(2.75rem,7vw,5rem)] leading-none text-deep-green">{price ?? a.price}</p>
           <ul className="mb-6 space-y-3 border-t border-stone-line pt-6 text-lg text-ink">
             {a.rules.map((r) => (
               <li key={r} className="flex items-center gap-3">
@@ -327,6 +390,18 @@ export function GalaAttendance({ g, price }: { g: GalaDict; price?: string }) {
             ))}
           </ul>
           <p className="text-sm text-body-grey">{a.note}</p>
+          {contactEmail && (
+            <p className="mt-4 flex items-center gap-2 text-sm font-bold text-ink" data-testid="gala-contact-email">
+              <Mail className="size-4 text-meki-green" aria-hidden="true" />
+              <span>
+                {a.contact.split("{email}")[0]}
+                <a href={`mailto:${contactEmail}`} className="text-meki-green underline underline-offset-4">
+                  {contactEmail}
+                </a>
+                {a.contact.split("{email}")[1] ?? ""}
+              </span>
+            </p>
+          )}
         </div>
       </div>
     </section>
@@ -334,10 +409,11 @@ export function GalaAttendance({ g, price }: { g: GalaDict; price?: string }) {
 }
 
 /**
- * Reusable sponsorship section. Public builds show only the intro and a "being finalized" note: tiers are
- * proposed and unvalidated. Pass `tiers` only in a development preview.
+ * Reusable sponsorship section. Proposed tiers are never public (pass `tiers` only in a development preview).
+ * Item 23: "Sponsor now" replaces the "being finalized" note ONLY when MEKI publishes the official packages file/page (EVENT_SPONSORSHIP
+ * section link) — no button without a destination. Partner logos (Bokra, The Waterway…) are CMS items (EVENT_SPONSORSHIP) shown only when published, visible AND with a logo — never a placeholder.
  */
-export function SponsorshipSection({ g, tiers }: { g: GalaDict; tiers?: SponsorTier[] }) {
+export function SponsorshipSection({ g, tiers, sponsor, partners = [] }: { g: GalaDict; tiers?: SponsorTier[]; sponsor?: GalaCms["sponsorship"]; partners?: GalaCms["partners"] }) {
   const s = g.sponsorship;
   return (
     <section id="sponsorship" aria-labelledby="sponsorship-title" className="section-y bg-paper">
@@ -352,10 +428,50 @@ export function SponsorshipSection({ g, tiers }: { g: GalaDict; tiers?: SponsorT
           <p data-reveal className="mb-3 text-lg text-body-grey">
             {s.body}
           </p>
-          <p data-reveal className="text-body-grey">
-            {s.pending}
-          </p>
+          {sponsor ? (
+            <div data-reveal>
+              {/* Informational packages only: opens the PDF; no checkout, booking or acceptance is started here. */}
+              <a
+                href={sponsor.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                {...(sponsor.document ? { type: "application/pdf" } : {})}
+                className="btn btn-gold mt-3 min-h-14 px-8 text-base"
+                data-testid="gala-sponsor-now"
+              >
+                {sponsor.label ?? s.cta}
+                {sponsor.document ? <FileText className="size-4" aria-hidden="true" /> : null}
+                <span className="sr-only">{sponsor.document ? ` — ${s.pdf}` : ` ${s.newTab}`}</span>
+              </a>
+              {sponsor.document && <p className="mt-3 max-w-xl text-sm text-body-grey" data-testid="gala-sponsor-note">{s.docNote}</p>}
+            </div>
+          ) : (
+            <p data-reveal className="text-body-grey">
+              {s.pending}
+            </p>
+          )}
         </div>
+        {partners.length > 0 && (
+          <div className="mt-12" data-testid="gala-partners">
+            <h3 className="mb-5 font-sans text-xs font-bold uppercase tracking-[0.22em] text-gold-text">{s.partners}</h3>
+            <ul className="flex flex-wrap items-center gap-6">
+              {partners.map((p) => {
+                const logo = <Image src={p.image.src} alt={p.name} width={p.image.w ?? 320} height={p.image.h ?? 160} sizes="200px" className="h-14 w-auto max-w-[200px] object-contain" />;
+                return (
+                  <li key={p.name} className="grid min-h-20 place-items-center rounded-2xl border border-stone-line bg-white px-6 py-3">
+                    {p.href ? (
+                      <a href={p.href} target="_blank" rel="noopener noreferrer" aria-label={`${p.name} ${s.newTab}`}>
+                        {logo}
+                      </a>
+                    ) : (
+                      logo
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
         {tiers && tiers.length > 0 && (
           <div className="mt-12 border-t border-dashed border-gold-text pt-6">
             <p className="preview-badge mb-6 inline-block">{s.previewLabel}</p>
@@ -473,8 +589,6 @@ export function GalaBooking({ g, bookHref, bookStatus, give, disclosure }: { g: 
   const b = g.booking;
   return (
     <section id="booking" aria-labelledby="booking-title" className="section-y relative isolate overflow-hidden bg-deep-green-3 text-white">
-      <PointsOfLight count={12} className="-z-10" />
-      <LampField count={10} className="-z-10 opacity-50" />
       <div className="container-x">
         <p data-reveal className="eyebrow eyebrow-dark mb-6">
           {b.eyebrow}
@@ -493,6 +607,19 @@ export function GalaBooking({ g, bookHref, bookStatus, give, disclosure }: { g: 
             {disclosure}
           </p>
         )}
+      </div>
+    </section>
+  );
+}
+
+/** Item 14: "Follow us" at the end of the Gala page (same accounts as the footer). */
+export function GalaFollow({ g, links, newTab }: { g: GalaDict; links: SocialLink[]; newTab: string }) {
+  if (!links.some((l) => /^https:\/\//.test(l.url))) return null;
+  return (
+    <section aria-label={g.follow.title} className="bg-deep-green-3 pb-12 pt-4 text-white">
+      <div className="container-x border-t border-white/15 pt-10">
+        <p className="mb-5 max-w-xl text-mint-line">{g.follow.text}</p>
+        <SocialLinks links={links} title={g.follow.title} newTab={newTab} />
       </div>
     </section>
   );

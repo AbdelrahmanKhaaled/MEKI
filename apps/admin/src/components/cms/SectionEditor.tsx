@@ -15,7 +15,7 @@ import { Card } from "@/components/cards/Card";
 import { useLocale } from "@/components/common/Providers";
 import { CoverField } from "@/components/content/media";
 import { HeroImagesField } from "@/components/cms/HeroImagesField";
-import { Bilingual, Checkbox, ContentGateNotice, ProvenanceBadge, Thumb, useContentError } from "@/components/content/ui";
+import { Bilingual, Checkbox, ContentGateNotice, ProvenanceBadge, Select, Thumb, useContentError } from "@/components/content/ui";
 import { ConfirmDialog, DateText, Notice } from "@/components/finance/ui";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useCmsMutation } from "@/hooks/useCmsData";
@@ -23,7 +23,7 @@ import { useForm } from "@/hooks/useForm";
 import type { RevalidationOutcome } from "@/lib/api";
 import { HERO_ALT_LABELS, HERO_SECONDARY_ITEM_CODE } from "@/lib/hero-images";
 import { liveAr, liveEn } from "@/lib/i18n-live";
-import { isDirtySection, itemsFor, listCountState, mergeLabels, nextCode, sectionPublishGate, sectionUnpublishGate, type ListRule, type SectionDef, type SectionField } from "@/lib/cms";
+import { isDirtySection, itemsFor, listCountState, mergeLabels, nextCode, PROGRAM_SLUGS, programFromHref, programHref, sectionPublishGate, sectionUnpublishGate, type ListRule, type SectionDef, type SectionField } from "@/lib/cms";
 import type { Section, SectionItem } from "@/lib/cms-schemas";
 import type { Media } from "@/lib/content-schemas";
 import { formatDate } from "@/lib/format";
@@ -283,12 +283,16 @@ function ItemRow({ item, n, rule, sectionKey, canManage, first, last, onMove, mo
   const { can } = useAuth();
   const errText = useContentError();
   const c = t.cms.common;
-  const form = useForm({ titleEn: item.titleEn ?? "", titleAr: item.titleAr ?? "", textEn: item.textEn ?? "", textAr: item.textAr ?? "", isVisible: item.isVisible, media: item.media as Media | null });
+  const form = useForm({ titleEn: item.titleEn ?? "", titleAr: item.titleAr ?? "", textEn: item.textEn ?? "", textAr: item.textAr ?? "", isVisible: item.isVisible, media: item.media as Media | null, program: programFromHref(item.href) });
   const v = form.values;
   const [confirm, setConfirm] = useState(false);
   const save = useCmsMutation(() => {
     const b: Record<string, unknown> = {};
-    for (const k of form.dirty) b[k === "media" ? "mediaId" : k] = k === "media" ? (v.media?.id ?? null) : v[k];
+    for (const k of form.dirty) {
+      if (k === "media") b.mediaId = v.media?.id ?? null;
+      else if (k === "program") b.href = programHref(v.program);
+      else b[k] = v[k];
+    }
     return svc.updateItem(item.id, b);
   });
   const remove = useCmsMutation(() => svc.deleteItem(item.id));
@@ -308,13 +312,19 @@ function ItemRow({ item, n, rule, sectionKey, canManage, first, last, onMove, mo
       <div className="space-y-3">
         {rule.fields.includes("title") && <Bilingual label={label("itemTitle")} en={v.titleEn} ar={v.titleAr} onEn={(s) => form.set("titleEn", s)} onAr={(s) => form.set("titleAr", s)} disabled={!canManage} maxLength={500} />}
         {rule.fields.includes("text") && <Bilingual label={label("itemText")} en={v.textEn} ar={v.textAr} onEn={(s) => form.set("textEn", s)} onAr={(s) => form.set("textAr", s)} multiline rows={2} disabled={!canManage} maxLength={5000} />}
+        {rule.fields.includes("program") && (
+          <Select label={label("itemProgram")} value={v.program} onChange={(s) => form.set("program", s)} disabled={!canManage} emptyLabel={t.cms.common.noProgram} options={PROGRAM_SLUGS.map((s) => ({ value: s, label: s }))} hint={t.cms.common.programHint} />
+        )}
+        {rule.fields.includes("title") && rule.fields.includes("text") && rule.fields.includes("program") && v.titleEn.trim() && (
+          <p className="text-xs text-muted">{fill(t.cms.common.captionPreview, { caption: v.textEn.trim() ? `${v.titleEn.trim()} – ${v.textEn.trim()}` : v.titleEn.trim() })}</p>
+        )}
         {rule.fields.includes("media") && <CoverField media={v.media} onChange={(m) => form.set("media", m)} disabled={!canManage || !can("media.read")} defaultCategory="GALLERY" />}
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Checkbox label={c.visible} checked={v.isVisible} onChange={(b) => form.set("isVisible", b)} disabled={!canManage} />
           {canManage && form.dirty.length > 0 && (
             <span className="flex gap-2">
               <button type="button" className="btn-admin btn-ghost !min-h-9" onClick={form.discard}>{t.content.common.discard}</button>
-              <button type="button" className="btn-admin btn-primary !min-h-9" disabled={save.isPending} onClick={() => save.mutate(undefined, { onSuccess: (r) => form.reset({ titleEn: r.titleEn ?? "", titleAr: r.titleAr ?? "", textEn: r.textEn ?? "", textAr: r.textAr ?? "", isVisible: r.isVisible, media: v.media }) })}>{save.isPending ? t.content.common.saving : c.saveItem}</button>
+              <button type="button" className="btn-admin btn-primary !min-h-9" disabled={save.isPending} onClick={() => save.mutate(undefined, { onSuccess: (r) => form.reset({ titleEn: r.titleEn ?? "", titleAr: r.titleAr ?? "", textEn: r.textEn ?? "", textAr: r.textAr ?? "", isVisible: r.isVisible, media: v.media, program: programFromHref(r.href) }) })}>{save.isPending ? t.content.common.saving : c.saveItem}</button>
             </span>
           )}
         </div>

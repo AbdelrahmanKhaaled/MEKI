@@ -1,0 +1,1373 @@
+{
+ "generatedFrom": "apps/web/src/content/en.ts + ar.ts (build-programmes-data.mjs) — do not edit by hand",
+ "sections": {
+  "PROGRAMMES": {
+   "titleEn": {
+    "old": [
+     "Nine programs. One commitment."
+    ],
+    "new": "Nine Programs. One Commitment."
+   },
+   "bodyEn": {
+    "old": [
+     "Hardship rarely comes alone. A family facing illness may also face debt, unsafe housing or a child leaving school. That is why our nine programs work together around each household's needs."
+    ],
+    "new": "Building on 20 years of experience addressing the diverse needs of communities across Egypt, Misr El-Kheir champions a development approach that recognizes the fundamental truth of the holistic and non-fragmented nature of vulnerability across households.\n\nMEKI inherently believes that addressing one need in isolation may provide immediate relief, but sustainable progress often requires a broader understanding of the circumstances affecting each household.\n\nBecause lasting change is not simply about what we provide. It is about what becomes possible for the people we serve."
+   },
+   "bodyAr": {
+    "old": [
+     "نادرًا ما تأتي الشدائد منفردة. فالأسرة التي تواجه المرض قد تواجه أيضًا الديون أو السكن غير الآمن أو انقطاع طفل عن الدراسة. لذلك تعمل برامجنا التسعة معًا حول احتياجات كل أسرة."
+    ],
+    "new": "استنادًا إلى 20 عامًا من الخبرة في تلبية احتياجات المجتمعات المتنوعة في مختلف أنحاء مصر، تتبنّى مصر الخير نهجًا تنمويًا يقرّ بالحقيقة الجوهرية المتمثلة في الطبيعة الشمولية وغير المجزأة للهشاشة داخل الأسر.\n\nوتؤمن MEKI بأن تلبية احتياج واحد بمعزل عن غيره قد توفّر إغاثة فورية، لكن التقدم المستدام يتطلب في الغالب فهمًا أوسع للظروف التي تؤثر في كل أسرة.\n\nفالتغيير الدائم لا يتعلق فقط بما نقدّمه، بل بما يصبح ممكنًا للأشخاص الذين نخدمهم."
+   },
+   "labels": {
+    "mandateLabel": {
+     "en": {
+      "old": [
+       "Mandate"
+      ],
+      "new": "Program mandate"
+     },
+     "ar": {
+      "old": [
+       "التكليف"
+      ],
+      "new": "تكليف البرنامج"
+     }
+    },
+    "themesLabel": {
+     "en": {
+      "old": [
+       "What we do",
+       "Focus areas"
+      ],
+      "new": "Areas of work"
+     },
+     "ar": {
+      "old": [
+       "ما نقوم به",
+       "مجالات التركيز"
+      ],
+      "new": "مجالات العمل"
+     }
+    },
+    "outcomesLabel": {
+     "en": {
+      "old": [
+       "The change we aim for"
+      ],
+      "new": "The change we aim to create"
+     },
+     "ar": {
+      "old": [
+       "التغيير الذي نسعى إليه"
+      ],
+      "new": "التغيير الذي نسعى إلى إحداثه"
+     }
+    }
+   }
+  },
+  "ABOUT": {
+   "addLabels": {
+    "en": {
+     "legacyTitle": "MEKI Legacy",
+     "legacyTagline": "Building on 20 Years of Outreach and Impact. Creating Opportunities for Generations to Come."
+    },
+    "ar": {
+     "legacyTitle": "إرث MEKI",
+     "legacyTagline": "نبني على 20 عامًا من العمل الميداني والأثر. نصنع فرصًا للأجيال القادمة."
+    }
+   },
+   "addItems": [
+    {
+     "code": "legacy-1",
+     "textEn": "Misr El-Kheir Foundation has stood on the forefront of development and charity work alongside individuals, families, and communities across Egypt for 20 Years.",
+     "textAr": "وقفت مؤسسة مصر الخير في طليعة العمل التنموي والخيري إلى جانب الأفراد والأسر والمجتمعات في مختلف أنحاء مصر على مدى 20 عامًا."
+    },
+    {
+     "code": "legacy-2",
+     "textEn": "On an individual, household, community and institutional fronts this work has touched millions of lives and helped build an unmatched foundation of experience, community outreach, trust, and partner networks.",
+     "textAr": "وعلى مستوى الأفراد والأسر والمجتمعات والمؤسسات، لامس هذا العمل حياة الملايين، وأسهم في بناء رصيد لا يُضاهى من الخبرة والتواصل المجتمعي والثقة وشبكات الشركاء."
+    },
+    {
+     "code": "legacy-3",
+     "textEn": "Yet the true legacy extends beyond the number of people reached or the services delivered; it is deeply embedded in the understanding that lasting change requires addressing the interconnected challenges shaping people’s lives and in the ability to turn that into more effective, sustainable interventions.",
+     "textAr": "غير أن الإرث الحقيقي يتجاوز عدد من وصلنا إليهم أو الخدمات التي قدّمناها؛ فهو راسخ في إدراك أن التغيير الدائم يتطلب معالجة التحديات المترابطة التي تشكّل حياة الناس، وفي القدرة على تحويل ذلك إلى تدخلات أكثر فاعلية واستدامة."
+    }
+   ]
+  }
+ },
+ "programmes": [
+  {
+   "code": "PRG-01",
+   "slug": "social-solidarity",
+   "shortDescEn": {
+    "old": [
+     "Meeting basic needs today. Building resilience for tomorrow.",
+     "Helping families in hardship become stable and secure."
+    ],
+    "new": "Alleviating Basic Household Needs Today. Building Resilience for Tomorrow."
+   },
+   "summaryEn": {
+    "old": [
+     "When money runs out, families face impossible choices between food, rent and debt. This program protects families from severe hardship and helps them regain stability, with dignity."
+    ],
+    "new": "Protecting vulnerable individuals and households from severe hardship while alleviating basic needs gaps, strengthening household stability and preserving dignity."
+   },
+   "mandateEn": {
+    "old": [
+     "Protect and stabilize vulnerable households, reduce repeated dependence, and connect households to progression pathways where appropriate."
+    ],
+    "new": "For severely underprivileged households limited resources can mean making impossible choices; without appropriate assistance, this can undermine family stability, increase exposure to complex vulnerability.\n\nThis program aims to safeguard vulnerable families against economic and social hardship and progressively alleviate the underlying causes of vulnerability including debt, food insecurity, geographic hardships and destitution; through integrated assistance pathways that restore household stability, preserve dignity, strengthen family resilience, and reduce long-term dependency."
+   },
+   "focusAreasEn": {
+    "old": [
+     [
+      "Safety-net support",
+      "Household stabilization",
+      "Protecting the vulnerable"
+     ],
+     [
+      "Safety-net support",
+      "Household stabilization",
+      "Protecting the vulnerable"
+     ]
+    ],
+    "new": [
+     "Protecting Vulnerable Individuals and Households",
+     "Strengthening Household Stability and Resilience"
+    ]
+   },
+   "focusAreaDetailsEn": {
+    "new": [
+     "Safeguarding individuals and households facing severe financial, social, or situational hardship affecting access to basic household needs.",
+     "Addressing conditions that threaten household security, reducing exposure to recurring distress, and supporting families’ ability to maintain stability during difficult circumstances."
+    ]
+   },
+   "outcomesEn": {
+    "old": [
+     [
+      "More stable households",
+      "Essential needs met",
+      "Less financial and social distress",
+      "Stronger family resilience"
+     ]
+    ],
+    "new": [
+     "Greater household stability and security.",
+     "Improved ability to meet essential needs.",
+     "Reduced exposure to severe financial and social distress.",
+     "Stronger household resilience."
+    ]
+   },
+   "shortDescAr": {
+    "old": [
+     "تلبية الاحتياجات الأساسية اليوم، وبناء الصمود للغد.",
+     "مساعدة الأسر التي تمر بظروف صعبة على الاستقرار والأمان."
+    ],
+    "new": "تلبية احتياجات الأسر الأساسية اليوم. وبناء الصمود للغد."
+   },
+   "summaryAr": {
+    "old": [
+     "حين ينفد المال، تواجه الأسر خيارات مستحيلة بين الطعام والإيجار والديون. يحمي هذا البرنامج الأسر من الشدائد القاسية ويساعدها على استعادة استقرارها بكرامة."
+    ],
+    "new": "حماية الأفراد والأسر الأكثر احتياجًا من الشدائد القاسية مع سدّ فجوات الاحتياجات الأساسية، وتعزيز استقرار الأسرة وصون كرامتها."
+   },
+   "mandateAr": {
+    "old": [
+     "حماية الأسر الأكثر احتياجًا وتحقيق استقرارها، والحد من الاعتماد المتكرر، وربطها بمسارات للتقدم حيثما أمكن."
+    ],
+    "new": "بالنسبة إلى الأسر الأشد فقرًا، قد تعني محدودية الموارد مواجهة خيارات مستحيلة؛ وبدون المساعدة المناسبة يمكن أن يقوّض ذلك استقرار الأسرة ويزيد تعرضها لهشاشة معقّدة.\n\nيهدف هذا البرنامج إلى حماية الأسر الهشة من الشدائد الاقتصادية والاجتماعية والتخفيف التدريجي من الأسباب الكامنة للهشاشة، ومنها الديون وانعدام الأمن الغذائي والصعوبات الجغرافية والعوز، من خلال مسارات مساعدة متكاملة تعيد استقرار الأسرة وتصون كرامتها وتعزز صمودها وتقلل الاعتماد طويل الأمد."
+   },
+   "focusAreasAr": {
+    "old": [
+     [
+      "دعم شبكات الأمان",
+      "استقرار الأسرة",
+      "حماية الأكثر احتياجًا"
+     ],
+     [
+      "دعم شبكات الأمان",
+      "استقرار الأسرة",
+      "حماية الأكثر احتياجًا"
+     ]
+    ],
+    "new": [
+     "حماية الأفراد والأسر الأكثر احتياجًا",
+     "تعزيز استقرار الأسرة وصمودها"
+    ]
+   },
+   "focusAreaDetailsAr": {
+    "new": [
+     "صون الأفراد والأسر التي تواجه شدائد مالية أو اجتماعية أو ظرفية قاسية تؤثر في قدرتها على تلبية احتياجات الأسرة الأساسية.",
+     "معالجة الظروف التي تهدد أمن الأسرة، والحد من التعرض لضائقة متكررة، ودعم قدرة الأسر على الحفاظ على استقرارها في الظروف الصعبة."
+    ]
+   },
+   "outcomesAr": {
+    "old": [
+     [
+      "أسر أكثر استقرارًا",
+      "تلبية الاحتياجات الأساسية",
+      "ضائقة مالية واجتماعية أقل",
+      "صمود أقوى للأسرة"
+     ]
+    ],
+    "new": [
+     "استقرار وأمن أكبر للأسر.",
+     "قدرة أفضل على تلبية الاحتياجات الأساسية.",
+     "تعرض أقل لضائقة مالية واجتماعية قاسية.",
+     "صمود أقوى للأسر."
+    ]
+   }
+  },
+  {
+   "code": "PRG-02",
+   "slug": "health",
+   "shortDescEn": {
+    "old": [
+     "Making good healthcare affordable and reachable."
+    ],
+    "new": "Making Healthcare More Accessible. Improving National Health Ecosystems."
+   },
+   "summaryEn": {
+    "old": [
+     "When a family cannot afford or reach care, illness worsens and children miss school. MEKI funds surgeries, medicines and outreach to remote areas, and strengthens the hospitals communities rely on."
+    ],
+    "new": "Reducing financial, physical and access barriers to essential healthcare while supporting continuity of treatment, improved service quality, and stronger healthcare systems for underserved populations."
+   },
+   "mandateEn": {
+    "old": [
+     "Secure affordable, quality-assured healthcare through coverage, strategic purchasing, patient navigation, provider support and system stewardship."
+    ],
+    "new": "For vulnerable individuals and households, the inability to afford or access appropriate medical care can create significant multidisciplinary vulnerability; MEKI bridges critical gaps in healthcare access, and affordability, for vulnerable and underserved populations.\n\nMEKI improves health outcomes and continuity of care through medical assistance and outreach programs, that expand access to healthcare and reaches remote and underserved communities."
+   },
+   "focusAreasEn": {
+    "old": [
+     [
+      "Access to care",
+      "Continuity of treatment",
+      "Better health services"
+     ],
+     [
+      "Access to care",
+      "Continuity of treatment",
+      "Patient support & quality"
+     ]
+    ],
+    "new": [
+     "Improving Equitable Access to Healthcare",
+     "Strengthening Continuity and Financial Protection",
+     "Advancing Healthcare Service Capacity"
+    ]
+   },
+   "focusAreaDetailsEn": {
+    "new": [
+     "Reducing financial, geographic, and service-related barriers that prevent vulnerable individuals from receiving appropriate healthcare when they need it.",
+     "Supporting more reliable access to necessary care while reducing the financial pressures that can interrupt treatment and undermine household stability.",
+     "Strengthening the capabilities, readiness, and quality of healthcare providers to improve the accessibility, safety, and effectiveness of services delivered to communities."
+    ]
+   },
+   "outcomesEn": {
+    "old": [
+     [
+      "Better access to care",
+      "Less hardship from medical costs",
+      "More patients completing treatment",
+      "Higher-quality services"
+     ]
+    ],
+    "new": [
+     "Improved access to essential healthcare.",
+     "Reduced financial hardship associated with medical needs.",
+     "Greater continuity of necessary treatment.",
+     "Improved quality and reliability of healthcare services.",
+     "Stronger health-related functional and participatory outcomes for beneficiaries."
+    ]
+   },
+   "shortDescAr": {
+    "old": [
+     "رعاية صحية جيدة وميسورة وفي المتناول."
+    ],
+    "new": "جعل الرعاية الصحية أيسر وصولًا. وتحسين المنظومات الصحية الوطنية."
+   },
+   "summaryAr": {
+    "old": [
+     "حين تعجز الأسرة عن تحمّل تكلفة الرعاية أو الوصول إليها، يتفاقم المرض ويتغيّب الأطفال عن المدرسة. تموّل MEKI العمليات الجراحية والأدوية والقوافل إلى المناطق النائية، وتدعم المستشفيات التي تعتمد عليها المجتمعات."
+    ],
+    "new": "الحد من العوائق المالية والمادية وعوائق الوصول إلى الرعاية الصحية الأساسية، مع دعم استمرارية العلاج وتحسين جودة الخدمات وتقوية النظم الصحية للفئات الأقل خدمة."
+   },
+   "mandateAr": {
+    "old": [
+     "تأمين رعاية صحية ميسورة ومضمونة الجودة من خلال التغطية، والشراء الاستراتيجي، وتوجيه المرضى، ودعم مقدمي الخدمة، وحوكمة المنظومة."
+    ],
+    "new": "بالنسبة إلى الأفراد والأسر الهشة، قد يؤدي العجز عن تحمّل تكلفة الرعاية الطبية المناسبة أو الوصول إليها إلى هشاشة متعددة الأبعاد؛ وتسدّ MEKI الفجوات الحرجة في الوصول إلى الرعاية الصحية وتكلفتها للفئات الهشة والأقل خدمة.\n\nوتحسّن MEKI النتائج الصحية واستمرارية الرعاية من خلال برامج المساعدة الطبية والتوعية التي توسّع الوصول إلى الرعاية الصحية وتصل إلى المجتمعات النائية والأقل خدمة."
+   },
+   "focusAreasAr": {
+    "old": [
+     [
+      "الوصول إلى الرعاية",
+      "استمرارية العلاج",
+      "خدمات صحية أفضل"
+     ],
+     [
+      "الوصول إلى الرعاية",
+      "استمرارية العلاج",
+      "دعم المرضى والجودة"
+     ]
+    ],
+    "new": [
+     "تحسين الوصول العادل إلى الرعاية الصحية",
+     "تعزيز استمرارية الرعاية والحماية المالية",
+     "النهوض بالقدرة على تقديم الخدمات الصحية"
+    ]
+   },
+   "focusAreaDetailsAr": {
+    "new": [
+     "الحد من العوائق المالية والجغرافية والمرتبطة بالخدمة التي تمنع الأفراد الهشّين من تلقي الرعاية الصحية المناسبة عند حاجتهم إليها.",
+     "دعم وصول أكثر انتظامًا إلى الرعاية الضرورية مع تخفيف الضغوط المالية التي قد تقطع العلاج وتقوّض استقرار الأسرة.",
+     "تعزيز قدرات مقدمي الرعاية الصحية وجاهزيتهم وجودة خدماتهم لتحسين إتاحة الخدمات المقدمة للمجتمعات وسلامتها وفاعليتها."
+    ]
+   },
+   "outcomesAr": {
+    "old": [
+     [
+      "وصول أفضل إلى الرعاية",
+      "أعباء أقل من تكاليف العلاج",
+      "مزيد من المرضى يُكملون علاجهم",
+      "خدمات أعلى جودة"
+     ]
+    ],
+    "new": [
+     "تحسّن الوصول إلى الرعاية الصحية الأساسية.",
+     "تراجع الأعباء المالية المرتبطة بالاحتياجات الطبية.",
+     "استمرارية أكبر للعلاج الضروري.",
+     "تحسّن جودة الخدمات الصحية وموثوقيتها.",
+     "نتائج وظيفية ومشاركة أقوى للمستفيدين في المجال الصحي."
+    ]
+   }
+  },
+  {
+   "code": "PRG-03",
+   "slug": "education",
+   "shortDescEn": {
+    "old": [
+     "Expanding opportunity at every step of a learner's journey.",
+     "Helping children and young people enrol, stay in school, learn and progress."
+    ],
+    "new": "Expanding Opportunity Through Supporting Learner’s Journey."
+   },
+   "summaryEn": {
+    "old": [
+     "Cost, distance, disability and family pressure keep too many learners out of school. This program helps children and young people enroll, stay in school, learn and progress."
+    ],
+    "new": "Expanding equitable access to quality learning, supporting educational continuity and achievement, and enabling children and young people to progress toward their full potential."
+   },
+   "mandateEn": {
+    "old": [
+     "Ensure access, retention, learning, completion and progression across the learner journey."
+    ],
+    "new": "MEKI ensures equitable educational opportunities and support by removing barriers that prevent disadvantaged learners from accessing, continuing, and succeeding in education.\n\nThrough strengthening educational institutions, reaching underserved communities, improving accessibility for learners with disabilities, providing scholarships and supporting learners throughout their educational journeys."
+   },
+   "focusAreasEn": {
+    "old": [
+     [
+      "Community education",
+      "Access & scholarships",
+      "Learner progression"
+     ],
+     [
+      "Community education",
+      "Access & scholarships",
+      "Learner progression"
+     ]
+    ],
+    "new": [
+     "Expanding Equitable Access to Education",
+     "Strengthening Educational Quality and Inclusion",
+     "Supporting Achievement and Educational Progression"
+    ]
+   },
+   "focusAreaDetailsEn": {
+    "new": [
+     "Addressing barriers that prevent disadvantaged learners from accessing appropriate educational opportunities, with particular attention to underserved populations and those at risk of exclusion.",
+     "Improving the learning environment and institutional capabilities needed to provide accessible, inclusive, and effective educational experiences.",
+     "Helping learners remain engaged, develop their capabilities, complete relevant educational stages, and progress toward further learning and opportunities."
+    ]
+   },
+   "outcomesEn": {
+    "old": [
+     [
+      "More underserved learners in school",
+      "Fewer dropouts",
+      "More inclusive classrooms",
+      "Stronger results and progression"
+     ]
+    ],
+    "new": [
+     "Increased access to education among underserved populations.",
+     "Improved student retention and continuity.",
+     "More inclusive and supportive learning environments.",
+     "Stronger educational achievement and progression.",
+     "Expanded opportunities for personal and future economic development."
+    ]
+   },
+   "shortDescAr": {
+    "old": [
+     "توسيع الفرص في كل مرحلة من رحلة المتعلّم.",
+     "مساعدة الأطفال والشباب على الالتحاق بالتعليم والاستمرار فيه والتعلّم والتقدم."
+    ],
+    "new": "توسيع الفرص من خلال دعم رحلة المتعلّم."
+   },
+   "summaryAr": {
+    "old": [
+     "التكلفة والمسافة والإعاقة وضغوط الأسرة تُبقي كثيرًا من المتعلمين خارج المدرسة. يساعد هذا البرنامج الأطفال والشباب على الالتحاق بالتعليم والاستمرار فيه والتعلّم والتقدّم."
+    ],
+    "new": "توسيع فرص الحصول على تعليم جيد وعادل، ودعم استمرارية التعلم والتحصيل، وتمكين الأطفال والشباب من التقدم نحو أقصى إمكاناتهم."
+   },
+   "mandateAr": {
+    "old": [
+     "ضمان الوصول والاستمرار والتعلّم والإتمام والتقدم عبر رحلة المتعلم."
+    ],
+    "new": "تضمن MEKI فرصًا وبيئة داعمة تعليمية عادلة بإزالة العوائق التي تمنع المتعلمين المحرومين من الالتحاق بالتعليم والاستمرار فيه والنجاح.\n\nوذلك من خلال تقوية المؤسسات التعليمية، والوصول إلى المجتمعات الأقل خدمة، وتحسين إتاحة التعليم للمتعلمين ذوي الإعاقة، وتقديم المنح الدراسية، ودعم المتعلمين طوال رحلتهم التعليمية."
+   },
+   "focusAreasAr": {
+    "old": [
+     [
+      "التعليم المجتمعي",
+      "الإتاحة والمنح الدراسية",
+      "تقدّم المتعلمين"
+     ],
+     [
+      "التعليم المجتمعي",
+      "الإتاحة والمنح الدراسية",
+      "تقدّم المتعلمين"
+     ]
+    ],
+    "new": [
+     "توسيع الوصول العادل إلى التعليم",
+     "تعزيز جودة التعليم والشمول",
+     "دعم التحصيل والتقدم التعليمي"
+    ]
+   },
+   "focusAreaDetailsAr": {
+    "new": [
+     "معالجة العوائق التي تمنع المتعلمين المحرومين من الحصول على فرص تعليمية مناسبة، مع اهتمام خاص بالفئات الأقل خدمة والمعرّضين لخطر الاستبعاد.",
+     "تحسين البيئة التعليمية والقدرات المؤسسية اللازمة لتوفير تجارب تعليمية متاحة وشاملة وفعّالة.",
+     "مساعدة المتعلمين على البقاء منخرطين وتنمية قدراتهم وإتمام المراحل التعليمية ذات الصلة والتقدم نحو مزيد من التعلم والفرص."
+    ]
+   },
+   "outcomesAr": {
+    "old": [
+     [
+      "مزيد من المتعلمين الأقل حظًا في المدارس",
+      "تسرّب أقل",
+      "فصول دراسية أكثر شمولًا",
+      "نتائج وتقدّم أقوى"
+     ]
+    ],
+    "new": [
+     "زيادة الالتحاق بالتعليم بين الفئات الأقل خدمة.",
+     "تحسّن استبقاء الطلاب واستمراريتهم.",
+     "بيئات تعليمية أكثر شمولًا ودعمًا.",
+     "تحصيل وتقدم تعليمي أقوى.",
+     "فرص أوسع للتنمية الشخصية والاقتصادية المستقبلية."
+    ]
+   }
+  },
+  {
+   "code": "PRG-04",
+   "slug": "economic-empowerment",
+   "shortDescEn": {
+    "old": [
+     "Turning potential into opportunity, and opportunity into a livelihood.",
+     "Sustainable income through skills, decent work and enterprise."
+    ],
+    "new": "Turning Potential into Opportunity. Opportunity into Sustainable Livelihoods."
+   },
+   "summaryEn": {
+    "old": [
+     "For most people facing hardship, the problem is not motivation but a lack of skills, resources or real opportunities. This program helps young people, women and working-age adults earn a stable income."
+    ],
+    "new": "Connecting skills, capabilities, aspirations and labor market demands with productive opportunities that support sustainable income, decent work, and economic independence."
+   },
+   "mandateEn": {
+    "old": [
+     "Move people toward sustainable income, employability, decent work and enterprise opportunities."
+    ],
+    "new": "For many people, Economic Vulnerability is not a consequence of lack of motivation or potential, but the absence of relevant skills, productive resources, or viable economic opportunities.\n\nThe aim of this program is to transform economic vulnerability into sustainable livelihoods, empowering young entrepreneurs and enabling working-age individuals to access productive opportunities.\n\nMEKI empowers people to become economically active, financially independent, and capable of contributing to their families and communities through incubation, income generation, technical and vocational education, market-relevant skills development, and employment pathways."
+   },
+   "focusAreasEn": {
+    "old": [
+     [
+      "Employability",
+      "Technical education",
+      "Enterprise & livelihoods"
+     ],
+     [
+      "Employability",
+      "Technical education",
+      "Enterprise & livelihoods"
+     ]
+    ],
+    "new": [
+     "Developing Market-Relevant Capabilities",
+     "Expanding Access to Productive Opportunities",
+     "Strengthening Livelihood Sustainability"
+    ]
+   },
+   "focusAreaDetailsEn": {
+    "new": [
+     "Strengthening the practical knowledge, competencies, and work readiness that enable individuals to participate effectively in changing labor markets.",
+     "Connecting individuals with appropriate pathways into employment, entrepreneurship, and economically productive activities.",
+     "Supporting individuals’ capacity to maintain economic participation, generate more reliable income, and build resilience against future financial shocks."
+    ]
+   },
+   "outcomesEn": {
+    "old": [
+     [
+      "More people in decent work",
+      "More income-generating opportunities",
+      "Livelihoods that last",
+      "Stronger household finances"
+     ]
+    ],
+    "new": [
+     "Improved employability and economic participation.",
+     "Greater access to appropriate income-generating opportunities.",
+     "More sustainable livelihoods.",
+     "Stronger household financial resilience.",
+     "Reduced long-term economic vulnerability."
+    ]
+   },
+   "shortDescAr": {
+    "old": [
+     "تحويل الإمكانات إلى فرص، والفرص إلى مصدر رزق.",
+     "دخل مستدام من خلال المهارات والعمل اللائق وريادة الأعمال."
+    ],
+    "new": "تحويل الإمكانات إلى فرص، والفرص إلى سبل عيش مستدامة."
+   },
+   "summaryAr": {
+    "old": [
+     "بالنسبة لمعظم من يواجهون الشدائد، لا تكمن المشكلة في الدافع بل في نقص المهارات أو الموارد أو الفرص الحقيقية. يساعد هذا البرنامج الشباب والنساء والبالغين في سن العمل على تحقيق دخل مستقر."
+    ],
+    "new": "ربط المهارات والقدرات والتطلعات ومتطلبات سوق العمل بفرص منتجة تدعم دخلًا مستدامًا وعملًا لائقًا واستقلالًا اقتصاديًا."
+   },
+   "mandateAr": {
+    "old": [
+     "مساعدة الأفراد على الوصول إلى دخل مستدام وقابلية التوظيف والعمل اللائق وفرص ريادة الأعمال."
+    ],
+    "new": "بالنسبة إلى كثيرين، لا تنشأ الهشاشة الاقتصادية عن غياب الدافع أو الإمكانات، بل عن غياب المهارات ذات الصلة أو الموارد الإنتاجية أو الفرص الاقتصادية الممكنة.\n\nيهدف هذا البرنامج إلى تحويل الهشاشة الاقتصادية إلى سبل عيش مستدامة، وتمكين رواد الأعمال الشباب وتمكين الأفراد في سن العمل من الوصول إلى فرص إنتاجية.\n\nوتمكّن MEKI الناس من أن يصبحوا نشطين اقتصاديًا ومستقلين ماليًا وقادرين على الإسهام في أسرهم ومجتمعاتهم، من خلال الاحتضان وتوليد الدخل والتعليم الفني والمهني وتنمية المهارات الملائمة لسوق العمل ومسارات التوظيف."
+   },
+   "focusAreasAr": {
+    "old": [
+     [
+      "قابلية التوظيف",
+      "التعليم الفني",
+      "المشروعات وسبل العيش"
+     ],
+     [
+      "قابلية التوظيف",
+      "التعليم الفني",
+      "المشروعات وسبل العيش"
+     ]
+    ],
+    "new": [
+     "تنمية القدرات الملائمة لسوق العمل",
+     "توسيع الوصول إلى الفرص الإنتاجية",
+     "تعزيز استدامة سبل العيش"
+    ]
+   },
+   "focusAreaDetailsAr": {
+    "new": [
+     "تعزيز المعرفة العملية والكفاءات والجاهزية للعمل التي تمكّن الأفراد من المشاركة بفاعلية في أسواق عمل متغيرة.",
+     "ربط الأفراد بمسارات مناسبة نحو التوظيف وريادة الأعمال والأنشطة الاقتصادية المنتجة.",
+     "دعم قدرة الأفراد على الاستمرار في المشاركة الاقتصادية وتحقيق دخل أكثر انتظامًا وبناء القدرة على مواجهة الصدمات المالية المستقبلية."
+    ]
+   },
+   "outcomesAr": {
+    "old": [
+     [
+      "مزيد من الناس في عمل لائق",
+      "مزيد من فرص توليد الدخل",
+      "سبل عيش تدوم",
+      "أوضاع مالية أقوى للأسر"
+     ]
+    ],
+    "new": [
+     "تحسّن فرص التوظيف والمشاركة الاقتصادية.",
+     "وصول أكبر إلى فرص مناسبة لتوليد الدخل.",
+     "سبل عيش أكثر استدامة.",
+     "صمود مالي أقوى للأسر.",
+     "هشاشة اقتصادية أقل على المدى الطويل."
+    ]
+   }
+  },
+  {
+   "code": "PRG-05",
+   "slug": "housing",
+   "shortDescEn": {
+    "old": [
+     "Safer homes. Stable households. More secure futures.",
+     "Safe, adequate and dignified homes, and shelter when needed."
+    ],
+    "new": "Safer Homes. Stable Households. More Secure Futures."
+   },
+   "summaryEn": {
+    "old": [
+     "A home is where a family looks for safety and dignity. This program repairs unsafe homes, restores essential facilities and provides temporary shelter when needed."
+    ],
+    "new": "Improving the safety, adequacy, and dignity of living environments so vulnerable families have a more secure foundation for health, stability, and wellbeing."
+   },
+   "mandateEn": {
+    "old": [
+     "Improve the safety, adequacy and dignity of living conditions and provide temporary accommodation when required."
+    ],
+    "new": "For vulnerable households; unsafe housing structures and deteriorating living environments can reinforce existing vulnerability and undermine efforts to improve household wellbeing; which creates serious risks to physical wellbeing, and emotional security.\n\nThe aim of this program is to ensure vulnerable families have access to safe, adequate, and dignified living environments that protect their health, security, and wellbeing by addressing critical housing deficiencies, and restoring essential living conditions, family stability, protection, and social resilience."
+   },
+   "focusAreasEn": {
+    "old": [
+     [
+      "Safer housing",
+      "Temporary shelter",
+      "Rehabilitation & co-financing"
+     ],
+     [
+      "Safer housing",
+      "Temporary shelter",
+      "Rehabilitation & co-financing"
+     ]
+    ],
+    "new": [
+     "Improving Housing Safety and Adequacy",
+     "Protecting Housing Security and Dignity",
+     "Strengthening Long-Term Residential Resilience"
+    ]
+   },
+   "focusAreaDetailsEn": {
+    "new": [
+     "Addressing physical living conditions that expose vulnerable families to safety risks, structural deterioration, or inadequate residential environments.",
+     "Supporting vulnerable households in accessing or maintaining appropriate living conditions that provide essential protection and stability.",
+     "Improving the sustainability and suitability of household living environments so families are better protected against recurring housing-related vulnerabilities."
+    ]
+   },
+   "outcomesEn": {
+    "old": [
+     [
+      "Safer, adequate homes",
+      "Fewer housing risks",
+      "More secure households",
+      "Greater dignity and wellbeing"
+     ]
+    ],
+    "new": [
+     "Safer and more adequate living conditions.",
+     "Reduced exposure to housing-related risks.",
+     "Greater household security and stability.",
+     "Improved dignity and wellbeing.",
+     "Stronger resilience among vulnerable families."
+    ]
+   },
+   "shortDescAr": {
+    "old": [
+     "منازل أكثر أمانًا. أسر مستقرة. مستقبل أكثر أمانًا.",
+     "مساكن آمنة ولائقة وكريمة، ومأوى عند الحاجة."
+    ],
+    "new": "منازل أكثر أمانًا. أسر مستقرة. مستقبل أكثر أمانًا."
+   },
+   "summaryAr": {
+    "old": [
+     "المنزل هو المكان الذي تبحث فيه الأسرة عن الأمان والكرامة. يُصلح هذا البرنامج المنازل غير الآمنة، ويعيد تأهيل المرافق الأساسية، ويوفّر مأوى مؤقتًا عند الحاجة."
+    ],
+    "new": "تحسين أمان بيئات المعيشة وملاءمتها وكرامتها لتحظى الأسر الهشة بأساس أكثر أمانًا للصحة والاستقرار والرفاه."
+   },
+   "mandateAr": {
+    "old": [
+     "تحسين أمان ظروف المعيشة وملاءمتها وكرامتها، وتوفير سكن مؤقت عند الحاجة."
+    ],
+    "new": "بالنسبة إلى الأسر الهشة، قد تعزز المباني السكنية غير الآمنة وتدهور بيئات المعيشة الهشاشة القائمة وتقوّض الجهود المبذولة لتحسين رفاه الأسرة؛ مما يخلق مخاطر جسيمة على السلامة الجسدية والأمان النفسي.\n\nيهدف هذا البرنامج إلى ضمان حصول الأسر الهشة على بيئات معيشة آمنة وملائمة وكريمة تحمي صحتها وأمنها ورفاهها، بمعالجة أوجه القصور الحرجة في السكن، واستعادة ظروف المعيشة الأساسية واستقرار الأسرة والحماية والصمود الاجتماعي."
+   },
+   "focusAreasAr": {
+    "old": [
+     [
+      "مساكن أكثر أمانًا",
+      "مأوى مؤقت",
+      "إعادة التأهيل والتمويل المشترك"
+     ],
+     [
+      "مساكن أكثر أمانًا",
+      "مأوى مؤقت",
+      "إعادة التأهيل والتمويل المشترك"
+     ]
+    ],
+    "new": [
+     "تحسين أمان السكن وملاءمته",
+     "حماية أمن السكن والكرامة",
+     "تعزيز الصمود السكني على المدى الطويل"
+    ]
+   },
+   "focusAreaDetailsAr": {
+    "new": [
+     "معالجة الظروف المادية للمعيشة التي تعرّض الأسر الهشة لمخاطر السلامة أو التدهور الإنشائي أو بيئات سكنية غير ملائمة.",
+     "دعم الأسر الهشة في الحصول على ظروف معيشة مناسبة أو الحفاظ عليها بما يوفر الحماية والاستقرار الأساسيين.",
+     "تحسين استدامة بيئات معيشة الأسر وملاءمتها لتكون الأسر أفضل حماية من أوجه الهشاشة المتكررة المرتبطة بالسكن."
+    ]
+   },
+   "outcomesAr": {
+    "old": [
+     [
+      "منازل أكثر أمانًا ولائقة",
+      "مخاطر سكنية أقل",
+      "أسر أكثر أمانًا",
+      "كرامة ورفاه أكبر"
+     ]
+    ],
+    "new": [
+     "ظروف معيشة أكثر أمانًا وملاءمة.",
+     "تعرض أقل للمخاطر المرتبطة بالسكن.",
+     "أمن واستقرار أكبر للأسر.",
+     "تحسّن الكرامة والرفاه.",
+     "صمود أقوى لدى الأسر الهشة."
+    ]
+   }
+  },
+  {
+   "code": "PRG-06",
+   "slug": "wash",
+   "shortDescEn": {
+    "old": [
+     "Safer water. Healthier communities. A more resilient future.",
+     "Water, sanitation and hygiene, and protection from climate risks."
+    ],
+    "new": "Safer Water. Healthier Communities. A More Resilient Future."
+   },
+   "summaryEn": {
+    "old": [
+     "Without safe water and sanitation, families face illness, extra costs and lost time. This program brings water networks, wells and sanitation to underserved communities, and helps them prepare for climate risks."
+    ],
+    "new": "Strengthening access to essential water and sanitation while addressing infrastructure gaps in underserved communities and tackling pressing environmental issues."
+   },
+   "mandateEn": {
+    "old": [
+     "Reduce water, sanitation, environmental and climate-related vulnerability."
+    ],
+    "new": "Access to safe water, sanitation, and essential environmental services plays a fundamental role in protecting health, preserving dignity, and supporting everyday life.\n\nWhere these services are inadequate or unreliable, communities may face heightened health risks, additional financial burdens, and barriers to social and economic participation.\n\nMEKI ensures access to safe drinking water, water networks, wells, and environmental preservation and resilience initiatives; to improve community health, and quality of life by addressing critical gaps in essential infrastructure and environmental services."
+   },
+   "focusAreasEn": {
+    "old": [
+     [
+      "Water & sanitation access",
+      "Environmental protection",
+      "Climate-risk reduction"
+     ],
+     [
+      "Water & sanitation access",
+      "Environmental protection",
+      "Climate-risk reduction"
+     ]
+    ],
+    "new": [
+     "Expanding Access to Essential Water and Sanitation Services",
+     "Improving Environmental Health and Safety",
+     "Strengthening Infrastructure and Community Resilience"
+    ]
+   },
+   "focusAreaDetailsEn": {
+    "new": [
+     "Reducing gaps in the availability, accessibility, and adequacy of water and sanitation services for underserved households and communities.",
+     "Addressing environmental conditions and service deficiencies that negatively affect community health, wellbeing, and quality of life.",
+     "Supporting more reliable and sustainable essential services while reducing vulnerability to relevant environmental and climate-related risks."
+    ]
+   },
+   "outcomesEn": {
+    "old": [
+     [
+      "Better access to safe water",
+      "Healthier, safer communities",
+      "Fewer infrastructure gaps",
+      "Communities ready for climate risks"
+     ]
+    ],
+    "new": [
+     "Improved access to essential water and sanitation services.",
+     "Healthier and safer community environments.",
+     "Reduced vulnerability associated with infrastructure gaps.",
+     "Greater reliability of supported services.",
+     "Stronger community resilience."
+    ]
+   },
+   "shortDescAr": {
+    "old": [
+     "مياه أكثر أمانًا. مجتمعات أكثر صحة. مستقبل أكثر صمودًا.",
+     "المياه والصرف الصحي والنظافة، والحماية من المخاطر المناخية."
+    ],
+    "new": "مياه أكثر أمانًا. مجتمعات أكثر صحة. مستقبل أكثر صمودًا."
+   },
+   "summaryAr": {
+    "old": [
+     "بدون مياه آمنة وصرف صحي، تواجه الأسر المرض وتكاليف إضافية ووقتًا ضائعًا. يوفّر هذا البرنامج شبكات المياه والآبار والصرف الصحي للمجتمعات الأقل خدمة، ويساعدها على الاستعداد للمخاطر المناخية."
+    ],
+    "new": "تعزيز الوصول إلى المياه والصرف الصحي الأساسيين، ومعالجة فجوات البنية التحتية في المجتمعات الأقل خدمة، والتصدي لقضايا بيئية ملحّة."
+   },
+   "mandateAr": {
+    "old": [
+     "الحد من الهشاشة المرتبطة بالمياه والصرف الصحي والبيئة والمناخ."
+    ],
+    "new": "يؤدي الوصول إلى مياه آمنة وصرف صحي وخدمات بيئية أساسية دورًا جوهريًا في حماية الصحة وصون الكرامة ودعم الحياة اليومية.\n\nوحين تكون هذه الخدمات غير كافية أو غير موثوقة، قد تواجه المجتمعات مخاطر صحية متزايدة وأعباء مالية إضافية وعوائق أمام المشاركة الاجتماعية والاقتصادية.\n\nوتضمن MEKI الوصول إلى مياه الشرب الآمنة وشبكات المياه والآبار ومبادرات الحفاظ على البيئة والصمود، لتحسين صحة المجتمع ونوعية الحياة بمعالجة الفجوات الحرجة في البنية التحتية الأساسية والخدمات البيئية."
+   },
+   "focusAreasAr": {
+    "old": [
+     [
+      "الوصول إلى المياه والصرف الصحي",
+      "حماية البيئة",
+      "الحد من المخاطر المناخية"
+     ],
+     [
+      "الوصول إلى المياه والصرف الصحي",
+      "حماية البيئة",
+      "الحد من المخاطر المناخية"
+     ]
+    ],
+    "new": [
+     "توسيع الوصول إلى خدمات المياه والصرف الصحي الأساسية",
+     "تحسين الصحة والسلامة البيئية",
+     "تعزيز البنية التحتية وصمود المجتمعات"
+    ]
+   },
+   "focusAreaDetailsAr": {
+    "new": [
+     "الحد من الفجوات في توافر خدمات المياه والصرف الصحي وإتاحتها وكفايتها للأسر والمجتمعات الأقل خدمة.",
+     "معالجة الظروف البيئية وأوجه القصور في الخدمات التي تؤثر سلبًا في صحة المجتمع ورفاهه ونوعية حياته.",
+     "دعم خدمات أساسية أكثر موثوقية واستدامة مع الحد من الهشاشة أمام المخاطر البيئية والمناخية ذات الصلة."
+    ]
+   },
+   "outcomesAr": {
+    "old": [
+     [
+      "وصول أفضل إلى المياه الآمنة",
+      "مجتمعات أكثر صحة وأمانًا",
+      "فجوات أقل في البنية التحتية",
+      "مجتمعات مستعدة للمخاطر المناخية"
+     ]
+    ],
+    "new": [
+     "تحسّن الوصول إلى خدمات المياه والصرف الصحي الأساسية.",
+     "بيئات مجتمعية أكثر صحة وأمانًا.",
+     "هشاشة أقل مرتبطة بفجوات البنية التحتية.",
+     "موثوقية أكبر للخدمات المدعومة.",
+     "صمود مجتمعي أقوى."
+    ]
+   }
+  },
+  {
+   "code": "PRG-07",
+   "slug": "emergency-response",
+   "shortDescEn": {
+    "old": [
+     "Immediate relief in a crisis. Support that lasts beyond it.",
+     "Fast, coordinated help in crises, and early recovery."
+    ],
+    "new": "Immediate Crisis Relief. Supporting Recovery Beyond the Crisis."
+   },
+   "summaryEn": {
+    "old": [
+     "Crises strike with little warning and hit vulnerable families hardest. This program delivers timely aid, essential supplies and temporary shelter, then helps families recover."
+    ],
+    "new": "Protecting lives and preserving dignity during crises through timely humanitarian assistance, coordinated support, and pathways toward recovery."
+   },
+   "mandateEn": {
+    "old": [
+     "Provide rapid, coordinated support in crises and shocks and support early recovery."
+    ],
+    "new": "For vulnerable families, emergencies and sudden crises may create immediate threats to safety, health, food security, shelter, and household stability.\n\nThe consequences can extend long after the immediate emergency has passed.\n\nMEKI's established humanitarian response capabilities and partnerships mobilize timely assistance, essential supplies, shelter, and early recovery support, strengthening community preparedness and resilience while helping affected populations restore stability."
+   },
+   "focusAreasEn": {
+    "old": [
+     [
+      "Readiness",
+      "Humanitarian response",
+      "Transition & recovery"
+     ],
+     [
+      "Readiness",
+      "Humanitarian response",
+      "Transition & recovery"
+     ]
+    ],
+    "new": [
+     "Strengthening Emergency Preparedness and Response Capacity",
+     "Protecting Lives and Essential Human Needs",
+     "Supporting Stabilization and Early Recovery"
+    ]
+   },
+   "focusAreaDetailsEn": {
+    "new": [
+     "Improving the ability to identify urgent needs, mobilize appropriate resources, and coordinate timely assistance during crises.",
+     "Addressing immediate humanitarian vulnerabilities and supporting access to essential protection, assistance, and services for affected populations.",
+     "Helping affected individuals and communities restore essential stability and reconnect with appropriate development and recovery pathways."
+    ]
+   },
+   "outcomesEn": {
+    "old": [
+     [
+      "Faster access to aid",
+      "Less immediate distress",
+      "Better protection for the vulnerable",
+      "Better-coordinated response"
+     ]
+    ],
+    "new": [
+     "Faster access to essential humanitarian assistance.",
+     "Reduced immediate distress and exposure to crisis-related risks.",
+     "Improved protection of vulnerable populations.",
+     "Greater coordination of emergency interventions."
+    ]
+   },
+   "pageTitleEn": {
+    "new": "Emergency Response & Gaza Relief"
+   },
+   "shortDescAr": {
+    "old": [
+     "إغاثة فورية في الأزمة، ودعم يمتد إلى ما بعدها.",
+     "مساعدة سريعة ومنسّقة في الأزمات، وتعافٍ مبكر."
+    ],
+    "new": "إغاثة فورية في الأزمات. ودعم للتعافي يتجاوز الأزمة."
+   },
+   "summaryAr": {
+    "old": [
+     "تقع الأزمات دون إنذار يُذكر وتصيب الأسر الأكثر هشاشة بأشد الضرر. يقدّم هذا البرنامج المساعدات في الوقت المناسب والإمدادات الأساسية والمأوى المؤقت، ثم يساعد الأسر على التعافي."
+    ],
+    "new": "حماية الأرواح وصون الكرامة أثناء الأزمات من خلال مساعدات إنسانية في الوقت المناسب ودعم منسّق ومسارات نحو التعافي."
+   },
+   "mandateAr": {
+    "old": [
+     "تقديم دعم سريع ومنسّق في الأزمات والصدمات، ودعم التعافي المبكر."
+    ],
+    "new": "بالنسبة إلى الأسر الهشة، قد تشكّل الطوارئ والأزمات المفاجئة تهديدات فورية للسلامة والصحة والأمن الغذائي والمأوى واستقرار الأسرة.\n\nوقد تمتد العواقب طويلًا بعد زوال الطارئ.\n\nوتحشد قدرات MEKI وشراكاتها الراسخة في الاستجابة الإنسانية مساعدات في الوقت المناسب وإمدادات أساسية ومأوى ودعمًا للتعافي المبكر، مع تعزيز جاهزية المجتمعات وصمودها ومساعدة المتضررين على استعادة استقرارهم."
+   },
+   "focusAreasAr": {
+    "old": [
+     [
+      "الجاهزية",
+      "الاستجابة الإنسانية",
+      "الانتقال والتعافي"
+     ],
+     [
+      "الجاهزية",
+      "الاستجابة الإنسانية",
+      "الانتقال والتعافي"
+     ]
+    ],
+    "new": [
+     "تعزيز الجاهزية للطوارئ وقدرة الاستجابة",
+     "حماية الأرواح والاحتياجات الإنسانية الأساسية",
+     "دعم الاستقرار والتعافي المبكر"
+    ]
+   },
+   "focusAreaDetailsAr": {
+    "new": [
+     "تحسين القدرة على تحديد الاحتياجات العاجلة وحشد الموارد المناسبة وتنسيق المساعدات في الوقت المناسب أثناء الأزمات.",
+     "معالجة أوجه الهشاشة الإنسانية الفورية ودعم وصول المتضررين إلى الحماية والمساعدة والخدمات الأساسية.",
+     "مساعدة الأفراد والمجتمعات المتضررة على استعادة الاستقرار الأساسي وإعادة الارتباط بمسارات التنمية والتعافي المناسبة."
+    ]
+   },
+   "outcomesAr": {
+    "old": [
+     [
+      "وصول أسرع إلى المساعدات",
+      "ضائقة فورية أقل",
+      "حماية أفضل للأكثر هشاشة",
+      "استجابة أفضل تنسيقًا"
+     ]
+    ],
+    "new": [
+     "وصول أسرع إلى المساعدات الإنسانية الأساسية.",
+     "ضائقة فورية أقل وتعرض أقل للمخاطر المرتبطة بالأزمات.",
+     "حماية أفضل للفئات الهشة.",
+     "تنسيق أكبر لتدخلات الطوارئ."
+    ]
+   },
+   "pageTitleAr": {
+    "new": "الاستجابة للطوارئ وإغاثة غزة"
+   }
+  },
+  {
+   "code": "PRG-08",
+   "slug": "heritage-culture",
+   "shortDescEn": {
+    "old": [
+     "Preserving heritage. Enriching lives. Strengthening communities.",
+     "Participation, culture, heritage and community engagement."
+    ],
+    "new": "Preserving Identity. Enriching Lives. Strengthening Communities."
+   },
+   "summaryEn": {
+    "old": [
+     "Wellbeing also depends on identity, belonging and taking part in community life. This program opens culture, the arts, sport and heritage to children and young people in underserved communities."
+    ],
+    "new": "Strengthening cultural participation, preserving heritage, and expanding opportunities for creativity, inclusion, identity, and meaningful community engagement."
+   },
+   "mandateEn": {
+    "old": [
+     "Strengthen participation, identity, culture, heritage and constructive community engagement."
+    ],
+    "new": "Human wellbeing is shaped not only by access to essential services and economic opportunities, but also by identity, belonging, creativity, and participation in community life.\n\nMEKI aims to enrich the individual and community through initiatives that nurture creativity, strengthen national identity and belonging, preserve cultural heritage, and empower children and youth in underserved communities to participate in and contribute to Egypt's cultural and social development."
+   },
+   "focusAreasEn": {
+    "old": [
+     [
+      "Participation",
+      "Cultural engagement",
+      "Identity-building opportunities"
+     ],
+     [
+      "Participation",
+      "Cultural engagement",
+      "Identity-building opportunities"
+     ]
+    ],
+    "new": [
+     "Preserving Heritage and Cultural Identity",
+     "Expanding Cultural Participation and Inclusion",
+     "Nurturing Creativity, Belonging, and Community Engagement"
+    ]
+   },
+   "focusAreaDetailsEn": {
+    "new": [
+     "Supporting the continuity, appreciation, and preservation of cultural traditions and heritage that connect communities to their history and identity.",
+     "Improving opportunities for individuals and underserved communities to engage meaningfully in cultural, artistic, and social activities.",
+     "Strengthening opportunities for expression, participation, personal development, and positive connections within communities."
+    ]
+   },
+   "outcomesEn": {
+    "old": [
+     [
+      "Heritage preserved and valued",
+      "More creativity and expression",
+      "Greater inclusion and belonging",
+      "Stronger community engagement"
+     ]
+    ],
+    "new": [
+     "Stronger preservation and appreciation of heritage.",
+     "Improved opportunities for creativity and expression.",
+     "Greater social inclusion and belonging.",
+     "Stronger cultural and community engagement."
+    ]
+   },
+   "shortDescAr": {
+    "old": [
+     "صون التراث. إثراء الحياة. تقوية المجتمعات.",
+     "المشاركة والثقافة والتراث والانخراط المجتمعي."
+    ],
+    "new": "صون الهوية. إثراء الحياة. تقوية المجتمعات."
+   },
+   "summaryAr": {
+    "old": [
+     "يعتمد الرفاه أيضًا على الهوية والانتماء والمشاركة في الحياة المجتمعية. يفتح هذا البرنامج أبواب الثقافة والفنون والرياضة والتراث أمام الأطفال والشباب في المجتمعات الأقل خدمة."
+    ],
+    "new": "تعزيز المشاركة الثقافية، وصون التراث، وتوسيع فرص الإبداع والشمول والهوية والانخراط المجتمعي الهادف."
+   },
+   "mandateAr": {
+    "old": [
+     "تعزيز المشاركة والهوية والثقافة والتراث والانخراط المجتمعي البنّاء."
+    ],
+    "new": "لا يتشكّل رفاه الإنسان بالوصول إلى الخدمات الأساسية والفرص الاقتصادية فحسب، بل أيضًا بالهوية والانتماء والإبداع والمشاركة في الحياة المجتمعية.\n\nوتسعى MEKI إلى إثراء الفرد والمجتمع من خلال مبادرات ترعى الإبداع، وتعزز الهوية الوطنية والانتماء، وتصون التراث الثقافي، وتمكّن الأطفال والشباب في المجتمعات الأقل خدمة من المشاركة في التنمية الثقافية والاجتماعية في مصر والإسهام فيها."
+   },
+   "focusAreasAr": {
+    "old": [
+     [
+      "المشاركة",
+      "الانخراط الثقافي",
+      "فرص بناء الهوية"
+     ],
+     [
+      "المشاركة",
+      "الانخراط الثقافي",
+      "فرص بناء الهوية"
+     ]
+    ],
+    "new": [
+     "صون التراث والهوية الثقافية",
+     "توسيع المشاركة الثقافية والشمول",
+     "رعاية الإبداع والانتماء والانخراط المجتمعي"
+    ]
+   },
+   "focusAreaDetailsAr": {
+    "new": [
+     "دعم استمرارية التقاليد والتراث الثقافي وتقديرهما وصونهما، بما يربط المجتمعات بتاريخها وهويتها.",
+     "تحسين فرص الأفراد والمجتمعات الأقل خدمة في الانخراط بفاعلية في الأنشطة الثقافية والفنية والاجتماعية.",
+     "تعزيز فرص التعبير والمشاركة والتنمية الشخصية والروابط الإيجابية داخل المجتمعات."
+    ]
+   },
+   "outcomesAr": {
+    "old": [
+     [
+      "تراث مصون ومُقدَّر",
+      "مزيد من الإبداع والتعبير",
+      "شمول وانتماء أكبر",
+      "انخراط مجتمعي أقوى"
+     ]
+    ],
+    "new": [
+     "صون أقوى للتراث وتقدير أكبر له.",
+     "فرص أفضل للإبداع والتعبير.",
+     "شمول وانتماء اجتماعي أكبر.",
+     "انخراط ثقافي ومجتمعي أقوى."
+    ]
+   }
+  },
+  {
+   "code": "PRG-09",
+   "slug": "scientific-research",
+   "shortDescEn": {
+    "old": [
+     "Advancing knowledge. Enabling innovation. Creating real-world impact.",
+     "Funding research and strengthening the research ecosystem."
+    ],
+    "new": "Advancing Knowledge. Enabling Innovation. Creating Meaningful Impact."
+   },
+   "summaryEn": {
+    "old": [
+     "Complex challenges need evidence, not assumptions. This program funds research, supports researchers and turns findings into practical solutions to Egypt's development challenges."
+    ],
+    "new": "Advancing applied research, strengthening research capabilities, and connecting scientific evidence with practical solutions to development challenges."
+   },
+   "mandateEn": {
+    "old": [
+     "Advance a research agenda, sponsor high-value studies, support researchers and strengthen the research ecosystem in Egypt."
+    ],
+    "new": "Complex development challenges require more than established responses, they require reliable evidence, scientific inquiry, innovation, and the ability to translate knowledge into practical solutions.\n\nThis program harnesses MEKI’s massive outreach and ensures sustainability, evidence and scientific method application in all its projects, while bolstering scientific knowledge, applied research, and innovation to address Egypt's priority social, economic, and development challenges."
+   },
+   "focusAreasEn": {
+    "old": [
+     [
+      "Sponsored research",
+      "Grants & fellowships",
+      "Research capacity building"
+     ],
+     [
+      "Sponsored research",
+      "Grants & fellowships",
+      "Research capacity building"
+     ]
+    ],
+    "new": [
+     "Advancing Applied and Development-Oriented Research",
+     "Strengthening Research Capabilities and Collaboration",
+     "Connecting Evidence with Practical Solutions"
+    ]
+   },
+   "focusAreaDetailsEn": {
+    "new": [
+     "Supporting the generation of knowledge and evidence relevant to priority scientific, social, economic, and development challenges.",
+     "Enhancing the capabilities of researchers and institutions while encouraging collaboration and knowledge exchange across the research ecosystem.",
+     "Promoting the translation of research findings into improved practices, informed decisions, innovation, and responses to societal needs."
+    ]
+   },
+   "outcomesEn": {
+    "old": [
+     [
+      "Stronger research capability",
+      "More relevant evidence",
+      "Research applied to real problems",
+      "Better-informed decisions"
+     ]
+    ],
+    "new": [
+     "Stronger research capabilities and collaboration.",
+     "Increased generation of relevant scientific and development evidence.",
+     "Greater application of research in addressing real-world challenges.",
+     "Improved evidence-informed decision-making.",
+     "Stronger connections between research, innovation, and societal needs."
+    ]
+   },
+   "shortDescAr": {
+    "old": [
+     "تطوير المعرفة. تمكين الابتكار. صنع أثر حقيقي.",
+     "تمويل البحث العلمي وتقوية منظومته."
+    ],
+    "new": "تطوير المعرفة. تمكين الابتكار. صنع أثر ذي معنى."
+   },
+   "summaryAr": {
+    "old": [
+     "تحتاج التحديات المعقدة إلى أدلة لا إلى افتراضات. يموّل هذا البرنامج البحث العلمي، ويدعم الباحثين، ويحوّل النتائج إلى حلول عملية لتحديات التنمية في مصر."
+    ],
+    "new": "النهوض بالبحث التطبيقي، وتعزيز القدرات البحثية، وربط الأدلة العلمية بحلول عملية لتحديات التنمية."
+   },
+   "mandateAr": {
+    "old": [
+     "دفع أجندة بحثية، ورعاية دراسات عالية القيمة، ودعم الباحثين، وتقوية منظومة البحث العلمي في مصر."
+    ],
+    "new": "تتطلب تحديات التنمية المعقدة أكثر من الاستجابات المعتادة؛ إذ تتطلب أدلة موثوقة واستقصاءً علميًا وابتكارًا وقدرة على ترجمة المعرفة إلى حلول عملية.\n\nيستثمر هذا البرنامج انتشار MEKI الواسع ويضمن الاستدامة وتطبيق الأدلة والمنهج العلمي في جميع مشروعاتها، مع تعزيز المعرفة العلمية والبحث التطبيقي والابتكار لمواجهة التحديات الاجتماعية والاقتصادية والتنموية ذات الأولوية في مصر."
+   },
+   "focusAreasAr": {
+    "old": [
+     [
+      "أبحاث مدعومة",
+      "منح وزمالات",
+      "بناء القدرات البحثية"
+     ],
+     [
+      "أبحاث مدعومة",
+      "منح وزمالات",
+      "بناء القدرات البحثية"
+     ]
+    ],
+    "new": [
+     "النهوض بالبحث التطبيقي والموجّه نحو التنمية",
+     "تعزيز القدرات البحثية والتعاون",
+     "ربط الأدلة بالحلول العملية"
+    ]
+   },
+   "focusAreaDetailsAr": {
+    "new": [
+     "دعم إنتاج المعرفة والأدلة ذات الصلة بالتحديات العلمية والاجتماعية والاقتصادية والتنموية ذات الأولوية.",
+     "تحسين قدرات الباحثين والمؤسسات مع تشجيع التعاون وتبادل المعرفة في منظومة البحث.",
+     "تشجيع ترجمة نتائج البحث إلى ممارسات أفضل وقرارات مستنيرة وابتكار واستجابات للاحتياجات المجتمعية."
+    ]
+   },
+   "outcomesAr": {
+    "old": [
+     [
+      "قدرات بحثية أقوى",
+      "أدلة أكثر ملاءمة",
+      "أبحاث تُطبَّق على مشكلات حقيقية",
+      "قرارات أفضل استنارة"
+     ]
+    ],
+    "new": [
+     "قدرات بحثية وتعاون أقوى.",
+     "إنتاج أكبر للأدلة العلمية والتنموية ذات الصلة.",
+     "تطبيق أوسع للبحث في مواجهة تحديات الواقع.",
+     "تحسّن اتخاذ القرارات المستندة إلى الأدلة.",
+     "روابط أقوى بين البحث والابتكار والاحتياجات المجتمعية."
+    ]
+   }
+  }
+ ],
+ "enabling": [
+  {
+   "code": "ENB-01",
+   "nameEn": {
+    "old": [
+     "NGO Development"
+    ],
+    "new": "NGO Engagement & Development"
+   },
+   "shortDescEn": {
+    "old": [
+     "Stronger local partners.",
+     "Strengthen partner NGO quality, governance, capability and delivery readiness across the portfolio."
+    ],
+    "new": "Stronger Local Partners. Greater Community Impact."
+   },
+   "summaryEn": {
+    "old": [
+     "We strengthen the governance and services of local nonprofits, so support reaches more communities."
+    ],
+    "new": "Strengthening the governance and capabilities of local nonprofit organizations enables development interventions to reach more communities effectively and sustainably through a network of 4000+ development partners."
+   },
+   "nameAr": {
+    "old": [
+     "تنمية الجمعيات الأهلية"
+    ],
+    "new": "إشراك الجمعيات الأهلية وتنميتها"
+   },
+   "shortDescAr": {
+    "old": [
+     "شركاء محليون أقوى.",
+     "تعزيز جودة الجمعيات الشريكة وحوكمتها وقدراتها وجاهزيتها للتنفيذ عبر المحفظة."
+    ],
+    "new": "شركاء محليون أقوى. أثر مجتمعي أكبر."
+   },
+   "summaryAr": {
+    "old": [
+     "نعزّز حوكمة الجمعيات الأهلية المحلية وخدماتها، ليصل الدعم إلى مجتمعات أكثر."
+    ],
+    "new": "يتيح تعزيز الحوكمة وقدرات المنظمات الأهلية المحلية وصول التدخلات التنموية إلى مجتمعات أكثر بفاعلية واستدامة، عبر شبكة تضم أكثر من 4000 شريك تنموي."
+   }
+  },
+  {
+   "code": "ENB-02",
+   "nameEn": {
+    "old": [
+     "Field Offices"
+    ],
+    "new": "Field Offices"
+   },
+   "shortDescEn": {
+    "old": [
+     "Close to communities.",
+     "Frontline assessment, outreach, household follow-up, recertification, referral coordination and local insight."
+    ],
+    "new": "Closer to Communities. More Responsive to Their Needs."
+   },
+   "summaryEn": {
+    "old": [
+     "Field teams in every governorate assess needs, follow up with families and connect them to the right support."
+    ],
+    "new": "MEKI outreach and field base spans across all governorates, connecting development programs with the individuals, households, and communities they serve."
+   },
+   "nameAr": {
+    "old": [
+     "المكاتب الميدانية"
+    ],
+    "new": "المكاتب الميدانية"
+   },
+   "shortDescAr": {
+    "old": [
+     "قريبون من المجتمعات.",
+     "التقييم الميداني، والتواصل، ومتابعة الأسر، وإعادة التحقق، وتنسيق الإحالات، والمعرفة المحلية."
+    ],
+    "new": "أقرب إلى المجتمعات. أكثر استجابة لاحتياجاتها."
+   },
+   "summaryAr": {
+    "old": [
+     "تقيّم الفرق الميدانية في كل محافظة الاحتياجات، وتتابع الأسر، وتربطها بالدعم المناسب."
+    ],
+    "new": "يمتد انتشار MEKI وقاعدتها الميدانية في جميع المحافظات، رابطًا البرامج التنموية بالأفراد والأسر والمجتمعات التي تخدمها."
+   }
+  },
+  {
+   "code": "ENB-03",
+   "nameEn": {
+    "old": [
+     "Business Intelligence"
+    ],
+    "new": "Business Intelligence"
+   },
+   "shortDescEn": {
+    "old": [
+     "Evidence into action.",
+     "Integrate observatory, historical, field and geo-mapping data to guide planning, targeting and fundraising."
+    ],
+    "new": "Turning Evidence into Meaningful Action."
+   },
+   "summaryEn": {
+    "old": [
+     "Field, program and mapping data guide where support goes and how progress is measured."
+    ],
+    "new": "Reliable information enables better decisions about where support is needed, which interventions are most relevant, and how progress should be measured, by connecting community insights, program information, and development data."
+   },
+   "nameAr": {
+    "old": [
+     "ذكاء الأعمال"
+    ],
+    "new": "ذكاء الأعمال"
+   },
+   "shortDescAr": {
+    "old": [
+     "الأدلة إلى أفعال.",
+     "دمج بيانات المرصد والبيانات التاريخية والميدانية والخرائط الجغرافية لتوجيه التخطيط والاستهداف وجمع التبرعات."
+    ],
+    "new": "تحويل الأدلة إلى عمل ذي معنى."
+   },
+   "summaryAr": {
+    "old": [
+     "توجّه البيانات الميدانية والبرامجية وبيانات الخرائط أين يذهب الدعم وكيف يُقاس التقدم."
+    ],
+    "new": "تتيح المعلومات الموثوقة اتخاذ قرارات أفضل بشأن أماكن الحاجة إلى الدعم، والتدخلات الأنسب، وكيفية قياس التقدم، وذلك بربط رؤى المجتمعات ومعلومات البرامج والبيانات التنموية."
+   }
+  }
+ ]
+}

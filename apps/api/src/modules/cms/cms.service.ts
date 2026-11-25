@@ -172,7 +172,7 @@ export class CmsService {
     }
     assertLabels(dto.labelsEn, 'labelsEn');
     assertLabels(dto.labelsAr, 'labelsAr');
-    await this.media.assertExists([dto.mediaId]);
+    await this.media.assertExists([dto.mediaId], { allowDocuments: true });
     const max = await this.prisma.pageSection.aggregate({ where: { pageId: page.id }, _max: { sortOrder: true } });
     const section = await this.prisma.pageSection.create({
       data: {
@@ -193,7 +193,7 @@ export class CmsService {
     await this.assertSectionScope(id, scope);
     assertLabels(dto.labelsEn, 'labelsEn');
     assertLabels(dto.labelsAr, 'labelsAr');
-    await this.media.assertExists([dto.mediaId]);
+    await this.media.assertExists([dto.mediaId], { allowDocuments: true });
     await this.assertHeroImage(id, 'main', dto.mediaId);
     await this.prisma.pageSection.update({
       where: { id },
@@ -266,7 +266,7 @@ export class CmsService {
   // ── section items ──
   async createItem(sectionId: string, dto: CreateSectionItemDto, actor: ActorContext, scope?: CmsScope) {
     await this.assertSectionScope(sectionId, scope);
-    await this.media.assertExists([dto.mediaId]);
+    await this.media.assertExists([dto.mediaId], { allowDocuments: true });
     if (dto.code === HERO_SECONDARY_ITEM_CODE) await this.assertHeroImage(sectionId, 'secondary', dto.mediaId);
     const max = await this.prisma.sectionItem.aggregate({ where: { sectionId }, _max: { sortOrder: true } });
     const item = await this.prisma.sectionItem.create({
@@ -286,7 +286,7 @@ export class CmsService {
   async updateItem(id: string, dto: UpdateSectionItemDto, actor: ActorContext, scope?: CmsScope) {
     const item = await this.getItem(id);
     await this.assertSectionScope(item.sectionId, scope);
-    await this.media.assertExists([dto.mediaId]);
+    await this.media.assertExists([dto.mediaId], { allowDocuments: true });
     if ((dto.code ?? item.code) === HERO_SECONDARY_ITEM_CODE) await this.assertHeroImage(item.sectionId, 'secondary', dto.mediaId);
     const updated = await this.prisma.sectionItem.update({ where: { id }, data: defined(dto) });
     await this.touch(item.sectionId, actor);

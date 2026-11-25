@@ -27,6 +27,7 @@ import { Actor, Public, RequirePermissions } from '../../common/decorators';
 import type { ActorContext } from '../../common/types/auth-request';
 import { MediaMetadataDto, MediaQueryDto, UploadMediaDto } from './media.dto';
 import { MediaService } from './media.service';
+import { isDocumentMime } from './media.validation';
 import { RevalidatesPublic } from '../revalidation/revalidation.module';
 import { LocalStorage, S3StorageNotConfigured, STORAGE_DRIVER } from './storage/storage';
 
@@ -49,7 +50,7 @@ export class MediaController {
       type: 'object',
       required: ['file'],
       properties: {
-        file: { type: 'string', format: 'binary', description: 'JPEG/PNG/WebP, max MEDIA_MAX_UPLOAD_MB (default 10 MB). SVG rejected.' },
+        file: { type: 'string', format: 'binary', description: 'JPEG/PNG/WebP image or PDF document, max MEDIA_MAX_UPLOAD_MB (default 10 MB). SVG rejected.' },
         altEn: { type: 'string' },
         altAr: { type: 'string' },
         category: { type: 'string', enum: ['BRAND', 'HERO', 'PROGRAMME', 'CAMPAIGN', 'GALLERY', 'OTHER'] },
@@ -111,6 +112,11 @@ export class MediaFilesController {
     const file = await this.media.resolveServableFile(key, canPreview);
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Content-Type', file.mimeType);
+    if (isDocumentMime(file.mimeType)) {
+      // Opens in the browser's PDF viewer; "Save" uses the original (sanitized) file name.
+      const name = (file.originalName || 'document.pdf').replace(/[^\w .()-]/g, '_');
+      res.setHeader('Content-Disposition', `inline; filename="${name}"`);
+    }
     // Short public cache so deletion/consent changes take effect quickly; previews are never cached.
     res.setHeader('Cache-Control', file.publicAccess ? 'public, max-age=300' : 'private, no-store');
     res.sendFile(file.absolutePath, { dotfiles: 'deny' });

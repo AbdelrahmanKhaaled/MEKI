@@ -4,6 +4,40 @@
  */
 
 export interface paths {
+    "/api/v1/admin/cms/revalidation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Live-website refresh status: ok | pending (with the pending cache tags and last error code) | disabled */
+        get: operations["RevalidationController_status_v1"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/cms/revalidation/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry the pending website refresh now (no republish needed); ?all=true refreshes every public page */
+        post: operations["RevalidationController_retry_v1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/audit-logs": {
         parameters: {
             query?: never;
@@ -3874,6 +3908,14 @@ export interface components {
             descriptionAr?: string;
             focusAreasEn?: string[];
             focusAreasAr?: string[];
+            summaryEn?: string;
+            summaryAr?: string;
+            outcomesEn?: string[];
+            outcomesAr?: string[];
+            focusAreaDetailsEn?: string[];
+            focusAreaDetailsAr?: string[];
+            pageTitleEn?: string;
+            pageTitleAr?: string;
             icon?: string;
             coverMediaId?: Record<string, never> | null;
             /**
@@ -3913,6 +3955,14 @@ export interface components {
             descriptionAr?: string;
             focusAreasEn?: string[];
             focusAreasAr?: string[];
+            summaryEn?: string;
+            summaryAr?: string;
+            outcomesEn?: string[];
+            outcomesAr?: string[];
+            focusAreaDetailsEn?: string[];
+            focusAreaDetailsAr?: string[];
+            pageTitleEn?: string;
+            pageTitleAr?: string;
             icon?: string;
             coverMediaId?: Record<string, never> | null;
             /**
@@ -4662,6 +4712,43 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    RevalidationController_status_v1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RevalidationController_retry_v1: {
+        parameters: {
+            query?: {
+                /** @description true = refresh every public page, not only what is pending */
+                all?: "true" | "false";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     AuditController_list_v1: {
         parameters: {
             query?: {
@@ -5013,6 +5100,7 @@ export interface operations {
                 consentStatus?: "UNKNOWN" | "CONFIRMED" | "NOT_GRANTED";
                 includeDeleted?: string;
                 provenance?: "VERIFIED_SOURCE" | "PROPOSED" | "DEMO";
+                kind?: "image" | "document";
             };
             header?: never;
             path?: never;
@@ -5040,7 +5128,7 @@ export interface operations {
                 "multipart/form-data": {
                     /**
                      * Format: binary
-                     * @description JPEG/PNG/WebP, max MEDIA_MAX_UPLOAD_MB (default 10 MB). SVG rejected.
+                     * @description JPEG/PNG/WebP image or PDF document, max MEDIA_MAX_UPLOAD_MB (default 10 MB). SVG rejected.
                      */
                     file: string;
                     altEn?: string;

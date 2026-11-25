@@ -22,7 +22,8 @@ export function Enabling({ t }: { t: Dict }) {
             <li key={item.name} data-stagger-item className="group relative bg-paper p-8 transition-colors duration-500 hover:bg-deep-green lg:p-10">
               <span className="absolute inset-x-8 top-0 h-px origin-left scale-x-0 bg-harvest-gold transition-transform duration-700 group-hover:scale-x-100 rtl:origin-right lg:inset-x-10" />
               <Icon name={item.icon} className="mb-10 size-9 text-meki-green transition-colors duration-500 group-hover:text-glow" />
-              <h3 className="mb-3 text-2xl transition-colors duration-500 group-hover:text-white">{item.name}</h3>
+              <h3 className="mb-2 text-2xl transition-colors duration-500 group-hover:text-white">{item.name}</h3>
+              {item.tagline && <p className="mb-3 font-serif text-lg italic text-meki-green transition-colors duration-500 group-hover:text-glow">{item.tagline}</p>}
               <p className="text-[0.95rem] text-body-grey transition-colors duration-500 group-hover:text-mint-line">{item.text}</p>
             </li>
           ))}

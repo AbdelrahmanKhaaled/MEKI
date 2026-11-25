@@ -17,7 +17,7 @@ import { FinancePage } from "@/features/finance/FinancePage";
 import { useCmsMutation, usePage } from "@/hooks/useCmsData";
 import { useForm } from "@/hooks/useForm";
 import { ApiError } from "@/lib/api";
-import { isDirtySection, itemsFor, menuEntryError, menuEntryWarning, menuState, nextCode, sectionPublishGate, SITE_PAGES, type ListRule } from "@/lib/cms";
+import { DEFAULT_MENUS, isDirtySection, itemsFor, menuEntryError, menuEntryWarning, menuState, nextCode, sectionPublishGate, SITE_PAGES, type ListRule } from "@/lib/cms";
 import type { Section, SectionItem } from "@/lib/cms-schemas";
 import { fill } from "@/lib/i18n";
 import * as svc from "@/services/cms";
@@ -84,6 +84,22 @@ function MenuList({ section, rule, canManage }: { section: Section; rule: (typeo
   const state = menuState(items);
   const add = useCmsMutation(() => svc.createItem(section.id, { code: nextCode(rule.prefix!, section.items), titleEn: "", isVisible: false, provenance: section.provenance === "DEMO" ? "DEMO" : "PROPOSED" }));
   const reorder = useCmsMutation((ids: string[]) => svc.reorderItems(section.id, ids));
+  // Aligns the stored entries with the website's real navigation (entry i → page i; leftovers are hidden, never deleted).
+  const reset = useCmsMutation(async () => {
+    const defaults = DEFAULT_MENUS[rule.prefix as "nav-" | "giving-"];
+    const used: { code: string | null }[] = section.items.map((i) => ({ code: i.code }));
+    for (const [i, d] of defaults.entries()) {
+      const body = { titleEn: d.en, titleAr: d.ar, href: d.href, isVisible: true };
+      if (items[i]) await svc.updateItem(items[i].id, body);
+      else {
+        const created = await svc.createItem(section.id, { code: nextCode(rule.prefix!, used), ...body, provenance: section.provenance === "DEMO" ? "DEMO" : "PROPOSED" });
+        used.push({ code: created.code });
+      }
+    }
+    for (const extra of items.slice(defaults.length)) await svc.updateItem(extra.id, { isVisible: false });
+    // keep this menu's order = the website's order
+    return null;
+  });
   /** The API reorders the whole section: only this menu's positions change, other items keep theirs. */
   const move = (i: number, d: -1 | 1) => {
     const all = [...section.items].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -99,12 +115,18 @@ function MenuList({ section, rule, canManage }: { section: Section; rule: (typeo
         {state.used ? <CheckCircle2 className="size-4" aria-hidden="true" /> : <AlertTriangle className="size-4" aria-hidden="true" />}
         {state.used ? x.used : fill(x.notUsed, { n: state.invalid })}
       </p>
-      {(add.isError || reorder.isError) && <p className="mb-2 text-sm text-danger" role="alert">{errText(add.error ?? reorder.error)}</p>}
+      {!state.used && canManage && (
+        <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-line p-3 text-sm">
+          <button type="button" className="btn-admin btn-ghost" disabled={reset.isPending} onClick={() => reset.mutate(undefined)} data-testid={`menu-reset-${rule.name}`}>{x.resetToSite}</button>
+          <span className="text-muted">{x.resetHint}</span>
+        </div>
+      )}
+      {(add.isError || reorder.isError || reset.isError) && <p className="mb-2 text-sm text-danger" role="alert">{errText(add.error ?? reorder.error ?? reset.error)}</p>}
       {items.length === 0 ? (
         <p className="text-sm text-muted">{x.empty}</p>
       ) : (
         <ol className="space-y-3">
-          {items.map((it, i) => <Entry key={it.id} item={it} n={i + 1} canManage={canManage} first={i === 0} last={i === items.length - 1} moving={reorder.isPending} onMove={(d) => move(i, d)} />)}
+          {items.map((it, i) => <Entry key={`${it.id}:${it.href}:${it.titleEn}:${it.isVisible}`} item={it} n={i + 1} canManage={canManage} first={i === 0} last={i === items.length - 1} moving={reorder.isPending} onMove={(d) => move(i, d)} />)}
         </ol>
       )}
     </Card>

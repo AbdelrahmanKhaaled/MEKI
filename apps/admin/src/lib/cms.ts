@@ -20,7 +20,13 @@ const blank = (v: string | null | undefined) => !v || v.trim() === "";
 // ───────────── homepage model ─────────────
 
 export type SectionField = "eyebrow" | "title" | "subtitle" | "body" | "ctaPrimaryLabel" | "ctaSecondaryLabel" | "media";
-export type ItemField = "title" | "text" | "media";
+/** "program": the item's link set to a program page ("/programs/<slug>") — used by the Gallery for the program line under a caption. */
+export type ItemField = "title" | "text" | "media" | "program";
+
+/** Program slugs (stable keys) a gallery photo may be associated with; the website shows the program's own published name. */
+export const PROGRAM_SLUGS = ["social-solidarity", "health", "education", "economic-empowerment", "housing", "wash", "emergency-response", "heritage-culture", "scientific-research"] as const;
+export const programHref = (slug: string) => (slug ? `/programs/${slug}` : null);
+export const programFromHref = (href: string | null | undefined) => /^\/programs\/([a-z0-9-]+)$/.exec(href ?? "")?.[1] ?? "";
 
 export interface ListRule {
   /** i18n key (t.cms.lists.*) */
@@ -59,11 +65,13 @@ export const HOMEPAGE: SectionDef[] = [
     hideable: false,
   },
   { key: "TRUST", fields: [], labels: [], lists: [{ name: "trust", fixed: 4, fields: ["title", "text"] }], hideable: true },
-  { key: "ABOUT", fields: ["eyebrow", "title", "body"], labels: ["legacy", "captionA", "captionB"], lists: [], hideable: true },
+  // MEKI Legacy (25 Nov 2026, About page): legacyTitle / legacyTagline labels + three paragraphs (items legacy-1…3).
+  { key: "ABOUT", fields: ["eyebrow", "title", "body"], labels: ["legacy", "captionA", "captionB", "legacyTitle", "legacyTagline"], lists: [{ name: "legacy", prefix: "legacy-", fixed: 3, fields: ["text"] }], hideable: true },
   { key: "VISION_MISSION", fields: ["eyebrow", "title", "subtitle"], labels: [], lists: [{ name: "visionMission", codes: ["vision", "mission"], fields: ["title", "text"] }], hideable: true },
   { key: "HOW_WE_WORK", fields: ["eyebrow", "title", "body"], labels: [], lists: [{ name: "verbs", fixed: 4, fields: ["title", "text"] }], hideable: true },
   { key: "IMPACT", fields: ["eyebrow", "title", "body"], labels: ["attribution"], lists: [], data: { module: "statistics", href: "/statistics", fixed: 4 }, hideable: true },
-  { key: "PROGRAMMES", fields: ["eyebrow", "title", "body"], labels: ["mandateLabel", "themesLabel", "give"], lists: [], data: { module: "programmes", href: "/programs", fixed: 9 }, hideable: true },
+  // MEKI client edits (22 Nov 2026): "What we do" / "The change we aim for" labels and the five "How it works" steps (how-1 … how-5).
+  { key: "PROGRAMMES", fields: ["eyebrow", "title", "body"], labels: ["mandateLabel", "themesLabel", "outcomesLabel", "give", "howTitle"], lists: [{ name: "howSteps", prefix: "how-", fixed: 5, fields: ["title", "text"] }], data: { module: "programmes", href: "/programs", fixed: 9 }, hideable: true },
   { key: "ENABLING", fields: ["eyebrow", "title", "body"], labels: [], lists: [], data: { module: "enabling", href: "/programs?kind=ENABLING_FUNCTION", fixed: 3 }, hideable: true },
   { key: "CAMPAIGNS", fields: ["eyebrow", "title", "body"], labels: ["badge", "donate", "prev", "next", "noFigures"], lists: [], data: { module: "campaigns", href: "/campaigns" }, hideable: false },
   { key: "WHY", fields: ["eyebrow", "title", "body"], labels: [], lists: [{ name: "reasons", fixed: 4, fields: ["title", "text"] }], hideable: true },
@@ -77,13 +85,15 @@ export const HOMEPAGE: SectionDef[] = [
     ],
     hideable: true,
   },
-  { key: "GALLERY", fields: ["eyebrow", "title", "body"], labels: ["note"], lists: [{ name: "photos", fixed: 7, fields: ["title", "media"] }], hideable: true },
+  // MEKI client edits (22–23 Nov 2026): one caption format — Title (item title) – Place (item text), with the Program underneath.
+  { key: "GALLERY", fields: ["eyebrow", "title", "body"], labels: ["note", "showMore", "showLess"], lists: [{ name: "photos", fields: ["title", "text", "program", "media"] }], hideable: true },
   { key: "FAQ", fields: ["eyebrow", "title", "body"], labels: [], lists: [], data: { module: "faqs", href: "/faqs" }, hideable: true },
   { key: "FINAL_CTA", fields: ["title", "subtitle", "body", "ctaPrimaryLabel", "ctaSecondaryLabel"], labels: ["chipProgrammes", "chipAccount"], lists: [], hideable: true },
   {
     key: "FOOTER",
     fields: ["title", "subtitle"],
-    labels: ["explore", "programmes", "giving", "contactTitle", "contactPending", "legalPending", "rights", "backToTop"],
+    // "contactPending" (footer note) and "rights" (copyright) are edited in Site settings — the single place; the website still honours an older value written here
+    labels: ["explore", "programmes", "giving", "contactTitle", "legalPending", "backToTop", "followUs"],
     lists: [
       { name: "headerMenu", prefix: "nav-", fields: ["title"], managedAt: "/menus" },
       { name: "givingMenu", prefix: "giving-", fields: ["title"], managedAt: "/menus" },
@@ -198,6 +208,26 @@ export const SITE_PAGES: { key: string; path: string }[] = [
   { key: "cookies", path: "/cookies" },
 ];
 export const GALA_PATH = "/events/gala-night";
+
+/**
+ * The website's own navigation (apps/web content/pages.ts NAV_ORDER + labels). A freshly seeded or older database may still hold the
+ * "#anchor" links of the former one-page site, which the website cannot use (it then shows this menu instead). "Use the website's
+ * current menu" in Admin → Menus rewrites the stored entries to exactly this list, so Admin shows what the public site shows.
+ */
+export const DEFAULT_MENUS: Record<"nav-" | "giving-", { href: string; en: string; ar: string }[]> = {
+  "nav-": [
+    { href: "/", en: "Home", ar: "الرئيسية" },
+    { href: "/about", en: "About MEKI", ar: "عن MEKI" },
+    { href: "/programs", en: "Programs", ar: "البرامج" },
+    { href: "/give", en: "Give", ar: "تبرّع" },
+    { href: "/faq", en: "FAQ", ar: "الأسئلة الشائعة" },
+    { href: "/contact", en: "Contact", ar: "تواصل معنا" },
+  ],
+  "giving-": [
+    { href: "/give", en: "Give", ar: "تبرّع" },
+    { href: "/faq", en: "FAQ", ar: "الأسئلة الشائعة" },
+  ],
+};
 
 /** Error key for one menu entry, or null. Mirrors resolveMenu(): a known page path or an https URL, and a label. */
 export function menuEntryError(e: { titleEn: string | null; href: string | null }): string | null {

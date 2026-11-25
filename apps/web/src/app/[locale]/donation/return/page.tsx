@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDict, isLocale } from "@/lib/i18n";
+import { Footer } from "@/components/sections/FinalFooter";
+import { getPageContent } from "@/lib/content";
 import { DonateProvider } from "@/components/DonateProvider";
 import { Header } from "@/components/Header";
 import { DonationReturn } from "@/components/DonationReturn";
@@ -25,7 +27,7 @@ export default async function DonationReturnPage({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const { reference, cancelled } = await searchParams;
-  const t = getDict(locale);
+  const { t } = await getPageContent(locale);
   return (
     <DonateProvider t={t} locale={locale}>
       <Header t={t} locale={locale} />
@@ -34,6 +36,7 @@ export default async function DonationReturnPage({
         <div className="pt-12" />
         <DonationReturn t={t} locale={locale} reference={reference ?? null} cancelled={cancelled === "1"} />
       </main>
+      <Footer t={t} />
     </DonateProvider>
   );
 }
