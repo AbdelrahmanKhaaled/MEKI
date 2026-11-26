@@ -6,6 +6,10 @@ type PublicMediaSlice = { url?: string; alt?: string | null; width?: number | nu
 export type PublicEventPage = {
   sections?: {
     key?: string;
+    eyebrow?: string | null;
+    title?: string | null;
+    subtitle?: string | null;
+    body?: string | null;
     provenance?: string;
     media?: PublicMediaSlice;
     ctaPrimaryLabel?: string | null;

@@ -156,6 +156,11 @@ export class EventsAdminController {
   async deleteItem(@Param('id') id: string, @Param('itemId') itemId: string, @Actor() actor: ActorContext) {
     await this.events.deleteItem(id, itemId, actor);
   }
+
+  @Put(':id/sections/:sectionId/items/order') @RequirePermissions('events.manage')
+  reorderItems(@Param('id') id: string, @Param('sectionId') sectionId: string, @Body() dto: ReorderDto, @Actor() actor: ActorContext) {
+    return this.events.reorderItems(id, sectionId, dto.ids, actor);
+  }
 }
 
 const CACHE = 'public, max-age=60, s-maxage=300, stale-while-revalidate=600';

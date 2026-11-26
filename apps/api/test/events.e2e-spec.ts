@@ -186,7 +186,7 @@ describe('Events & Gala Night foundation', () => {
       const bokra = (await editor.post(`/admin/events/${e.id}/sections/${s.id}/items`, { code: 'partner-bokra', titleEn: 'Bokra', isVisible: false }).expect(201)).body.data;
       await editor.post(`/admin/events/${e.id}/sections/${s.id}/items`, { code: 'partner-waterway', titleEn: 'The Waterway', isVisible: false }).expect(201);
       await editor.post(`/admin/events/${e.id}/sections/${s.id}/publish`).expect(200);
-      const items = async () => (await ctx.http().get(`${API}/public/events/${e.slug}/page`).expect(200)).body.data.sections.find((x: { key: string }) => x.key === 'EVENT_SPONSORSHIP').items as { title: string }[];
+      const items = async () => (await ctx.http().get(`${API}/public/events/${e.slug}/page?locale=en`).expect(200)).body.data.sections.find((x: { key: string }) => x.key === 'EVENT_SPONSORSHIP').items as { title: string }[];
       expect(await items()).toEqual([]); // hidden → not public
       await editor.patch(`/admin/events/${e.id}/items/${bokra.id}`, { isVisible: true }).expect(200);
       expect(await items()).toEqual([]); // saved but not published → still not public

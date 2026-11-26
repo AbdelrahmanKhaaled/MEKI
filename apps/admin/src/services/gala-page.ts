@@ -5,7 +5,7 @@
  * Every write is audited and permission-checked by the API (events.manage / events.publish); publishing triggers the existing
  * on-demand website refresh (@RevalidatesPublic('events')). The website reads only PUBLISHED sections of the PUBLISHED event.
  */
-import { apiDelete, apiPatch, apiPost } from "@/lib/api";
+import { apiDelete, apiPatch, apiPost, apiPut } from "@/lib/api";
 import { ItemWriteSchema, SectionSchema } from "@/lib/cms-schemas";
 
 const id = (s: string) => encodeURIComponent(s);
@@ -17,5 +17,7 @@ export const updateSection = (eventId: string, sectionId: string, b: Body) => ap
 export const addItem = (eventId: string, sectionId: string, b: Body = {}) => apiPost(`/admin/events/${id(eventId)}/sections/${id(sectionId)}/items`, ItemWriteSchema, { titleEn: "", provenance: "PROPOSED", ...b });
 export const updateItem = (eventId: string, itemId: string, b: Body) => apiPatch(`/admin/events/${id(eventId)}/items/${id(itemId)}`, ItemWriteSchema, b);
 export const deleteItem = (eventId: string, itemId: string) => apiDelete(`/admin/events/${id(eventId)}/items/${id(itemId)}`);
+export const reorderItems = (eventId: string, sectionId: string, ids: string[]) =>
+  apiPut(`/admin/events/${id(eventId)}/sections/${id(sectionId)}/items/order`, SectionSchema, { ids });
 export const setSectionStatus = (eventId: string, sectionId: string, publish: boolean) =>
   apiPost(`/admin/events/${id(eventId)}/sections/${id(sectionId)}/${publish ? "publish" : "unpublish"}`, SectionSchema);

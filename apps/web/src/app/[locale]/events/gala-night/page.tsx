@@ -99,6 +99,19 @@ export default async function GalaNightPage({ params }: { params: Promise<{ loca
   const give = { href: intentHref, internal: true, status: galaGiving?.available ? base.booking.give.openStatus : fr?.giving.campaignClosed ? base.booking.give.closedStatus : base.booking.give.status, note: projectNote };
   const g = {
     ...base,
+    contactEmail,
+    ...(cms.timeline && cms.timeline.acts.length > 0
+      ? {
+          timeline: {
+            ...base.timeline,
+            ...(cms.timeline.eyebrow ? { eyebrow: cms.timeline.eyebrow } : {}),
+            ...(cms.timeline.title ? { title: cms.timeline.title } : {}),
+            ...(cms.timeline.hours ? { hours: cms.timeline.hours } : {}),
+            ...(cms.timeline.note ? { note: cms.timeline.note } : {}),
+            acts: cms.timeline.acts,
+          },
+        }
+      : {}),
     faq: {
       ...base.faq,
       items: [
@@ -123,7 +136,7 @@ export default async function GalaNightPage({ params }: { params: Promise<{ loca
           <GalaHost g={g} host={cms.host} />
           <GalaTimeline g={g} />
           <GalaVenue g={g} mapUrl={mapUrl} photos={venuePhotos} address={address} logo={cms.venueLogo} />
-          <GalaAttendance g={g} price={apiPrice} contactEmail={contactEmail} />
+          <GalaAttendance g={g} price={apiPrice} bookHref={`/${locale}/events/gala-night/book`} />
           <SponsorshipSection g={g} tiers={sponsorPreview ? PROPOSED_SPONSORSHIP : undefined} sponsor={cms.sponsorship} partners={cms.partners} />
           {/* Six approved causes not yet supplied: renders nothing until approved, event-linked data exists. */}
           <GalaCauses g={g} causes={[]} />

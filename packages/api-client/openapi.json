@@ -10316,6 +10316,52 @@
           "Admin · System"
         ]
       }
+    },
+    "/api/v1/admin/events/{id}/sections/{sectionId}/items/order": {
+      "put": {
+        "operationId": "EventsAdminController_reorderItems_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sectionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": [
+          "Admin · Events"
+        ]
+      }
     }
   },
   "info": {

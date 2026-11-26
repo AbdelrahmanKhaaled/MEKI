@@ -250,7 +250,7 @@ export function GalaTimeline({ g }: { g: GalaDict }) {
           <p data-reveal className="mb-10 text-sm font-bold text-glow">{t.hours}</p>
           <div className="space-y-14">
             {t.acts.map((act, a) => (
-              <section key={act.label} aria-labelledby={`act-${a}`}>
+              <section key={`${a}-${act.label}`} aria-labelledby={`act-${a}`}>
                 <p data-reveal className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-harvest-gold">
                   {act.label} · <span dir="ltr" className="inline-block">{act.time}</span>
                 </p>
@@ -260,8 +260,8 @@ export function GalaTimeline({ g }: { g: GalaDict }) {
                 <ol className="relative">
                   {/* The vertical line of light */}
                   <span aria-hidden="true" className="absolute inset-y-2 start-[7px] w-px bg-gradient-to-b from-harvest-gold/70 via-white/25 to-white/5" />
-                  {act.items.map((item) => (
-                    <li key={item.time + item.title} data-reveal className="p10-row relative pb-8 ps-10 last:pb-0 sm:pb-10 sm:ps-12">
+                  {act.items.map((item, ii) => (
+                    <li key={`${ii}-${item.time}-${item.title}`} data-reveal className="p10-row relative pb-8 ps-10 last:pb-0 sm:pb-10 sm:ps-12">
                       <span
                         aria-hidden="true"
                         className={`absolute start-0 top-1.5 grid size-4 place-items-center rounded-full ${item.highlight ? "bg-harvest-gold" : "bg-deep-green ring-1 ring-glow/70"}`}
@@ -360,9 +360,9 @@ export function GalaVenue({ g, mapUrl, photos = [], address, logo }: { g: GalaDi
 
 /**
  * `price`: the published ticketing API value when available (single source with the booking flow); otherwise the brief text.
- * `contactEmail`: shown only when MEKI published one (item 22 "Add a contact email for questions").
+ * `bookHref`: booking page link (moves the Book Now button directly underneath the ticket price).
  */
-export function GalaAttendance({ g, price, contactEmail }: { g: GalaDict; price?: string; contactEmail?: string | null }) {
+export function GalaAttendance({ g, price, bookHref }: { g: GalaDict; price?: string; bookHref?: string }) {
   const a = g.attendance;
   return (
     <section id="attendance" aria-labelledby="attendance-title" className="section-y overflow-hidden bg-limestone">
@@ -378,7 +378,27 @@ export function GalaAttendance({ g, price, contactEmail }: { g: GalaDict; price?
         {/* Informational panel — deliberately not a ticket card / purchase UI. */}
         <div data-reveal className="lg:col-span-6 lg:col-start-7">
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-gold-text">{a.ticket}</p>
-          <p className="mb-6 inline-block font-serif text-[clamp(2.75rem,7vw,5rem)] leading-none text-deep-green">{price ?? a.price}</p>
+          <p className="mb-3 inline-block font-serif text-[clamp(2.75rem,7vw,5rem)] leading-none text-deep-green">{price ?? a.price}</p>
+          <div className="mb-6">
+            {bookHref ? (
+              <Link
+                href={bookHref}
+                className="btn btn-gold min-h-14 px-8 text-base inline-flex items-center justify-center"
+                data-testid="gala-book-now"
+              >
+                {a.bookNow ?? (g.booking.book.cta || "Book Now")}
+              </Link>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="btn btn-gold min-h-14 px-8 text-base inline-flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+                data-testid="gala-book-now"
+              >
+                {a.bookNow ?? (g.booking.book.cta || "Book Now")}
+              </button>
+            )}
+          </div>
           <ul className="mb-6 space-y-3 border-t border-stone-line pt-6 text-lg text-ink">
             {a.rules.map((r) => (
               <li key={r} className="flex items-center gap-3">
@@ -390,18 +410,6 @@ export function GalaAttendance({ g, price, contactEmail }: { g: GalaDict; price?
             ))}
           </ul>
           <p className="text-sm text-body-grey">{a.note}</p>
-          {contactEmail && (
-            <p className="mt-4 flex items-center gap-2 text-sm font-bold text-ink" data-testid="gala-contact-email">
-              <Mail className="size-4 text-meki-green" aria-hidden="true" />
-              <span>
-                {a.contact.split("{email}")[0]}
-                <a href={`mailto:${contactEmail}`} className="text-meki-green underline underline-offset-4">
-                  {contactEmail}
-                </a>
-                {a.contact.split("{email}")[1] ?? ""}
-              </span>
-            </p>
-          )}
         </div>
       </div>
     </section>
@@ -415,6 +423,7 @@ export function GalaAttendance({ g, price, contactEmail }: { g: GalaDict; price?
  */
 export function SponsorshipSection({ g, tiers, sponsor, partners = [] }: { g: GalaDict; tiers?: SponsorTier[]; sponsor?: GalaCms["sponsorship"]; partners?: GalaCms["partners"] }) {
   const s = g.sponsorship;
+  const contactEmail = g.contactEmail;
   return (
     <section id="sponsorship" aria-labelledby="sponsorship-title" className="section-y bg-paper">
       <div className="container-x">
@@ -448,6 +457,18 @@ export function SponsorshipSection({ g, tiers, sponsor, partners = [] }: { g: Ga
           ) : (
             <p data-reveal className="text-body-grey">
               {s.pending}
+            </p>
+          )}
+          {contactEmail && (
+            <p className="mt-6 flex items-center gap-2 text-sm font-bold text-ink" data-testid="gala-contact-email">
+              <Mail className="size-4 text-meki-green" aria-hidden="true" />
+              <span>
+                {s.contact ? s.contact.split("{email}")[0] : (g.attendance.contact ? g.attendance.contact.split("{email}")[0] : "Questions? Email ")}
+                <a href={`mailto:${contactEmail}`} className="text-meki-green underline underline-offset-4">
+                  {contactEmail}
+                </a>
+                {s.contact ? (s.contact.split("{email}")[1] ?? "") : (g.attendance.contact ? (g.attendance.contact.split("{email}")[1] ?? "") : "")}
+              </span>
             </p>
           )}
         </div>

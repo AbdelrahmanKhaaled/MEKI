@@ -89,3 +89,68 @@ test("Sponsorship: Sponsor now still opens the PDF; no payment, checkout or acce
   assert.deepEqual(c.sponsorship, { href: `${API}/media/Sponsorship-Packages.pdf`, label: undefined, document: true });
   assert.doesNotMatch(JSON.stringify(galaEn.sponsorship), /checkout|pay now|USD/i);
 });
+
+test("Client update 1 & 2: Book Now button is under ticket price; inquiries email moved to Sponsors section, not ticket section", () => {
+  const gala = read("apps/web/src/components/gala/GalaSections.tsx");
+  // Ticket section: Book Now button directly under price, no email inside ticket section
+  assert.match(gala, /data-testid="gala-book-now"/);
+  assert.match(gala, /\{price \?\? a\.price\}<\/p>\s*<div className="mb-6">\s*\{bookHref \?/);
+  const ticketSection = gala.slice(gala.indexOf("export function GalaAttendance"), gala.indexOf("export function SponsorshipSection"));
+  assert.doesNotMatch(ticketSection, /mailto:/);
+  assert.doesNotMatch(ticketSection, /contactEmail/);
+
+  // Sponsors section: inquiries email appears alongside sponsors info with mailto link
+  const sponsorSection = gala.slice(gala.indexOf("export function SponsorshipSection"), gala.indexOf("export function GalaCauses"));
+  assert.match(sponsorSection, /href=\{`mailto:\$\{contactEmail\}`\}/);
+  assert.match(sponsorSection, /data-testid="gala-contact-email"/);
+});
+
+test("Client update 4: Gala FAQ updates reflect confirmed information without pending flag", () => {
+  const enFaq = galaEn.faq.items;
+  const access = enFaq.find((i) => i.q === "Accessibility");
+  assert.ok(access, "Accessibility FAQ item exists");
+  assert.equal(access.a, "The venue is accessible.");
+  assert.equal(access.pending, undefined);
+
+  const cancel = enFaq.find((i) => i.q === "Cancellations");
+  assert.ok(cancel, "Cancellations FAQ item exists");
+  assert.equal(cancel.a, "No cancellations are allowed.");
+  assert.equal(cancel.pending, undefined);
+
+  const bookings = enFaq.find((i) => i.q === "Bookings");
+  assert.ok(bookings, "Bookings FAQ item exists");
+  assert.match(bookings.a, /^Bookings are confirmed\./);
+  assert.equal(bookings.pending, undefined);
+
+  const receipts = enFaq.find((i) => i.q === "Receipts");
+  assert.ok(receipts, "Receipts FAQ item exists");
+  assert.equal(receipts.a, "Receipts are confirmed.");
+  assert.equal(receipts.pending, undefined);
+});
+
+test("Client update 3: Gala agenda can be read from EVENT_AGENDA CMS section", () => {
+  const act1Items = [{ time: "3:30 PM", title: "Welcome reception" }];
+  const page = {
+    sections: [
+      {
+        key: "EVENT_AGENDA",
+        title: "Custom Agenda Title",
+        subtitle: "Saturday, Dec 12",
+        items: [
+          {
+            code: "act-1",
+            title: "Act 1 Custom Title",
+            text: JSON.stringify({ label: "Act I", time: "3:30 – 5:00 PM", items: act1Items }),
+          },
+        ],
+      },
+    ],
+  };
+  const cms = galaCmsFrom(page);
+  assert.ok(cms.timeline, "timeline is parsed from EVENT_AGENDA");
+  assert.equal(cms.timeline.title, "Custom Agenda Title");
+  assert.equal(cms.timeline.acts.length, 1);
+  assert.equal(cms.timeline.acts[0].label, "Act I");
+  assert.equal(cms.timeline.acts[0].title, "Act 1 Custom Title");
+  assert.equal(cms.timeline.acts[0].items[0].title, "Welcome reception");
+});

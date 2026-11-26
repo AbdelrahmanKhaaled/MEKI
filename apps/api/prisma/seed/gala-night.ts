@@ -32,7 +32,105 @@ const SECTION_SKELETON: SectionKey[] = [
  * Contact: the confirmed Gala inquiries address (MEKI, 25 Nov 2026).
  */
 export const GALA_INQUIRIES_EMAIL = 'Inquiries@meki-us.org';
-const SKELETON_ITEMS: Partial<Record<SectionKey, { code: string; titleEn?: string; href?: string; provenance: 'PROPOSED' | 'VERIFIED_SOURCE'; isVisible: boolean; sortOrder: number }[]>> = {
+const SKELETON_ITEMS: Partial<Record<SectionKey, { code: string; titleEn?: string; titleAr?: string; textEn?: string; textAr?: string; href?: string; provenance: 'PROPOSED' | 'VERIFIED_SOURCE'; isVisible: boolean; sortOrder: number }[]>> = {
+  EVENT_AGENDA: [
+    {
+      code: 'act-1',
+      titleEn: 'The Spark',
+      titleAr: 'الشرارة',
+      textEn: JSON.stringify({
+        label: 'Act I',
+        time: '3:30 – 5:00 PM',
+        items: [
+          { time: '3:30 PM', title: 'Welcome reception' },
+          { time: '4:30 PM', title: 'Opening with our host, Raya Abirached' },
+          { time: '4:45 PM', title: 'A Vision Beyond Borders', note: 'Keynote Speaker' },
+        ],
+      }),
+      textAr: JSON.stringify({
+        label: 'الفصل الأول',
+        time: '3:30 – 5:00 مساءً',
+        items: [
+          { time: '3:30 م', title: 'حفل الاستقبال' },
+          { time: '4:30 م', title: 'الافتتاح مع مقدّمة الأمسية رايا أبي راشد' },
+          { time: '4:45 م', title: 'رؤية تتجاوز الحدود', note: 'المتحدث الرئيسي' },
+        ],
+      }),
+      provenance: 'VERIFIED_SOURCE',
+      isVisible: true,
+      sortOrder: 10,
+    },
+    {
+      code: 'act-2',
+      titleEn: 'The Stories and the People',
+      titleAr: 'الحكايات والناس',
+      textEn: JSON.stringify({
+        label: 'Act II',
+        time: '5:00 – 6:15 PM',
+        items: [
+          { time: '5:00 PM', title: 'Every Light Has a Story', note: 'Film', highlight: true },
+          { time: '5:10 PM', title: 'Voices That Illuminate', note: 'Guest of Honor Panel' },
+          { time: '6:00 PM', title: 'A Legacy of Giving', note: "Egypt's Timeless Tradition of Generosity" },
+        ],
+      }),
+      textAr: JSON.stringify({
+        label: 'الفصل الثاني',
+        time: '5:00 – 6:15 مساءً',
+        items: [
+          { time: '5:00 م', title: 'لكل نور حكاية', note: 'فيلم', highlight: true },
+          { time: '5:10 م', title: 'أصوات تُضيء', note: 'جلسة ضيوف الشرف' },
+          { time: '6:00 م', title: 'إرث من العطاء', note: 'تقليد الكرم المصري العريق' },
+        ],
+      }),
+      provenance: 'VERIFIED_SOURCE',
+      isVisible: true,
+      sortOrder: 20,
+    },
+    {
+      code: 'act-3',
+      titleEn: 'The Power of Giving',
+      titleAr: 'قوة العطاء',
+      textEn: JSON.stringify({
+        label: 'Act III',
+        time: '6:15 – 7:00 PM',
+        items: [{ time: '6:15 PM', title: 'The Moment to Make It Count', note: 'Auction' }],
+      }),
+      textAr: JSON.stringify({
+        label: 'الفصل الثالث',
+        time: '6:15 – 7:00 مساءً',
+        items: [{ time: '6:15 م', title: 'لحظة تصنع الفرق', note: 'المزاد' }],
+      }),
+      provenance: 'VERIFIED_SOURCE',
+      isVisible: true,
+      sortOrder: 30,
+    },
+    {
+      code: 'act-4',
+      titleEn: 'A Shared Celebration',
+      titleAr: 'احتفال مشترك',
+      textEn: JSON.stringify({
+        label: 'Act IV',
+        time: '7:00 – 8:15 PM',
+        items: [
+          { time: '7:00 PM', title: 'A Celebration of Shared Light', note: 'Entertainment' },
+          { time: '7:30 PM', title: 'A Table of Shared Purpose', note: 'Dinner' },
+          { time: '8:15 PM', title: 'The Light Carries On', note: 'Close of the evening' },
+        ],
+      }),
+      textAr: JSON.stringify({
+        label: 'الفصل الرابع',
+        time: '7:00 – 8:15 مساءً',
+        items: [
+          { time: '7:00 م', title: 'احتفال بالنور المشترك', note: 'فقرة ترفيهية' },
+          { time: '7:30 م', title: 'مائدة الهدف المشترك', note: 'العشاء' },
+          { time: '8:15 م', title: 'يستمر النور', note: 'ختام الأمسية' },
+        ],
+      }),
+      provenance: 'VERIFIED_SOURCE',
+      isVisible: true,
+      sortOrder: 40,
+    },
+  ],
   EVENT_SPONSORSHIP: [
     { code: 'partner-bokra', titleEn: 'Bokra', provenance: 'PROPOSED', isVisible: false, sortOrder: 10 },
     { code: 'partner-waterway', titleEn: 'The Waterway', provenance: 'PROPOSED', isVisible: false, sortOrder: 20 },
@@ -83,7 +181,14 @@ export async function seedGalaNightDraft(prisma: PrismaClient): Promise<boolean>
           isVisible: true,
           status: 'DRAFT',
           provenance: 'PROPOSED',
-          titleEn: key === 'EVENT_HERO' ? 'MEKI Gala Night' : null,
+          titleEn: key === 'EVENT_HERO' ? 'MEKI Gala Night' : key === 'EVENT_AGENDA' ? 'The evening at a glance' : null,
+          titleAr: key === 'EVENT_AGENDA' ? 'الأمسية في لمحة' : null,
+          eyebrowEn: key === 'EVENT_AGENDA' ? 'The program' : null,
+          eyebrowAr: key === 'EVENT_AGENDA' ? 'البرنامج' : null,
+          subtitleEn: key === 'EVENT_AGENDA' ? 'Saturday, December 12, 2026 · 3:30 – 8:30 PM, New York time' : null,
+          subtitleAr: key === 'EVENT_AGENDA' ? 'السبت 12 ديسمبر 2026 · ‏3:30 – 8:30 مساءً بتوقيت نيويورك' : null,
+          bodyEn: key === 'EVENT_AGENDA' ? 'Speakers to be confirmed. Program subject to change.' : null,
+          bodyAr: key === 'EVENT_AGENDA' ? 'المتحدثون قيد التأكيد. البرنامج قابل للتغيير.' : null,
           sourceRef: 'Skeleton — content pending client confirmation',
           ...(SKELETON_ITEMS[key] ? { items: { create: SKELETON_ITEMS[key] } } : {}),
         },

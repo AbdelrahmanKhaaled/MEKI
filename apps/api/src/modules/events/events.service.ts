@@ -287,6 +287,9 @@ export class EventsService {
   async deleteItem(id: string, itemId: string, actor: ActorContext) {
     return this.cms.deleteItem(itemId, actor, { pageId: (await this.scope(id)).pageId });
   }
+  async reorderItems(id: string, sectionId: string, ids: string[], actor: ActorContext) {
+    return this.cms.reorderItems(sectionId, ids, actor, { pageId: (await this.scope(id)).pageId });
+  }
 
   // ───────────── public ─────────────
 

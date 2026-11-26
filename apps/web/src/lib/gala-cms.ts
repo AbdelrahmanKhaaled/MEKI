@@ -1,4 +1,4 @@
-import type { GalaDict } from "@/content/gala";
+import type { GalaDict, TimelineAct, TimelineItem } from "@/content/gala";
 // Type-only imports keep this module dependency-free at runtime (unit-tested directly by tests/nov23.test.mjs).
 import type { PublicEventPage, VenuePhoto } from "@/lib/venue-photos";
 
@@ -16,9 +16,17 @@ import type { PublicEventPage, VenuePhoto } from "@/lib/venue-photos";
  *  EVENT_SPEAKERS    item code "host"              → host photo (+ optional edited name/line)
  *  EVENT_VENUE       items                         → venue photos (lib/venue-photos.ts)
  *  EVENT_SPONSORSHIP ctaPrimaryHref (+label)       → "Sponsor now"; items with media = partner logos (title = name, href optional)
- *  EVENT_CONTACT     item href "mailto:…"          → "Questions? Email …" under Attendance
+ *  EVENT_CONTACT     item href "mailto:…"          → inquiries email (Sponsors section)
+ *  EVENT_AGENDA      section + items               → Gala Agenda Acts and Items
  */
 export type GalaImage = { src: string; alt: string; w?: number | null; h?: number | null };
+export type GalaTimelineCms = {
+  eyebrow?: string;
+  title?: string;
+  hours?: string;
+  note?: string;
+  acts: TimelineAct[];
+};
 export type GalaCms = {
   heroImage: GalaImage | null;
   purposePhotos: VenuePhoto[];
@@ -31,9 +39,10 @@ export type GalaCms = {
   venueLogo: GalaImage | null;
   partners: { name: string; href?: string; image: GalaImage }[];
   contactEmail: string | null;
+  timeline: GalaTimelineCms | null;
 };
 
-export const EMPTY_GALA_CMS: GalaCms = { heroImage: null, purposePhotos: [], experience: {}, host: null, venuePhotos: [], sponsorship: null, venueLogo: null, partners: [], contactEmail: null };
+export const EMPTY_GALA_CMS: GalaCms = { heroImage: null, purposePhotos: [], experience: {}, host: null, venuePhotos: [], sponsorship: null, venueLogo: null, partners: [], contactEmail: null, timeline: null };
 
 type Media = { url?: string; alt?: string | null; width?: number | null; height?: number | null } | null | undefined;
 const SAFE_URL = /^(https:\/\/[^\s"'<>]+|\/(?!\/)[^\s"'<>]*)$/;
@@ -85,6 +94,40 @@ export function galaCmsFrom(page: PublicEventPage | null | undefined): GalaCms {
     .map((i) => (typeof i.href === "string" && i.href.startsWith("mailto:") ? i.href.slice(7).split("?")[0] : text(i.text)))
     .find((v) => !!v && EMAIL.test(v));
 
+  const agendaSec = sec("EVENT_AGENDA");
+  let timeline: GalaTimelineCms | null = null;
+  if (agendaSec && agendaSec.provenance !== "DEMO") {
+    const agendaItems = live(agendaSec.items);
+    if (agendaItems.length > 0) {
+      const acts: TimelineAct[] = agendaItems.map((it, idx) => {
+        let parsed: { label?: string; time?: string; items?: { time?: string; title?: string; note?: string; highlight?: boolean }[] } = {};
+        if (it.text) {
+          try {
+            parsed = JSON.parse(it.text);
+          } catch {
+            // text was not JSON
+          }
+        }
+        const label = parsed.label || `Act ${idx + 1}`;
+        const title = text(it.title) || parsed.label || `Act ${idx + 1}`;
+        const time = parsed.time || "";
+        const items: TimelineItem[] = (parsed.items ?? []).map((ci) => ({
+          time: ci.time ?? "",
+          title: ci.title ?? "",
+          ...(ci.note ? { note: ci.note } : {}),
+          ...(ci.highlight ? { highlight: ci.highlight } : {}),
+        }));
+        return { label, title, time, items };
+      });
+      timeline = {
+        eyebrow: text(agendaSec.eyebrow),
+        title: text(agendaSec.title),
+        hours: text(agendaSec.subtitle),
+        note: text(agendaSec.body),
+        acts,
+      };
+    }
+  }
 
   return {
     heroImage,
@@ -96,6 +139,7 @@ export function galaCmsFrom(page: PublicEventPage | null | undefined): GalaCms {
     venueLogo,
     partners,
     contactEmail: mail ?? null,
+    timeline,
   };
 }
 

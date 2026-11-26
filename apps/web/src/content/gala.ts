@@ -34,6 +34,7 @@ export type FaqItem = { q: string; a: string; pending?: boolean };
 export type SponsorTier = { name: string; price: string; tagline: string; exclusive?: boolean; benefits: string[] };
 
 export type GalaDict = {
+  contactEmail?: string | null;
   meta: { title: string; description: string };
   draftNote: string;
   hero: { eyebrow: string; title: string; line: string; date: string; time: string; venue: string; cta: string; ctaNote: string };
@@ -46,9 +47,9 @@ export type GalaDict = {
   /** Phase 13B: arrival/transport removed at MEKI's request. `photos` labels the venue-photo gallery (photos come from the CMS). */
   venue: { eyebrow: string; title: string; name: string; address: string; mapLabel: string; photos: string };
   /** `contact` is shown only with a contact email published by MEKI (EVENT_CONTACT section or Site settings). */
-  attendance: { eyebrow: string; title: string; ticket: string; price: string; rules: string[]; note: string; contact: string };
+  attendance: { eyebrow: string; title: string; ticket: string; price: string; rules: string[]; note: string; contact: string; bookNow?: string };
   /** `cta` appears only with the official sponsorship packages URL published in the EVENT_SPONSORSHIP section. */
-  sponsorship: { eyebrow: string; title: string; body: string; pending: string; previewLabel: string; cta: string; partners: string; newTab: string; pdf: string; docNote: string };
+  sponsorship: { eyebrow: string; title: string; body: string; pending: string; previewLabel: string; cta: string; partners: string; newTab: string; pdf: string; docNote: string; contact?: string };
   /** Alt text of the venue logo (venue area only). */
   venueLogoAlt: string;
   /** "Why we gather" photo gallery label (photos only from the published EVENT_ABOUT section). */
@@ -164,6 +165,7 @@ export const galaEn: GalaDict = {
     title: "Join us for the evening.",
     ticket: "Individual ticket",
     price: "USD 500",
+    bookNow: "Book Now",
     rules: ["One ticket per guest", "Each ticket carries the guest's own name", "No plus-one"], // [C] item 22
     note: "Booking and payment arrangements will be handled by our fiscal sponsor and are being confirmed. Nothing can be purchased on this page yet.",
     contact: "Questions? Email {email}",
@@ -180,6 +182,7 @@ export const galaEn: GalaDict = {
     pdf: "Sponsorship packages, PDF, opens in a new tab",
     // Wording from the PDF itself (p. 10): informational only — no checkout, no acceptance implied.
     docNote: "Sponsorship packages (PDF). All amounts are proposed contributions; benefits are subject to final agreement and availability.",
+    contact: "For inquiries, email {email}",
   },
   venueLogoAlt: "583 Park Avenue, New York",
   purposePhotos: "Photographs of the evening",
@@ -196,11 +199,11 @@ export const galaEn: GalaDict = {
     items: [
       { q: "Dress code", a: "Black tie." },
       { q: "Dining and dietary requirements", a: "Dinner is a plated, halal meal. Other dietary requirements: gluten-free, vegan, vegetarian, nut allergy and dairy-free." },
-      { q: "Accessibility", a: "Accessibility information will be shared once the venue arrangements are confirmed.", pending: true },
+      { q: "Accessibility", a: "The venue is accessible." },
       { q: "Venue", a: "583 Park Avenue, New York." },
-      { q: "Bookings", a: "An individual ticket is USD 500 per guest, in the guest's own name. The booking process is being confirmed with our fiscal sponsor.", pending: true },
-      { q: "Cancellations", a: "Cancellation terms will be confirmed by our fiscal sponsor.", pending: true },
-      { q: "Receipts", a: "Receipt and tax information will be confirmed by our fiscal sponsor.", pending: true },
+      { q: "Bookings", a: "Bookings are confirmed. An individual ticket is USD 500 per guest, in the guest's own name." },
+      { q: "Cancellations", a: "No cancellations are allowed." },
+      { q: "Receipts", a: "Receipts are confirmed." },
     ],
     donationRefund: { q: "Donation refunds", a: "Donations to the Gala campaign are not refundable, as stated by our fiscal sponsor, Spring of Dignity International (SDI)." },
     cancellationsQ: "Cancellations",
@@ -323,6 +326,7 @@ export const galaAr: GalaDict = {
     title: "انضموا إلينا في الأمسية.",
     ticket: "تذكرة فردية",
     price: "500 دولار أمريكي",
+    bookNow: "احجز الآن",
     rules: ["تذكرة واحدة لكل ضيف", "تحمل كل تذكرة اسم الضيف نفسه", "لا يُسمح بمرافق"],
     note: "ستتولى الجهة الراعية مالياً ترتيبات الحجز والدفع وهي قيد التأكيد. لا يمكن شراء أي شيء من هذه الصفحة بعد.",
     contact: "لديك سؤال؟ راسلنا على {email}",
@@ -338,6 +342,7 @@ export const galaAr: GalaDict = {
     newTab: "(يفتح في علامة تبويب جديدة)",
     pdf: "باقات الرعاية، ملف PDF، يفتح في علامة تبويب جديدة",
     docNote: "باقات الرعاية (PDF). جميع المبالغ مساهمات مقترحة، والمزايا رهن الاتفاق النهائي والتوافر.",
+    contact: "للاستفسارات، تواصل معنا عبر {email}",
   },
   venueLogoAlt: "583 بارك أفينيو، نيويورك",
   purposePhotos: "صور من الأمسية",
@@ -350,11 +355,11 @@ export const galaAr: GalaDict = {
     items: [
       { q: "الزي", a: "زي رسمي (بلاك تاي)." },
       { q: "الطعام والاحتياجات الغذائية", a: "العشاء حلال ومُقدَّم على المائدة. الاحتياجات الغذائية الأخرى: خالٍ من الغلوتين، نباتي صرف، نباتي، حساسية المكسرات، وخالٍ من الألبان." },
-      { q: "إمكانية الوصول", a: "ستُعلن معلومات إمكانية الوصول بعد تأكيد ترتيبات المكان.", pending: true },
+      { q: "إمكانية الوصول", a: "المكان مجهز بالكامل لإمكانية الوصول." },
       { q: "المكان", a: "583 بارك أفينيو، نيويورك." },
-      { q: "الحجز", a: "سعر التذكرة الفردية 500 دولار أمريكي للضيف، باسمه. آلية الحجز قيد التأكيد مع الجهة الراعية مالياً.", pending: true },
-      { q: "الإلغاء", a: "ستؤكد الجهة الراعية مالياً شروط الإلغاء.", pending: true },
-      { q: "الإيصالات", a: "ستؤكد الجهة الراعية مالياً معلومات الإيصالات والضرائب.", pending: true },
+      { q: "الحجز", a: "الحجوزات مؤكدة. سعر التذكرة الفردية 500 دولار أمريكي للضيف، باسمه." },
+      { q: "الإلغاء", a: "لا يُسمح بإلغاء الحجوزات." },
+      { q: "الإيصالات", a: "الإيصالات مؤكدة." },
     ],
     donationRefund: { q: "استرداد التبرعات", a: "التبرعات لحملة الأمسية غير قابلة للاسترداد، وفق ما أكدته الجهة الراعية مالياً Spring of Dignity International (SDI)." },
     cancellationsQ: "الإلغاء",

@@ -19,6 +19,7 @@ import { GalaPage, useGalaError, GalaGateNotice } from "../shared";
 import { FundraisingCard } from "./FundraisingCard";
 import { LegalCopyCard } from "./LegalCopyCard";
 import { VenuePhotosCard } from "./VenuePhotosCard";
+import { GalaAgendaCard } from "./GalaAgendaCard";
 import { GalaPageCard } from "./GalaPageCard";
 
 export function GalaSettingsPage() {
@@ -56,6 +57,8 @@ function Settings({ ev }: { ev: GalaEvent }) {
       {can("events.read") && <FundraisingCard ev={ev} />}
       {/* Nov 19 2026: MEKI legal drafts, gated by SDI approval */}
       {can("events.read") && <LegalCopyCard ev={ev} />}
+      {/* Gala Agenda — dashboard management */}
+      {can("events.read") && <GalaAgendaCard ev={ev} />}
       {/* Phase 13B (21 Nov 2026): authentic venue photos for the Gala page, via the event's EVENT_VENUE section */}
       {can("events.read") && <VenuePhotosCard ev={ev} />}
       {can("events.read") && <GalaPageCard ev={ev} />}
