@@ -120,7 +120,6 @@ describe('Gala agenda — dashboard source of truth', () => {
   it('audit log records section/item create, update, reorder, delete and publish', async () => {
     const rows = await ctx.prisma.auditLog.findMany({ where: { OR: [{ entityId: secId }, { entityId: { in: (await ctx.prisma.sectionItem.findMany({ where: { sectionId: secId }, select: { id: true } })).map((i) => i.id) } }] } });
     const actions = [...new Set(rows.map((r) => r.action))];
-    // eslint-disable-next-line no-console
     console.log('AGENDA AUDIT ACTIONS:', actions.sort().join(', '));
     expect(actions.length).toBeGreaterThanOrEqual(3);
     const all = await ctx.prisma.auditLog.findMany({ where: { action: { contains: 'item' }, createdAt: { gte: new Date(Date.now() - 600_000) } } });

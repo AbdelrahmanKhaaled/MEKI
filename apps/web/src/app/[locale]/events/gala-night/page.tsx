@@ -22,7 +22,6 @@ import {
   GalaExperience,
   GalaHost,
   GalaFollow,
-  GalaTimeline,
   GalaVenue,
   GalaAttendance,
   SponsorshipSection,
@@ -30,6 +29,7 @@ import {
   GalaFaq,
   GalaBooking,
 } from "@/components/gala/GalaSections";
+import { GalaAgenda } from "@/components/gala/GalaAgenda";
 
 export const revalidate = 300;
 
@@ -134,7 +134,8 @@ export default async function GalaNightPage({ params }: { params: Promise<{ loca
           <GalaPurpose g={g} photos={cms.purposePhotos} />
           <GalaExperience g={g} cards={experienceCards(g, cms)} />
           <GalaHost g={g} host={cms.host} />
-          <GalaTimeline g={g} />
+          {/* Approved agenda (26 Nov 2026): frontend-owned static config — independent of the CMS / event API / approval */}
+          <GalaAgenda locale={locale} />
           <GalaVenue g={g} mapUrl={mapUrl} photos={venuePhotos} address={address} logo={cms.venueLogo} />
           <GalaAttendance g={g} price={apiPrice} bookHref={`/${locale}/events/gala-night/book`} />
           <SponsorshipSection g={g} tiers={sponsorPreview ? PROPOSED_SPONSORSHIP : undefined} sponsor={cms.sponsorship} partners={cms.partners} />
