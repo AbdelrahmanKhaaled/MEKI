@@ -42,7 +42,7 @@ export function DonationReturn({ t, locale, reference, cancelled }: { t: Dict; l
         if (stopped) return;
         setData(d);
         if (d.confirmed) {
-          if (d.reference === reference && d.isTest === false && d.status === "COMPLETED" && d.paymentStatus === "PAID") trackConfirmedDonation(d.reference);
+          if (d.reference === reference && d.isTest === false && d.status === "COMPLETED" && d.paymentStatus === "PAID") trackConfirmedDonation(d.reference, { amount: d.amount, currency: d.currency });
           return setView("success");
         }
         if (d.status === "FAILED") return setView("failed");

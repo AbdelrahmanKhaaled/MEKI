@@ -30,12 +30,12 @@ describe('event rules', () => {
     expect(scheduleProblems({ startsAt: future, endsAt: null, timezone: null })).toContain('timezone is required when startsAt is set');
   });
 
-  it('allows a complete, approved event', () => {
+  it('allows a complete event; an approval reference is OPTIONAL (client confirmed the content is already approved)', () => {
     expect(eventPublishBlockers(ok, { allowDemo: false })).toEqual([]);
+    expect(eventPublishBlockers({ ...ok, approvedAt: null }, { allowDemo: false })).toEqual([]);
   });
 
   it.each([
-    [{ approvedAt: null }, 'Event content has no recorded client approval'],
     [{ startsAt: null, endsAt: null }, 'A confirmed start date and time (startsAt) is required'],
     [{ startsAt: null, endsAt: null, timezone: null }, 'A confirmed timezone is required'],
     [{ shortDescEn: '' }, 'shortDescEn is required'],

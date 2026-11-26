@@ -145,6 +145,14 @@ test("delivery manifest: every delivered file is mapped exactly once (101 photos
   assert.equal(programs.size, 9);
 });
 
+test("Logo regression: the superseded pre-23-Nov Primary SVGs stored in older databases never show; the approved Secondary artwork does", () => {
+  const legacy = mergeContent(en, home({ site: site({ logos: { primary: "/brand/MEKI_Primary_Green.svg", inverse: "/brand/MEKI_Primary_White.svg", icon: null } }) }));
+  assert.equal(legacy.brand, undefined); // → Logo.tsx default = approved MEKI_Secondary_*.png
+  const mixed = mergeContent(en, home({ site: site({ logos: { primary: "/brand/MEKI_Primary_Green.svg", inverse: "/brand/MEKI_Secondary_White.png", icon: null } }) }));
+  assert.deepEqual(mixed.brand, { white: "/brand/MEKI_Secondary_White.png" });
+  assert.match(src("components/Logo.tsx"), /green: "\/brand\/MEKI_Secondary_Green\.png", white: "\/brand\/MEKI_Secondary_White\.png"/);
+});
+
 test("Site settings → Branding: only safe logo files are used, otherwise the approved built-in artwork", () => {
   const ok = mergeContent(en, home({ site: site({ logos: { primary: "/brand/MEKI_Secondary_Green.png", inverse: "/brand/MEKI_Secondary_White.png", icon: null } }) }));
   assert.deepEqual(ok.brand, { green: "/brand/MEKI_Secondary_Green.png", white: "/brand/MEKI_Secondary_White.png" });

@@ -86,11 +86,9 @@ describe('Events & Gala Night foundation', () => {
   });
 
   describe('publication workflow & public visibility', () => {
-    it('drafts are private; publishing needs approval and is public afterwards', async () => {
+    it('drafts are private; an optional approval reference can be recorded (events.approve only); public after publishing', async () => {
       const e = await newEvent();
       await ctx.http().get(`${API}/public/events/${e.slug}`).expect(404);
-      const blocked = await editor.post(`/admin/events/${e.id}/publish`).expect(422);
-      expect(blocked.body.error.details.reasons).toContain('Event content has no recorded client approval');
 
       await editor.post(`/admin/events/${e.id}/approve`, { note: 'self approval attempt' }).expect(403);
       await admin.post(`/admin/events/${e.id}/approve`, { note: 'Approved by MEKI' }).expect(200);

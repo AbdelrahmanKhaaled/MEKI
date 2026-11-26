@@ -56,10 +56,13 @@ export interface EventPublishFacts extends EventScheduleInput {
   externalRegistrationUrl: string | null;
 }
 
-/** Blocking reasons for publishing (empty = OK). Confirmed date/time/timezone + client approval are mandatory. */
+/**
+ * Blocking reasons for publishing (empty = OK). A confirmed date/time/timezone and the basic content are mandatory.
+ * A recorded approval reference (`approvedAt`) is OPTIONAL since 26 Nov 2026: MEKI confirmed the Gala content is already client-approved, so
+ * an extra approval step must not block publishing it. Recording one stays possible (and audited); nothing is ever recorded automatically.
+ */
 export function eventPublishBlockers(e: EventPublishFacts, opts: { allowDemo: boolean; now?: Date }): string[] {
   const reasons = scheduleProblems(e);
-  if (!e.approvedAt) reasons.push('Event content has no recorded client approval');
   if (e.provenance === 'DEMO' && !opts.allowDemo) reasons.push('DEMO content cannot be published');
   if (!e.titleEn?.trim()) reasons.push('titleEn is required');
   if (!e.shortDescEn?.trim()) reasons.push('shortDescEn is required');

@@ -66,7 +66,7 @@ export class EventsAdminController {
   }
 
   @Post(':id/approve') @HttpCode(200) @RequirePermissions('events.approve')
-  @ApiOperation({ summary: 'Record client approval of the event content (required to publish)' })
+  @ApiOperation({ summary: 'Record client approval of the event content (optional reference; not required to publish)' })
   approve(@Param('id') id: string, @Body() dto: ApproveEventDto, @Actor() actor: ActorContext) {
     return this.events.approve(id, dto.note, actor);
   }
@@ -82,7 +82,7 @@ export class EventsAdminController {
   }
 
   @Post(':id/publish') @HttpCode(200) @RequirePermissions('events.publish')
-  @ApiOperation({ summary: 'Publish (requires approval, confirmed start time + timezone, short description, non-DEMO)' })
+  @ApiOperation({ summary: 'Publish (requires confirmed start time + timezone, short description, non-DEMO; an approval reference is optional)' })
   publish(@Param('id') id: string, @Actor() actor: ActorContext) {
     return this.events.transition(id, 'publish', actor);
   }

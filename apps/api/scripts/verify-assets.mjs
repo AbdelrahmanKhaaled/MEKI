@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const required = [
-  'brand/MEKI_Primary_White.svg',
+  'brand/MEKI_Secondary_White.png',
   'brand/MEKI_Icon_Gold.svg',
   'fonts/NotoSans-Regular.ttf',
   'fonts/NotoSans-Bold.ttf',

@@ -174,6 +174,12 @@ export const EventDetailSchema = z
     city: strN,
     countryCode: strN,
     approvedAt: isoN.optional(),
+    approvalNote: strN.optional(),
+    approvedBy: z.object({ name: z.string(), email: z.string() }).nullable().optional(),
+    publishedAt: isoN.optional(),
+    page: z.object({ status: z.string() }).optional(),
+    /** The API's own reasons Publish would be refused (empty = ready). */
+    publishBlockers: z.array(z.string()).optional(),
   })
   .passthrough();
 export type EventDetail = z.infer<typeof EventDetailSchema>;

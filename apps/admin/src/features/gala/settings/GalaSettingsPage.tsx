@@ -20,6 +20,7 @@ import { FundraisingCard } from "./FundraisingCard";
 import { LegalCopyCard } from "./LegalCopyCard";
 import { VenuePhotosCard } from "./VenuePhotosCard";
 import { GalaAgendaCard } from "./GalaAgendaCard";
+import { GalaPublishCard } from "./GalaPublishCard";
 import { GalaPageCard } from "./GalaPageCard";
 
 export function GalaSettingsPage() {
@@ -46,6 +47,8 @@ function Settings({ ev }: { ev: GalaEvent }) {
         <CardHeader id="gs-e" title={x.event} subtitle={x.eventManaged} />
         <DetailGrid items={[[x.name, <bdi key="n">{ev.titleEn}</bdi>], [x.slug, <Ref key="s">{ev.slug}</Ref>], [x.eventStatus, ev.status]]} />
       </Card>
+      {/* The ONLY admin path to approve + publish the event (page sections stay hidden until the event is public) */}
+      {can("events.read") && detail.data && <GalaPublishCard ev={ev} d={detail.data} />}
       {can("events.read") && (detail.isPending ? <WidgetSkeleton rows={3} /> : detail.isError ? <ErrorState error={detail.error} onRetry={() => void detail.refetch()} /> : <ScheduleCard key={detail.data.id + detail.dataUpdatedAt} ev={ev} d={detail.data} />)}
       {cfg.isPending ? <WidgetSkeleton rows={4} /> : cfg.isError ? (cfg.error instanceof ApiError && cfg.error.status === 404 ? <Notice tone="warn">{x.noConfig}</Notice> : <ErrorState error={cfg.error} onRetry={() => void cfg.refetch()} />) : (
         <>

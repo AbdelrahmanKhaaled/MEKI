@@ -9,6 +9,10 @@ import { WidgetState } from "@/components/common/States";
 import { Bilingual, Checkbox, useContentError } from "@/components/content/ui";
 import { ConfirmDialog } from "@/components/finance/ui";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { galaKeys, useEventDetail } from "@/hooks/useGalaData";
+import { publishEvent } from "@/services/gala";
+import { isEventPublic } from "./GalaPublishCard";
+import { Notice } from "@/components/finance/ui";
 import type { Section, SectionItem } from "@/lib/cms-schemas";
 import type { GalaEvent } from "@/lib/gala-schemas";
 import { fill } from "@/lib/i18n";
@@ -181,6 +185,18 @@ export function GalaAgendaCard({ ev }: { ev: GalaEvent }) {
     void qc.invalidateQueries({ queryKey: key });
   };
 
+  const detail = useEventDetail(ev.id, true);
+  const { can } = useAuth();
+  const errText = useContentError();
+  const publishNow = useMutation({
+    mutationFn: () => publishEvent(ev.id),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: galaKeys.event(ev.id) });
+      void qc.invalidateQueries({ queryKey: galaKeys.events });
+      void qc.invalidateQueries({ queryKey: key });
+    },
+  });
+  const notPublic = !!detail.data && !isEventPublic(detail.data);
   const section = q.data?.sections.find((s) => s.key === "EVENT_AGENDA") ?? null;
 
   return (
@@ -189,6 +205,19 @@ export function GalaAgendaCard({ ev }: { ev: GalaEvent }) {
       <WidgetState q={q} minH="min-h-32">
         {q.data && (
           <div className="space-y-6" data-testid="gala-agenda-admin">
+            {notPublic && (
+              <Notice tone="warn">
+                <div className="space-y-2">
+                  <p data-testid="gala-agenda-not-public">{t.gala.settings.publish.notPublic}</p>
+                  {can("events.publish") && (detail.data?.publishBlockers ?? []).length === 0 && (
+                    <button type="button" className="btn-admin btn-primary" disabled={publishNow.isPending} onClick={() => publishNow.mutate()} data-testid="gala-agenda-publish-event">
+                      <Globe className="size-4" aria-hidden="true" /> {t.gala.settings.publish.publish}
+                    </button>
+                  )}
+                  {publishNow.isError && <p className="text-xs text-danger" role="alert">{errText(publishNow.error)}</p>}
+                </div>
+              </Notice>
+            )}
             {!section ? (
               <NoSection ev={ev} onCreated={refresh} />
             ) : (
@@ -236,10 +265,10 @@ function AgendaEditor({ ev, section, onChange: refresh }: { ev: GalaEvent; secti
   const errText = useContentError();
   const canManage = can("events.manage");
   const canPublish = can("events.publish");
-  const livePublished = section.status === "PUBLISHED";
-  // Save = publish: once the agenda section is live, every edit is re-published so the public page updates immediately.
+  // Save = publish (26 Nov 2026): the content is already client-approved, so EVERY save, delete and reorder is published straight away
+  // (section snapshot + website refresh) for anyone with events.publish. No approval reference or extra step is involved.
   const onChange = async () => {
-    if (livePublished && canPublish) {
+    if (canPublish) {
       try {
         await svc.setSectionStatus(ev.id, section.id, true);
       } catch {

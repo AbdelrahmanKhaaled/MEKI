@@ -87,9 +87,9 @@ export class TicketPdfService implements OnModuleInit {
     this.logger.log(`ticket PDF ready (assets: ${this.assetsDir})`);
   }
 
-  /** Official MEKI logo (white variant for the green panel), rasterised from the approved SVG — never redrawn. */
+  /** Approved MEKI logo (client edits, 23 Nov 2026: MEKI + "Misr El-Kheir International", white variant for the green panel) — the same artwork as the website, never redrawn. */
   private loadLogo(): Promise<Buffer> {
-    this.logo ??= sharp(readFileSync(resolve(this.assetsDir, 'brand/MEKI_Primary_White.svg')), { density: 300 }).resize({ width: 900 }).png().toBuffer();
+    this.logo ??= sharp(readFileSync(resolve(this.assetsDir, 'brand/MEKI_Secondary_White.png'))).resize({ width: 900 }).png().toBuffer();
     return this.logo as Promise<Buffer>;
   }
 
@@ -158,7 +158,7 @@ export class TicketPdfService implements OnModuleInit {
     doc.lineWidth(0.8).strokeColor(GOLD).rect(12, 12, W - 24, H - 24).stroke();
     doc.lineWidth(1.2).moveTo(SPLIT, 12).lineTo(SPLIT, H - 12).dash(3, { space: 3 }).stroke().undash();
 
-    doc.image(logo, 36, 34, { width: 128 }); // 900 px wide source, aspect ratio preserved by pdfkit (width only)
+    doc.image(logo, 36, 34, { width: 128 }); // 900 px wide source (1200×365 approved ratio), aspect preserved by pdfkit (width only)
 
     doc.font('Helvetica-Bold').fontSize(8).fillColor(GOLD).text('ADMIT ONE', 36, 92, { characterSpacing: 2.2 });
     doc.font('Times-Bold').fontSize(30).fillColor('#ffffff').text(t.eventName, 36, 112, { width: SPLIT - 72, lineGap: 1 });

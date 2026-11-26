@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import type { AppConfigService } from '../../config/app-config.service';
 
 /** Marker file used to recognise a complete runtime asset directory. */
-const LOGO = 'brand/MEKI_Primary_White.svg';
+const LOGO = 'brand/MEKI_Secondary_White.png';
 
 /**
  * Locates runtime assets (brand logos, bundled fonts). Order: ASSETS_DIR, apps/api/assets (source tree or a deployment that

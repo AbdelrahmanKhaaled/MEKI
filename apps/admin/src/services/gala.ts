@@ -1,6 +1,6 @@
 /** Phase 6E — one function per existing Gala endpoint (apps/api gala.controllers.ts + gala-ops.controller.ts). No component calls the network. */
 import { z } from "zod";
-import { apiDownload, apiGet, apiList, apiPatch, apiPost, type Query } from "@/lib/api";
+import { apiDownload, apiGet, apiList, apiPatch, apiPost, apiPostOutcome, type Query } from "@/lib/api";
 import {
   BookingDetailSchema, BookingRowSchema, CheckInResponseSchema, CheckInStatsSchema, EventDetailSchema, GalaEventSchema, GalaFinancialsSchema, GuestRowSchema, HistoryRowSchema,
   JobsPageSchema, LookupRowSchema, TicketConfigSchema, TicketingInfoSchema, TicketSchema,
@@ -18,6 +18,10 @@ export const getFinancials = (ev: string, includeTest: boolean) => apiGet(`${e(e
 export const getTicketConfig = (ev: string) => apiGet(`${e(ev)}/ticketing`, TicketConfigSchema);
 export const updateTicketConfig = (ev: string, b: Body) => apiPatch(`${e(ev)}/ticketing`, TicketConfigSchema, b);
 export const getEvent = (ev: string) => apiGet(e(ev), EventDetailSchema);
+/** Event approval + publication (the ONLY admin path to make an event public). events.approve / events.publish; both audited by the API. */
+export const approveEvent = (ev: string, note: string) => apiPost(`${e(ev)}/approve`, EventDetailSchema, { note });
+export const publishEvent = (ev: string) => apiPostOutcome(`${e(ev)}/publish`, EventDetailSchema);
+export const unpublishEvent = (ev: string) => apiPostOutcome(`${e(ev)}/unpublish`, EventDetailSchema);
 export const updateEvent = (ev: string, b: Body) => apiPatch(e(ev), EventDetailSchema, b);
 export const getTicketingInfo = (slug: string) => apiGet(`/public/events/${id(slug)}/ticketing`, TicketingInfoSchema);
 

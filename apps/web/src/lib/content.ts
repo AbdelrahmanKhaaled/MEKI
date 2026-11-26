@@ -306,6 +306,11 @@ export function mergeContent(base: Dict, home: PublicHome): Dict {
 }
 
 const EMAIL = /^[^\s@<>"]+@[^\s@<>"]+\.[a-z]{2,}$/i;
+/**
+ * Logo files superseded by the approved MEKI_Secondary artwork (client edits, 23 Nov 2026). Site settings are seeded only once, so
+ * sites created before that change can still store these paths; they are ignored (the approved default shows) — no database edit needed.
+ */
+export const SUPERSEDED_LOGOS = new Set(["/brand/MEKI_Primary_Green.svg", "/brand/MEKI_Primary_White.svg"]);
 /** Keeps an editor-changed value (≠ the built-in default); otherwise a non-empty Site-settings value; otherwise the default. */
 const prefer = (current: string, builtIn: string, site: string | null | undefined) => (current.trim() !== builtIn.trim() || !site?.trim() ? current : site.trim());
 
@@ -332,7 +337,7 @@ export function applySiteSettings(t: Dict, base: Dict, site: PublicSite | null |
   if (site.address?.trim()) f.address = site.address.trim();
   // Logos (Site settings → Branding): primary = on light backgrounds, inverse = on dark. Only same-origin /brand/ files or an allowed
   // Media Library image are accepted, and the logo is never re-drawn or stretched (Logo sets only the width).
-  const logo = (u: string | null | undefined) => (u && (/^\/brand\/[\w.-]+\.(?:png|svg|webp)$/.test(u.trim()) || isAllowedRemoteImage(u.trim())) ? u.trim() : undefined);
+  const logo = (u: string | null | undefined) => (u && !SUPERSEDED_LOGOS.has(u.trim()) && (/^\/brand\/[\w.-]+\.(?:png|svg|webp)$/.test(u.trim()) || isAllowedRemoteImage(u.trim())) ? u.trim() : undefined);
   const green = logo(site.logos?.primary);
   const white = logo(site.logos?.inverse);
   if (green || white) t.brand = { ...(green ? { green } : {}), ...(white ? { white } : {}) };

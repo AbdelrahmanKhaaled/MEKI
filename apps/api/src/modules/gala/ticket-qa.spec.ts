@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import jsQR from 'jsqr';
@@ -125,15 +125,22 @@ describe('ticket PDF (Arabic, English, mixed, long, special)', () => {
     }
   });
 
+  it('the ticket PDF embeds the approved logo at its 1200x365 ratio (900x274 raster)', async () => {
+    const body = (await render('Amira Hassan')).toString('latin1');
+    expect(body).toMatch(/\/Width 900\b[^>]{0,120}\/Height 274\b|\/Height 274\b[^>]{0,120}\/Width 900\b/);
+  });
+
   it('startup self-test renders Arabic through the real shaping path', async () => {
     await expect(svc.onModuleInit()).resolves.toBeUndefined();
   });
 
-  it('logo keeps the approved aspect ratio (SVG viewBox 643.075 x 145.016)', async () => {
-    const svg = resolve(resolveAssetsDir(), 'brand/MEKI_Primary_White.svg');
-    const png = await sharp(svg, { density: 300 }).resize({ width: 900 }).png().toBuffer();
+  it('logo is the approved MEKI_Secondary artwork (byte-identical to the website file) and keeps its 1200x365 aspect ratio', async () => {
+    const file = resolve(resolveAssetsDir(), 'brand/MEKI_Secondary_White.png');
+    const web = resolve(__dirname, '../../../../web/public/brand/MEKI_Secondary_White.png');
+    if (existsSync(web)) expect(readFileSync(file).equals(readFileSync(web))).toBe(true);
+    const png = await sharp(readFileSync(file)).resize({ width: 900 }).png().toBuffer();
     const meta = await sharp(png).metadata();
-    expect(meta.width! / meta.height!).toBeCloseTo(643.075 / 145.016, 1);
+    expect(meta.width! / meta.height!).toBeCloseTo(1200 / 365, 1);
   });
 });
 
@@ -212,7 +219,7 @@ describe('runtime assets', () => {
       expect(assetDirCandidates(dir)[0]).toBe(dir);
       expect(resolveAssetsDir(dir)).not.toBe(dir); // no logo in the temp dir → falls through to the shipped assets
       mkdirSync(resolve(dir, 'brand'), { recursive: true });
-      writeFileSync(resolve(dir, 'brand/MEKI_Primary_White.svg'), '<svg/>');
+      writeFileSync(resolve(dir, 'brand/MEKI_Secondary_White.png'), 'x');
       expect(resolveAssetsDir(dir)).toBe(dir);
     } finally {
       rmSync(dir, { recursive: true, force: true });

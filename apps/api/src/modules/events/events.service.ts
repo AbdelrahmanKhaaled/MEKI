@@ -85,7 +85,8 @@ export class EventsService {
   async get(id: string) {
     const e = await this.prisma.event.findFirst({ where: { id, deletedAt: null }, include });
     if (!e) throw new NotFoundException('Event not found');
-    return this.present(e);
+    // `publishBlockers` is the server's own list of reasons Publish would be refused (same rules as transition()); the admin shows it verbatim.
+    return { ...this.present(e), publishBlockers: eventPublishBlockers(e, { allowDemo: !this.config.isProduction && this.config.get('ALLOW_DEMO_PUBLISH') }) };
   }
 
   private assertSchedule(startsAt: Date | null, endsAt: Date | null, timezone: string | null) {
@@ -297,7 +298,7 @@ export class EventsService {
     return {
       deletedAt: null,
       status: { in: PUBLIC_EVENT_STATUSES },
-      approvedAt: { not: null },
+      // approvedAt is intentionally NOT required (see event.rules.ts): an event is public once it is PUBLISHED by someone with events.publish.
       publishedAt: { not: null },
       provenance: { not: 'DEMO' },
     };

@@ -31,7 +31,7 @@ export function IntentStatus({ locale, reference }: { locale: Locale; reference:
         if (!alive) return;
         if (result.kind === "ok") {
           const { data } = result;
-          if (data.reference === reference && data.verifiedAt && (data.stage === "VERIFIED" || data.stage === "ALLOCATED")) trackConfirmedDonation(data.reference);
+          if (data.reference === reference && data.verifiedAt && (data.stage === "VERIFIED" || data.stage === "ALLOCATED")) trackConfirmedDonation(data.reference, { amount: data.intendedAmount, currency: data.currency });
         }
         setState(result);
       });
