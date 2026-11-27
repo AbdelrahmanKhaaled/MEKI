@@ -14,10 +14,12 @@ const gala = src("app/[locale]/events/gala-night/page.tsx");
 const donate = src("components/programme/ProgrammeDonate.tsx");
 const programmePage = src("app/[locale]/programs/[slug]/page.tsx");
 
-test("hosted form links: only https zeffy.com URLs returned by the API are ever shown", () => {
-  assert.equal(isTrustedHostedFormUrl("https://www.zeffy.com/en-US/ticketing/misr-el-kheir-foundation-gala-new-york"), true);
+test("hosted form links: only https givebutter.com / zeffy.com URLs returned by the API are ever shown", () => {
+  assert.equal(isTrustedHostedFormUrl("https://givebutter.com/c/SDI-Misr-El-Kheir"), true);
+  assert.equal(isTrustedHostedFormUrl("https://www.givebutter.com/c/SDI-Misr-El-Kheir"), true);
+  assert.equal(isTrustedHostedFormUrl("https://www.zeffy.com/en-US/donation-form/misr-el-kheir-foundation-gala-new-york-donation"), true);
   assert.equal(isTrustedHostedFormUrl("https://zeffy.com/x"), true);
-  for (const bad of ["http://www.zeffy.com/x", "https://zeffy.com.evil.example/x", "https://evilzeffy.com/x", "https://user:pw@www.zeffy.com/x", "javascript:alert(1)", "", null, undefined, "/relative"]) {
+  for (const bad of ["http://givebutter.com/x", "http://www.zeffy.com/x", "https://givebutter.com.evil.example/x", "https://zeffy.com.evil.example/x", "https://evilgivebutter.com/x", "https://evilzeffy.com/x", "https://user:pw@givebutter.com/x", "https://user:pw@www.zeffy.com/x", "javascript:alert(1)", "", null, undefined, "/relative"]) {
     assert.equal(isTrustedHostedFormUrl(bad), false, String(bad));
   }
 });

@@ -65,11 +65,15 @@ test("Host: photo from the published Media Library asset, approved name and line
   assert.match(gala, /sizes="\(min-width:640px\) 192px, 160px"/); // ≤ 192 px from a 1056 px source: never upscaled
 });
 
-test("Sponsor now: opens the packages PDF from the CMS document reference; informational only", () => {
+test("Sponsor now: external https sponsorship page takes priority over the CMS PDF fallback", () => {
   const c = galaCmsFrom(page);
   assert.deepEqual(c.sponsorship, { href: `${API}/media/uploads/2026/11/packages.pdf`, label: undefined, document: true });
-  // the PDF wins over an external link; an http or non-PDF media file never becomes the document
-  assert.equal(galaCmsFrom({ sections: [{ key: "EVENT_SPONSORSHIP", media: { url: `${API}/media/x.pdf` }, ctaPrimaryHref: "https://example.org/p" }] }).sponsorship.href, `${API}/media/x.pdf`);
+  // an explicit external https link wins over an uploaded PDF; an http or non-PDF media file never becomes the document
+  assert.deepEqual(galaCmsFrom({ sections: [{ key: "EVENT_SPONSORSHIP", media: { url: `${API}/media/x.pdf` }, ctaPrimaryHref: "https://givebutter.com/c/misr-el-kheir-foundation-spring-of-dignity-gala-new-york-sponsors" }] }).sponsorship, {
+    href: "https://givebutter.com/c/misr-el-kheir-foundation-spring-of-dignity-gala-new-york-sponsors",
+    label: undefined,
+    document: false,
+  });
   assert.equal(galaCmsFrom({ sections: [{ key: "EVENT_SPONSORSHIP", media: { url: "http://evil.example/x.pdf" } }] }).sponsorship, null);
   assert.equal(galaCmsFrom({ sections: [{ key: "EVENT_SPONSORSHIP", media: { url: `${API}/media/x.png` } }] }).sponsorship, null);
   assert.equal(galaCmsFrom({ sections: [{ key: "EVENT_SPONSORSHIP", provenance: "DEMO", media: { url: `${API}/media/x.pdf` } }] }).sponsorship, null);
@@ -78,7 +82,10 @@ test("Sponsor now: opens the packages PDF from the CMS document reference; infor
   assert.match(gala, /\{s\.docNote\}/);
   assert.match(galaEn.sponsorship.docNote, /proposed contributions/);
   assert.match(galaEn.sponsorship.pdf, /PDF, opens in a new tab/);
-  // no tiers, prices or payment UI on the public page (the PDF is the source); dev-only preview stays gated
+  // approvedGalaAssets routes Sponsor now to the official Givebutter sponsorship link unless an external CMS URL overrides it
+  const assetsSrc = src("content/gala-assets.ts");
+  assert.match(assetsSrc, /OFFICIAL_GALA_FORMS\.sponsor/);
+  // no tiers, prices or payment UI on the public page; dev-only preview stays gated
   assert.match(src("app/[locale]/events/gala-night/page.tsx"), /process\.env\.NODE_ENV !== "production" && process\.env\.NEXT_PUBLIC_GALA_PREVIEW === "1"/);
   assert.doesNotMatch(JSON.stringify([galaEn.sponsorship, galaAr.sponsorship]), /USD|100,000|checkout|pay/i);
 });

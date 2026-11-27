@@ -374,8 +374,8 @@ export class EnvironmentVariables {
   MEKI_REVALIDATE_SECRET?: string;
 }
 
-/** Hosts a configured Zeffy hosted-form URL may use (extended only after SDI confirms other hosts). */
-export const ZEFFY_FORM_HOSTS = ['www.zeffy.com', 'zeffy.com'] as const;
+/** Hosts a configured SDI hosted-form URL may use (Givebutter & Zeffy). */
+export const ZEFFY_FORM_HOSTS = ['givebutter.com', 'www.givebutter.com', 'www.zeffy.com', 'zeffy.com'] as const;
 export const ZEFFY_OFFICIAL_API = 'https://api.zeffy.com';
 
 /** Validates the Zeffy settings; returns nothing, throws on unsafe values. Exported for unit tests. */

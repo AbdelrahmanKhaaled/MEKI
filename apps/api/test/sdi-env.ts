@@ -3,8 +3,8 @@
 const KEYS = ['GALA_TICKETING_MODE', 'GALA_HOSTED_SALES_ENABLED', 'ZEFFY_GALA_TICKET_FORM_URL', 'SDI_REPORT_APPLY_ENABLED', 'ZEFFY_GALA_AUTO_CONFIRM', 'SDI_GENERAL_GIVING_ENABLED', 'SDI_PROGRAMME_GIVING_ENABLED'] as const;
 const saved = Object.fromEntries(KEYS.map((k) => [k, process.env[k]]));
 
-/** The SDI-provided Gala form (SDI e-mail, 2026-11). Never contacted by tests. */
-export const SDI_GALA_FORM = 'https://www.zeffy.com/en-US/ticketing/misr-el-kheir-foundation-gala-new-york';
+/** The SDI-provided Gala form (Givebutter). Never contacted by tests. */
+export const SDI_GALA_FORM = 'https://givebutter.com/c/SDI-Misr-El-Kheir';
 
 process.env.GALA_TICKETING_MODE = 'zeffy_hosted';
 process.env.GALA_HOSTED_SALES_ENABLED = 'true';

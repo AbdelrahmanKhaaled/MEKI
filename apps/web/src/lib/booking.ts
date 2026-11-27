@@ -227,8 +227,8 @@ export function buildHostedRequest(f: HostedForm, locale: "en" | "ar"): CreateHo
   return { purchaser: { fullName: norm(f.fullName), email: f.email.trim() }, ticketCount: f.quantity, locale, privacyConsent: true };
 }
 
-/** Zeffy hosts SDI's forms. The link is shown only if the BACKEND returned it AND it is https on zeffy.com (no credentials). */
-export const HOSTED_FORM_HOSTS = ["zeffy.com"];
+/** Approved platforms hosting SDI's forms. The link is shown only if the BACKEND returned it AND it is https on an allowed host (no credentials). */
+export const HOSTED_FORM_HOSTS = ["givebutter.com", "zeffy.com"];
 export function isTrustedHostedFormUrl(url: string | null | undefined): url is string {
   if (!url) return false;
   try {

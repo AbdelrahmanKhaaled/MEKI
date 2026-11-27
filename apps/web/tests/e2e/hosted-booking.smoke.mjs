@@ -13,7 +13,7 @@ const WEB = process.env.WEB_URL ?? "http://localhost:3000";
 const OUT = process.argv[2] ?? "./smoke-out-hosted";
 const ENGINE = process.env.BROWSER ?? "chromium";
 mkdirSync(OUT, { recursive: true });
-const FORM = "https://www.zeffy.com/en-US/ticketing/misr-el-kheir-foundation-gala-new-york";
+const FORM = "https://givebutter.com/c/SDI-Misr-El-Kheir";
 const TOKEN = "stub-hosted-token-0123456789abcdef";
 const REF = "EB-HSTD00000001";
 
@@ -72,7 +72,7 @@ try {
   // ── EN flow, desktop ──
   let { ctx, page } = await newPage();
   await page.goto(`${WEB}/en/events/gala-night/book`, { waitUntil: "networkidle" });
-  check("hosted mode: intro names SDI's Zeffy form", await page.getByText(/hosted by Zeffy/).isVisible());
+  check("hosted mode: intro names SDI's Givebutter form", await page.getByText(/hosted by Givebutter/).isVisible());
   check("hosted mode: steps are Tickets / Your details / Pay on SDI's form", await page.getByText("Pay on SDI's form").isVisible());
   await page.getByRole("button", { name: "More tickets" }).click();
   check("quantity 2 → estimated total $1,500", (await page.locator("aside").innerText()).includes("$1,500"));
@@ -112,7 +112,7 @@ try {
   const CONF = "EB-HSTD0000CONF";
   await page.goto(`${WEB}/en/events/gala-night/booking/${CONF}#token=${TOKEN}`, { waitUntil: "networkidle" });
   await page.getByText("Booking confirmed by SDI").waitFor();
-  check("confirmed by SDI: no MEKI ticket list or downloads", (await page.getByText("Download ticket").count()) === 0 && (await page.getByText("Use the tickets sent by Zeffy").count()) === 1);
+  check("confirmed by SDI: no MEKI ticket list or downloads", (await page.getByText("Download ticket").count()) === 0 && (await page.getByText("Use the tickets sent by Givebutter").count()) === 1);
   check("mobile 390px: no horizontal scroll", await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
   await page.screenshot({ path: `${OUT}/hosted-confirmed-mobile-${ENGINE}.png`, fullPage: true });
   await ctx.close();
@@ -135,7 +135,7 @@ try {
   ({ ctx, page } = await newPage(1440, 900, "ar"));
   await page.goto(`${WEB}/ar/events/gala-night/book`, { waitUntil: "networkidle" });
   check("Arabic: RTL document", (await page.evaluate(() => document.documentElement.dir)) === "rtl");
-  check("Arabic: hosted intro shown", await page.getByText(/المستضاف على Zeffy/).isVisible());
+  check("Arabic: hosted intro shown", await page.getByText(/المستضاف على Givebutter/).isVisible());
   await page.getByRole("button", { name: "المتابعة إلى بياناتك" }).click();
   await page.fill("#h-name", "أميرة حسن");
   await page.fill("#h-email", "amira3@example.org");

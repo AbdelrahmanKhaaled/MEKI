@@ -6,7 +6,7 @@ import { chromium, firefox, webkit } from "playwright-core";
 
 const WEB = process.env.WEB_URL ?? "http://localhost:3200";
 const ENGINE = process.env.BROWSER ?? "chromium";
-const TICKET = "https://www.zeffy.com/en-US/ticketing/misr-el-kheir-foundation-gala-new-york";
+const TICKET = "https://givebutter.com/c/SDI-Misr-El-Kheir";
 const DONATION = "https://www.zeffy.com/en-US/donation-form/misr-el-kheir-foundation-gala-new-york-donation";
 const browser = ENGINE === "chromium"
   ? await chromium.launch({ executablePath: process.env.CHROME_PATH ?? "C:/Program Files/Google/Chrome/Application/chrome.exe", headless: true })
@@ -20,7 +20,7 @@ try {
     const page = await ctx.newPage();
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    await page.route(/zeffy\.com/, (r) => r.abort()); // never contact the real forms from a test
+    await page.route(/givebutter\.com|zeffy\.com/, (r) => r.abort()); // never contact the real forms from a test
 
     for (const [path, kind, url] of [["book", "ticket", TICKET], ["donate", "donation", DONATION]]) {
       await page.goto(`${WEB}/${locale}/events/gala-night/${path}`, { waitUntil: "networkidle" });
@@ -31,7 +31,7 @@ try {
       check(`${locale} ${path}: link is exactly the official ${kind} form`, (await link.getAttribute("href")) === url);
       check(`${locale} ${path}: opens in a new tab without opener/referrer`, (await link.getAttribute("target")) === "_blank" && /noopener/.test(await link.getAttribute("rel")) && /noreferrer/.test(await link.getAttribute("rel")));
       check(`${locale} ${path}: no MEKI reference and no iframe`, (await page.locator("[data-testid=donation-reference], iframe").count()) === 0 && !/\b(EB|DN)-[A-Z0-9]{12}\b/.test(await page.locator("main").innerText()));
-      check(`${locale} ${path}: honest confirmation note`, /SDI\/Zeffy/.test(await panel.innerText()));
+      check(`${locale} ${path}: honest confirmation note`, /SDI\/(Givebutter|Zeffy)/.test(await panel.innerText()));
       check(`${locale} ${path}: direction and viewport`, (await page.locator("html").getAttribute("dir")) === (locale === "ar" ? "rtl" : "ltr") && (await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)));
     }
     if (errors.length) console.log(`  page errors (${locale}): ${errors.slice(0, 3).map((m) => m.slice(0, 160)).join(" || ")}`);

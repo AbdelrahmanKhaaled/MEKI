@@ -73,7 +73,7 @@ sudo -u meki pm2 install pm2-logrotate
 | File | Owner / mode | Loaded | Contents |
 |---|---|---|---|
 | `/etc/meki/api.env` | root:meki 0640 | runtime (`node --env-file`, via PM2) | from `api.env.example`: `DATABASE_URL` (meki_app), token secrets (`openssl rand -base64 48`), origins, `LOCAL_STORAGE_DIR=/var/lib/meki/uploads` (absolute, outside releases), `WEB_REVALIDATE_URL=http://127.0.0.1:3000/api/internal/revalidate`, `MEKI_REVALIDATE_SECRET`, **all financial switches `false`** |
-| `/etc/meki/web.build.env` | root:meki 0640 | build time (`deploy.sh`) | `MEKI_DEPLOY_ENV=production`, `NEXT_PUBLIC_API_URL=https://api.meki-us.org/api/v1`, `NEXT_PUBLIC_SITE_URL=https://meki-us.org`, `NEXT_PUBLIC_CHECKOUT_ALLOWED_HOSTS=www.zeffy.com`, `NEXT_PUBLIC_GALA_TICKET_FORM_HANDOFF=false`, `NEXT_PUBLIC_GALA_DONATION_FORM_HANDOFF=false` |
+| `/etc/meki/web.build.env` | root:meki 0640 | build time (`deploy.sh`) | `MEKI_DEPLOY_ENV=production`, `NEXT_PUBLIC_API_URL=https://api.meki-us.org/api/v1`, `NEXT_PUBLIC_SITE_URL=https://meki-us.org`, `NEXT_PUBLIC_CHECKOUT_ALLOWED_HOSTS=givebutter.com,www.givebutter.com,www.zeffy.com`, `NEXT_PUBLIC_GALA_TICKET_FORM_HANDOFF=true`, `NEXT_PUBLIC_GALA_DONATION_FORM_HANDOFF=false` |
 | `/etc/meki/web.env` | root:meki 0640 | runtime | `NODE_ENV=production`, `API_INTERNAL_URL=http://127.0.0.1:8080/api/v1` (nginx loopback proxy — Node's fetch refuses port 6666 as a "bad port"), `MEKI_REVALIDATE_SECRET` (same value as in api.env) |
 | `/etc/meki/admin.build.env` | root:meki 0640 | build time | `MEKI_DEPLOY_ENV=production`, `ADMIN_API_UPSTREAM=https://api.meki-us.org` (no `/api/v1`) |
 | `/etc/meki/admin.env` | root:meki 0640 | runtime | `NODE_ENV=production` |

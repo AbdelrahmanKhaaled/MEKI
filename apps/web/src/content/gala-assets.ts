@@ -1,5 +1,6 @@
 import type { GalaCms } from "@/lib/gala-cms";
 import type { Locale } from "@/lib/i18n";
+import { OFFICIAL_GALA_FORMS } from "@/lib/official-forms";
 
 export function approvedGalaAssets(cms: GalaCms, locale: Locale): GalaCms {
   const ar = locale === "ar";
@@ -14,6 +15,8 @@ export function approvedGalaAssets(cms: GalaCms, locale: Locale): GalaCms {
     venueLogo: cms.venueLogo ?? { src: "/gala/venue-logo-white.png", alt: ar ? "583 بارك أفينيو" : "583 Park Avenue" },
     host: { ...cms.host, image: cms.host?.image ?? { src: "/gala/host-raya-abirached.png", alt: ar ? "رايا أبي راشد" : "Raya Abirached" } },
     experience: { ...cms.experience, "black-tie": { ...arrival, image: arrival?.image ?? day } },
-    sponsorship: cms.sponsorship?.document ? cms.sponsorship : { document: true, href: "/gala/sponsorship-packages.pdf" },
+    sponsorship: cms.sponsorship && !cms.sponsorship.document
+      ? cms.sponsorship
+      : { document: false, href: OFFICIAL_GALA_FORMS.sponsor, ...(cms.sponsorship?.label ? { label: cms.sponsorship.label } : {}) },
   };
 }

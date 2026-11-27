@@ -83,10 +83,11 @@ export function galaCmsFrom(page: PublicEventPage | null | undefined): GalaCms {
     .map((i) => ({ name: text(i.title), href: typeof i.href === "string" && /^https:\/\//.test(i.href) ? i.href : undefined, image: image(i.media) }))
     .filter((p): p is { name: string; href: string | undefined; image: GalaImage } => !!p.name && !!p.image);
   const spon = sec("EVENT_SPONSORSHIP");
-  // "Sponsor now" (24 Nov 2026): the packages PDF stored in the Media Library wins; an external https page is the alternative.
+  // "Sponsor now": an external https sponsorship page (e.g. Givebutter) takes priority; a Media Library PDF is the fallback.
   const sponLive = spon && spon.provenance !== "DEMO" ? spon : undefined;
-  const sponDoc = sponLive?.media?.url && SAFE_URL.test(sponLive.media.url) && isPdfUrl(sponLive.media.url) ? sponLive.media.url : null;
-  const sponHref = sponDoc ?? (typeof sponLive?.ctaPrimaryHref === "string" && /^https:\/\/[^\s"'<>]+$/.test(sponLive.ctaPrimaryHref) ? sponLive.ctaPrimaryHref : null);
+  const sponExt = typeof sponLive?.ctaPrimaryHref === "string" && /^https:\/\/[^\s"'<>]+$/.test(sponLive.ctaPrimaryHref) ? sponLive.ctaPrimaryHref : null;
+  const sponDoc = !sponExt && sponLive?.media?.url && SAFE_URL.test(sponLive.media.url) && isPdfUrl(sponLive.media.url) ? sponLive.media.url : null;
+  const sponHref = sponExt ?? sponDoc;
   const venueSec = sec("EVENT_VENUE");
   const venueLogo = venueSec && venueSec.provenance !== "DEMO" ? image(venueSec.media) ?? null : null;
 

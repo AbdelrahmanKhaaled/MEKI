@@ -147,9 +147,9 @@ export const galaEn = {
       publishBody: "The completed items become public on the Gala page while the event itself is public. Incomplete items stay hidden.",
       save: "Save", remove: "Remove", removeTitle: "Remove this item?", removeBody: "The image stays in the Media Library.", visible: "Show on the website",
       itemTitle: "Title", itemText: "Text", itemHref: "Link (https://)", httpsOnly: "Use a full https:// address.", emailInvalid: "Enter a valid email address.",
-      sponsorUrl: "Sponsorship packages — file or page (https://)", sponsorUrlHint: "The “Sponsor now” button appears only when this link is set and the block is published.", sponsorLabel: "Button label (empty = “Sponsor now”)",
+      sponsorUrl: "Sponsorship page or packages URL (https://)", sponsorUrlHint: "External sponsorship link for the “Sponsor now” button (takes priority over an uploaded PDF; defaults to the official Givebutter sponsorship page when empty).", sponsorLabel: "Button label (empty = “Sponsor now”)",
       pdfLabel: "Sponsorship packages (PDF)", pdfNone: "No PDF yet.", pdfUpload: "Upload PDF", pdfReplace: "Replace PDF", pdfRemove: "Remove PDF", pdfOnly: "Choose a PDF file.",
-      pdfHint: "Informational only: “Sponsor now” opens this PDF in a new tab (it takes priority over the link above). To update: upload the new PDF, Save, then Publish. Earlier versions stay in the Media Library.",
+      pdfHint: "Optional packages PDF stored in the Media Library (used when no external sponsorship URL is set above). Earlier versions stay in the Media Library.",
       codes: { "black-tie": "Card 1 — Black-tie evening (venue photo)", dinner: "Card 2 — Set-menu dinner (plated dish)", bar: "Card 3 — Virgin Drinks (drinks)", lamps: "Card 4 — Lamp-lighting moment (lamps)", auction: "Card 5 — Live auction (auction items)", host: "Host — Raya Abirached", email: "Contact email for questions", "partner-bokra": "Partner — Bokra", "partner-waterway": "Partner — The Waterway" },
       partnerHidden: "Hidden: not shown on the website. Upload the official logo, tick “Show on the website”, Save, then publish this block.", partnerNoLogo: "No logo yet: a partner without a logo is never shown.", partnerReady: "Ready: shown on the website once this block is published.",
       blocks: {
@@ -385,9 +385,9 @@ export const galaAr: GalaDict = {
       publishBody: "تظهر العناصر المكتملة على صفحة الأمسية طالما أن الفعالية منشورة. تبقى العناصر غير المكتملة مخفية.",
       save: "حفظ", remove: "إزالة", removeTitle: "إزالة هذا العنصر؟", removeBody: "تبقى الصورة في مكتبة الوسائط.", visible: "إظهار على الموقع",
       itemTitle: "العنوان", itemText: "النص", itemHref: "الرابط (https://)", httpsOnly: "استخدم عنواناً كاملاً يبدأ بـ https://.", emailInvalid: "أدخل بريداً إلكترونياً صالحاً.",
-      sponsorUrl: "باقات الرعاية — ملف أو صفحة (https://)", sponsorUrlHint: "يظهر زر «كن راعيًا الآن» فقط عند ضبط هذا الرابط ونشر القسم.", sponsorLabel: "نص الزر (فارغ = «كن راعيًا الآن»)",
+      sponsorUrl: "رابط صفحة أو باقات الرعاية (https://)", sponsorUrlHint: "رابط الرعاية الخارجي لزر «كن راعيًا الآن» (له الأولوية على ملف الـ PDF؛ ويستخدم صفحة الرعاية الرسمية على Givebutter عند تركه فارغاً).", sponsorLabel: "نص الزر (فارغ = «كن راعيًا الآن»)",
       pdfLabel: "باقات الرعاية (PDF)", pdfNone: "لا يوجد ملف PDF بعد.", pdfUpload: "رفع ملف PDF", pdfReplace: "استبدال ملف PDF", pdfRemove: "إزالة ملف PDF", pdfOnly: "اختر ملف PDF.",
-      pdfHint: "للاطلاع فقط: يفتح زر «كن راعيًا الآن» هذا الملف في علامة تبويب جديدة (وله الأولوية على الرابط أعلاه). للتحديث: ارفع الملف الجديد، ثم احفظ، ثم انشر. تبقى النسخ السابقة في مكتبة الوسائط.",
+      pdfHint: "ملف باقات الرعاية الاختياري في مكتبة الوسائط (يُستخدم عند عدم تحديد رابط خارجي أعلاه). تبقى النسخ السابقة في مكتبة الوسائط.",
       codes: { "black-tie": "البطاقة 1 — أمسية رسمية (صورة المكان)", dinner: "البطاقة 2 — عشاء بقائمة محددة (طبق مقدَّم)", bar: "البطاقة 3 — مشروبات منعشة (المشروبات)", lamps: "البطاقة 4 — لحظة إضاءة المصابيح", auction: "البطاقة 5 — مزاد حي (قطع المزاد)", host: "المقدّمة — رايا أبي راشد", email: "بريد التواصل للاستفسارات", "partner-bokra": "الشريك — Bokra", "partner-waterway": "الشريك — The Waterway" },
       partnerHidden: "مخفي: لا يظهر على الموقع. ارفع الشعار الرسمي، وفعّل «إظهار على الموقع»، ثم احفظ وانشر هذا القسم.", partnerNoLogo: "لا يوجد شعار بعد: لا يُعرض شريك بلا شعار أبداً.", partnerReady: "جاهز: يظهر على الموقع عند نشر هذا القسم.",
       blocks: {

@@ -439,12 +439,12 @@ export function SponsorshipSection({ g, tiers, sponsor, partners = [] }: { g: Ga
           </p>
           {sponsor ? (
             <div data-reveal>
-              {/* Informational packages only: opens the PDF; no checkout, booking or acceptance is started here. */}
+              {/* Opens the official sponsorship page or packages PDF in a new tab. */}
               <a
                 href={sponsor.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                {...(sponsor.document ? { type: "application/pdf" } : {})}
+                {...(sponsor.document ? { type: "application/pdf" } : { referrerPolicy: "no-referrer" })}
                 className="btn btn-gold mt-3 min-h-14 px-8 text-base"
                 data-testid="gala-sponsor-now"
               >

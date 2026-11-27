@@ -11,7 +11,7 @@ export const SYNTHETIC_GALA_GIVING_FORM = 'https://www.zeffy.com/en-US/donation-
 
 process.env.GALA_TICKETING_MODE = 'zeffy_hosted';
 process.env.GALA_HOSTED_SALES_ENABLED = 'true';
-process.env.ZEFFY_GALA_TICKET_FORM_URL = 'https://www.zeffy.com/en-US/ticketing/misr-el-kheir-foundation-gala-new-york';
+process.env.ZEFFY_GALA_TICKET_FORM_URL = 'https://givebutter.com/c/SDI-Misr-El-Kheir';
 process.env.ZEFFY_GALA_GIVING_FORM_URL = SYNTHETIC_GALA_GIVING_FORM;
 process.env.SDI_GALA_GIVING_ENABLED = 'true';
 process.env.SDI_REPORT_APPLY_ENABLED = 'true';
