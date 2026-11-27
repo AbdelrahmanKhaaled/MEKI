@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowDown, CalendarDays, Check, Clock, FileText, Flame, Gavel, GlassWater, Mail, MapPin, Plus, Sparkles, UtensilsCrossed, type LucideIcon } from "lucide-react";
+import { ArrowDown, ArrowUpRight, CalendarDays, Check, Clock, FileText, Flame, Gavel, GlassWater, Mail, MapPin, Plus, Sparkles, UtensilsCrossed, type LucideIcon } from "lucide-react";
 import { media } from "@/content/media";
 import { photoCaption, type VenuePhoto } from "@/lib/venue-photos";
 import type { GalaCms, GalaImage } from "@/lib/gala-cms";
@@ -439,19 +439,35 @@ export function SponsorshipSection({ g, tiers, sponsor, partners = [] }: { g: Ga
           </p>
           {sponsor ? (
             <div data-reveal>
-              {/* Opens the official sponsorship page or packages PDF in a new tab. */}
-              <a
-                href={sponsor.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                {...(sponsor.document ? { type: "application/pdf" } : { referrerPolicy: "no-referrer" })}
-                className="btn btn-gold mt-3 min-h-14 px-8 text-base"
-                data-testid="gala-sponsor-now"
-              >
-                {sponsor.label ?? s.cta}
-                {sponsor.document ? <FileText className="size-4" aria-hidden="true" /> : null}
-                <span className="sr-only">{sponsor.document ? ` — ${s.pdf}` : ` ${s.newTab}`}</span>
-              </a>
+              {/* Side-by-side actions: official Givebutter sponsorship page ("Sponsor now") + Sponsorship Packages PDF. */}
+              <div className="mt-3 flex flex-wrap items-center gap-4">
+                {sponsor.sponsorHref && (
+                  <a
+                    href={sponsor.sponsorHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    referrerPolicy="no-referrer"
+                    className="btn btn-gold min-h-14 px-8 text-base"
+                    data-testid="gala-sponsor-now"
+                  >
+                    {sponsor.label ?? s.cta}
+                    <ArrowUpRight className="size-4 rtl:-scale-x-100" aria-hidden="true" />
+                    <span className="sr-only">{` ${s.newTab}`}</span>
+                  </a>
+                )}
+                <a
+                  href={sponsor.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  {...(sponsor.document ? { type: "application/pdf" } : { referrerPolicy: "no-referrer" })}
+                  className={`btn ${sponsor.sponsorHref ? "btn-outline" : "btn-gold"} min-h-14 px-8 text-base`}
+                  data-testid={sponsor.sponsorHref ? "gala-sponsor-packages" : "gala-sponsor-now"}
+                >
+                  {sponsor.sponsorHref ? s.packagesCta : (sponsor.label ?? s.cta)}
+                  {sponsor.document ? <FileText className="size-4" aria-hidden="true" /> : null}
+                  <span className="sr-only">{sponsor.document ? ` — ${s.pdf}` : ` ${s.newTab}`}</span>
+                </a>
+              </div>
               {sponsor.document && <p className="mt-3 max-w-xl text-sm text-body-grey" data-testid="gala-sponsor-note">{s.docNote}</p>}
             </div>
           ) : (

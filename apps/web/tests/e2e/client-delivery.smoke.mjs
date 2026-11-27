@@ -85,6 +85,7 @@ try {
           await photo.scrollIntoViewIfNeeded();
           await photo.evaluate((img) => img.decode());
           assert.equal(await page.getByTestId("gala-sponsor-now").getAttribute("href"), "https://givebutter.com/c/misr-el-kheir-foundation-spring-of-dignity-gala-new-york-sponsors");
+          assert.equal(await page.getByTestId("gala-sponsor-packages").getAttribute("href"), "/gala/sponsorship-packages.pdf");
           assert.equal(await page.getByTestId("gala-partners").count(), 0);
         } else {
           const items = page.locator("#gallery li button");

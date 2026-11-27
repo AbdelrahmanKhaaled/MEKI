@@ -48,8 +48,8 @@ export type GalaDict = {
   venue: { eyebrow: string; title: string; name: string; address: string; mapLabel: string; photos: string };
   /** `contact` is shown only with a contact email published by MEKI (EVENT_CONTACT section or Site settings). */
   attendance: { eyebrow: string; title: string; ticket: string; price: string; rules: string[]; note: string; contact: string; bookNow?: string };
-  /** `cta` appears only with the official sponsorship packages URL published in the EVENT_SPONSORSHIP section. */
-  sponsorship: { eyebrow: string; title: string; body: string; pending: string; previewLabel: string; cta: string; partners: string; newTab: string; pdf: string; docNote: string; contact?: string };
+  /** `cta` opens the sponsorship page; `packagesCta` opens the sponsorship packages PDF alongside it. */
+  sponsorship: { eyebrow: string; title: string; body: string; pending: string; previewLabel: string; cta: string; packagesCta: string; partners: string; newTab: string; pdf: string; docNote: string; contact?: string };
   /** Alt text of the venue logo (venue area only). */
   venueLogoAlt: string;
   /** "Why we gather" photo gallery label (photos only from the published EVENT_ABOUT section). */
@@ -176,7 +176,8 @@ export const galaEn: GalaDict = {
     body: "MEKI welcomes partners who share its commitment to lasting change.",
     pending: "Sponsorship opportunities are being finalized. Details will be shared once they are confirmed.",
     previewLabel: "Development preview · proposed, not validated · not public",
-    cta: "Sponsor now", // [C] item 23 — shown only with the official packages file/page
+    cta: "Sponsor now", // [C] item 23 — official Givebutter sponsorship page
+    packagesCta: "Sponsorship packages", // opens the official Sponsorship Packages PDF alongside Sponsor now
     partners: "Partners",
     newTab: "(opens in a new tab)",
     pdf: "Sponsorship packages, PDF, opens in a new tab",
@@ -338,6 +339,7 @@ export const galaAr: GalaDict = {
     pending: "فرص الرعاية قيد الاستكمال، وستُعلن تفاصيلها بعد تأكيدها.",
     previewLabel: "معاينة للتطوير · مقترح وغير معتمد · غير منشور",
     cta: "كن راعيًا الآن",
+    packagesCta: "باقات الرعاية",
     partners: "الشركاء",
     newTab: "(يفتح في علامة تبويب جديدة)",
     pdf: "باقات الرعاية، ملف PDF، يفتح في علامة تبويب جديدة",

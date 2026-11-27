@@ -33,8 +33,8 @@ export type GalaCms = {
   experience: Record<string, { title?: string; text?: string; image?: GalaImage }>;
   host: { name?: string; line?: string; image?: GalaImage } | null;
   venuePhotos: VenuePhoto[];
-  /** `document`: the packages PDF from the Media Library (section image slot holds the PDF); otherwise an external https page. */
-  sponsorship: { href: string; label?: string; document: boolean } | null;
+  /** `document`: the packages PDF from the Media Library (section image slot holds the PDF); `sponsorHref`: external sponsorship CTA when both exist. */
+  sponsorship: { href: string; label?: string; document: boolean; sponsorHref?: string; packagesHref?: string } | null;
   /** Venue logo (EVENT_VENUE section image), shown only in the venue area. */
   venueLogo: GalaImage | null;
   partners: { name: string; href?: string; image: GalaImage }[];
@@ -83,11 +83,11 @@ export function galaCmsFrom(page: PublicEventPage | null | undefined): GalaCms {
     .map((i) => ({ name: text(i.title), href: typeof i.href === "string" && /^https:\/\//.test(i.href) ? i.href : undefined, image: image(i.media) }))
     .filter((p): p is { name: string; href: string | undefined; image: GalaImage } => !!p.name && !!p.image);
   const spon = sec("EVENT_SPONSORSHIP");
-  // "Sponsor now": an external https sponsorship page (e.g. Givebutter) takes priority; a Media Library PDF is the fallback.
+  // "Sponsor now" + "Sponsorship packages": support both an external https sponsorship URL and a Media Library PDF together.
   const sponLive = spon && spon.provenance !== "DEMO" ? spon : undefined;
   const sponExt = typeof sponLive?.ctaPrimaryHref === "string" && /^https:\/\/[^\s"'<>]+$/.test(sponLive.ctaPrimaryHref) ? sponLive.ctaPrimaryHref : null;
-  const sponDoc = !sponExt && sponLive?.media?.url && SAFE_URL.test(sponLive.media.url) && isPdfUrl(sponLive.media.url) ? sponLive.media.url : null;
-  const sponHref = sponExt ?? sponDoc;
+  const sponDoc = sponLive?.media?.url && SAFE_URL.test(sponLive.media.url) && isPdfUrl(sponLive.media.url) ? sponLive.media.url : null;
+  const sponHref = sponDoc ?? sponExt;
   const venueSec = sec("EVENT_VENUE");
   const venueLogo = venueSec && venueSec.provenance !== "DEMO" ? image(venueSec.media) ?? null : null;
 
@@ -136,7 +136,14 @@ export function galaCmsFrom(page: PublicEventPage | null | undefined): GalaCms {
     experience,
     host,
     venuePhotos: photos(sec("EVENT_VENUE")?.items),
-    sponsorship: sponHref ? { href: sponHref, label: text(spon?.ctaPrimaryLabel), document: !!sponDoc } : null,
+    sponsorship: sponHref
+      ? {
+          href: sponHref,
+          label: text(spon?.ctaPrimaryLabel),
+          document: !!sponDoc,
+          ...(sponDoc && sponExt ? { sponsorHref: sponExt } : {}),
+        }
+      : null,
     venueLogo,
     partners,
     contactEmail: mail ?? null,
